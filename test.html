@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRWE Opgave 2 - Student Config Generator</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            overflow: hidden;
+        }
+        header { 
+            background: #2c3e50; 
+            color: white; 
+            padding: 25px; 
+            text-align: center; 
+        }
+        .config-panel { 
+            background: #ecf0f1; 
+            padding: 20px; 
+            text-align: center; 
+            border-bottom: 2px solid #bdc3c7;
+        }
+        .input-group { 
+            display: inline-flex; 
+            gap: 15px; 
+            align-items: center; 
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .input-group label { 
+            font-weight: 600; 
+            min-width: 60px;
+        }
+        .input-group input { 
+            padding: 8px 12px; 
+            border: 2px solid #ddd; 
+            border-radius: 4px; 
+            font-size: 16px; 
+            width: 80px;
+            text-align: center;
+        }
+        .input-group input:focus { 
+            border-color: #3498db; 
+            outline: none; 
+            box-shadow: 0 0 5px rgba(52,152,219,0.3);
+        }
+        .auto-calc { 
+            background: #d5f4e6; 
+            font-weight: bold; 
+            color: #27ae60;
+        }
+        .generate-btn { 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 12px 25px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 16px;
+        }
+        .generate-btn:hover { background: #2980b9; }
+        .status { 
+            margin-top: 10px; 
+            padding: 10px; 
+            border-radius: 4px; 
+            font-weight: 500;
+        }
+        .status.success { background: #d5f4e6; color: #27ae60; }
+        nav { 
+            background: #34495e; 
+            padding: 12px; 
+            text-align: center;
+        }
+        nav a { 
+            color: white; 
+            text-decoration: none; 
+            padding: 10px 20px; 
+            margin: 0 5px; 
+            border-radius: 20px; 
+            font-weight: 500; 
+            transition: background 0.3s;
+            display: inline-block;
+        }
+        nav a:hover, nav a.active { background: #3498db; }
+        section { padding: 25px; display: none; }
+        section.active { display: block; }
+        .version-title { 
+            background: #ecf0f1; 
+            padding: 20px; 
+            text-align: center; 
+            margin: 20px 0; 
+            border-left: 4px solid #3498db;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        .device-section { 
+            margin: 25px 0; 
+            padding: 20px; 
+            background: #f9f9f9; 
+            border-radius: 6px; 
+            border-left: 4px solid #95a5a6;
+        }
+        h2 { color: #2c3e50; margin-bottom: 15px; font-size: 1.4em; }
+        h3 { color: #34495e; margin: 20px 0 12px 0; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
+        pre { 
+            background: #2c3e50; 
+            color: #ecf0f1; 
+            padding: 18px; 
+            border-radius: 6px; 
+            overflow-x: auto; 
+            font-family: 'Consolas', 'Monaco', monospace; 
+            font-size: 13px; 
+            margin: 12px 0; 
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .gateway-info { 
+            background: #d5f4e6; 
+            border: 1px solid #a8e6cf; 
+            border-radius: 5px; 
+            padding: 15px; 
+            margin: 15px 0; 
+            font-weight: 500;
+        }
+        .note { 
+            background: #fff3cd; 
+            border-left: 4px solid #ffc107; 
+            padding: 12px 15px; 
+            margin: 15px 0; 
+            font-size: 0.95em;
+        }
+        footer { 
+            background: #34495e; 
+            color: white; 
+            text-align: center; 
+            padding: 20px; 
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SRWE Opgave 2 - Config Generator</h1>
+            <p>Voer XXX in → YYY en ZZZ worden automatisch berekend (YYY=XXX+400, ZZZ=XXX+700)</p>
+        </header>
+
+        <div class="config-panel">
+            <div class="input-group">
+                <label>XXX:</label>
+                <input type="number" id="xxx" value="71" min="1" max="599" onchange="autoCalculate()">
+                <label>YYY:</label>
+                <input type="number" id="yyy" class="auto-calc" value="471" readonly>
+                <span style="color:#27ae60; font-weight:bold;">(XXX+400)</span>
+                <br>
+                <label>ZZZ:</label>
+                <input type="number" id="zzz" class="auto-calc" value="771" readonly>
+                <span style="color:#27ae60; font-weight:bold;">(XXX+700)</span>
+                <button class="generate-btn" onclick="generateConfig()">🔄 Genereer Config</button>
+            </div>
+            <div id="status" class="status"></div>
+        </div>
+
+        <nav>
+            <a href="#versie1" class="active" onclick="showVersion('versie1', event)">Versie 1</a>
+            <a href="#versie2" onclick="showVersion('versie2', event)">Versie 2</a>
+            <a href="#versie3" onclick="showVersion('versie3', event)">Versie 3</a>
+        </nav>
+
+        <section id="versie1" class="active">
+            <div class="version-title" id="v1-title">
+                Versie 1: RXXX routing - PAgP wint STP (LW3_v1.pkt)
+            </div>
+
+            <div class="gateway-info" id="v1-gateways">
+                Gateways: PCXXX → 10.2.XXX.254 | SE255 → 10.2.255.254 | SWXXX → 10.3.XXX.254
+            </div>
+
+            <div class="device-section">
+                <h3>RXXX Router</h3>
+                <pre id="r1-config">conf t
+hostname RXXX
+... (klik Genereer voor volledige config)
+</pre>
+            </div>
+
+            <div class="device-section">
+                <h3>SWXXX (2960)</h3>
+                <pre id="swxxx1-config">conf t
+hostname SWXXX
+... (klik Genereer voor volledige config)
+</pre>
+            </div>
+
+            <div class="device-section">
+                <h3>SW255 (3560)</h3>
+                <pre id="sw2551-config">conf t
+hostname SW255
+... (klik Genereer voor volledige config)
+</pre>
+            </div>
+
+            <div class="note">
+                STP: Port-channel 1 (PAgP Fa0/21-22) moet forwarding zijn
+            </div>
+        </section>
+
+        <section id="versie2">
+            <div class="version-title">
+                Versie 2: RXXX routing - LACP wint STP (LW3_v2.pkt)
+            </div>
+
+            <div class="gateway-info" id="v2-gateways">
+                Gateways: Zelfde als versie 1
+            </div>
+
+            <div class="device-section">
+                <h3>STP aanpassing voor LACP</h3>
+                <pre id="stp-v2-config">SWXXX:
+conf t
+interface port-channel 1
+spanning-tree cost 100
+interface port-channel 2
+spanning-tree cost 10
+end
+wr
+
+SW255:
+conf t
+interface port-channel 1
+spanning-tree cost 10
+interface port-channel 2
+spanning-tree cost 100
+end
+wr</pre>
+            </div>
+        </section>
+
+        <section id="versie3">
+            <div class="version-title">
+                Versie 3: SW255 routing (LW3_v3.pkt)
+            </div>
+
+            <div class="gateway-info" id="v3-gateways">
+                PCXXX → 10.2.XXX.254 (SW255 SVI YYY) | SWXXX → 10.3.XXX.254 (SW255 SVI ZZZ)
+            </div>
+
+            <div class="device-section">
+                <h3>SW255 - Routing activeren</h3>
+                <pre id="sw2553-config">conf t
+ip routing
+interface vlan YYY
+ip address 10.2.XXX.254 255.255.255.0
+no shutdown
+interface vlan ZZZ
+ip address 10.3.XXX.254 255.255.255.0
+no shutdown
+interface vlan 255
+ip address 10.2.255.254 255.255.255.0
+no shutdown
+no ip default-gateway
+end
+wr</pre>
+            </div>
+
+            <div class="device-section">
+                <h3>PCXXX Desktop</h3>
+                <pre id="pcxxx-v3">IP: 10.2.XXX.1
+Subnet: 255.255.255.0
+Gateway: 10.2.XXX.254
+DNS: 10.2.XXX.254</pre>
+            </div>
+        </section>
+
+        <footer>
+            <p>Auto-calculatie: YYY = XXX + 400 | ZZZ = XXX + 700</p>
+        </footer>
+    </div>
+
+    <script>
+        let currentXXX = '071', currentYYY = '471', currentZZZ = '771';
+
+        function padNumber(num) {
+            return num.toString().padStart(3, '0');
+        }
+
+        function autoCalculate() {
+            const xxx = parseInt(document.getElementById('xxx').value) || 0;
+            const yyy = padNumber(xxx + 400);
+            const zzz = padNumber(xxx + 700);
+            
+            document.getElementById('yyy').value = yyy;
+            document.getElementById('zzz').value = zzz;
+            
+            currentXXX = padNumber(xxx);
+            currentYYY = yyy;
+            currentZZZ = zzz;
+            
+            updateAllPlaceholders();
+        }
+
+        function generateConfig() {
+            const xxxInput = document.getElementById('xxx').value;
+            autoCalculate(); // Zorgt voor auto YYY/ZZZ
+            
+            showStatus(`Config gegenereerd voor XXX=${currentXXX}, YYY=${currentYYY}, ZZZ=${currentZZZ}`, 'success');
+        }
+
+        function updateAllPlaceholders() {
+            // Titles
+            document.getElementById('v1-title').innerHTML = 
+                `Versie 1: R${currentXXX} routing - PAgP wint STP (LW3_v1.pkt)`;
+
+            // Gateways v1
+            document.getElementById('v1-gateways').innerHTML = 
+                `Gateways: PC${currentXXX} → 10.2.${currentXXX}.254 | SE255 → 10.2.255.254 | SW${currentXXX} → 10.3.${currentXXX}.254`;
+
+            // R config
+            document.getElementById('r1-config').textContent = `conf t
+hostname R${currentXXX}
+no ip domain-lookup
+ip domain-name digital-net.net
+username cisco privilege 15 secret cisco
+enable secret class
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 4
+login local
+transport input ssh
+interface gi0/0
+no shutdown
+interface gi0/0.13
+encapsulation dot1Q 13 native
+interface gi0/0.${currentYYY}
+encapsulation dot1Q ${currentYYY}
+ip address 10.2.${currentXXX}.254 255.255.255.0
+interface gi0/0.${currentZZZ}
+encapsulation dot1Q ${currentZZZ}
+ip address 10.3.${currentXXX}.254 255.255.255.0
+interface gi0/0.255
+encapsulation dot1Q 255
+ip address 10.2.255.254 255.255.255.0
+end
+wr`;
+
+            // SWXXX config
+            document.getElementById('swxxx1-config').textContent = `conf t
+hostname SW${currentXXX}
+no ip domain-lookup
+ip domain-name digital-net.net
+username cisco privilege 15 secret cisco
+enable secret class
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 4
+login local
+transport input ssh
+vlan ${currentYYY}
+vlan ${currentZZZ}
+interface fa0/1
+switchport mode access
+switchport access vlan ${currentYYY}
+spanning-tree portfast
+spanning-tree bpduguard enable
+interface gi0/1
+switchport mode trunk
+switchport trunk native vlan 13
+interface range fa0/21-22
+switchport mode trunk
+switchport trunk native vlan 13
+channel-group 1 mode desirable
+interface range fa0/23-24
+switchport mode trunk
+switchport trunk native vlan 13
+channel-group 2 mode active
+interface port-channel 1
+switchport mode trunk
+switchport trunk native vlan 13
+interface port-channel 2
+switchport mode trunk
+switchport trunk native vlan 13
+interface vlan ${currentZZZ}
+ip address 10.3.${currentXXX}.248 255.255.255.0
+no shutdown
+ip default-gateway 10.3.${currentXXX}.254
+end
+wr`;
+
+            // SW255 config
+            document.getElementById('sw2551-config').textContent = `conf t
+hostname SW255
+no ip domain-lookup
+ip domain-name digital-net.net
+username cisco privilege 15 secret cisco
+enable secret class
+crypto key generate rsa modulus 2048
+ip ssh version 2
+line vty 0 4
+login local
+transport input ssh
+vlan 255
+interface fa0/1
+switchport mode access
+switchport access vlan 255
+spanning-tree portfast
+spanning-tree bpduguard enable
+interface range fa0/21-22
+switchport mode trunk
+switchport trunk native vlan 13
+channel-group 1 mode desirable
+interface range fa0/23-24
+switchport mode trunk
+switchport trunk native vlan 13
+channel-group 2 mode active
+interface port-channel 1
+switchport mode trunk
+switchport trunk native vlan 13
+interface port-channel 2
+switchport mode trunk
+switchport trunk native vlan 13
+interface vlan 255
+ip address 10.2.255.248 255.255.255.0
+no shutdown
+ip default-gateway 10.2.255.254
+end
+wr`;
+
+            // Versie 3
+            document.getElementById('v3-gateways').innerHTML = 
+                `PC${currentXXX} → 10.2.${currentXXX}.254 (SW255 SVI ${currentYYY}) | SW${currentXXX} → 10.3.${currentXXX}.254 (SW255 SVI ${currentZZZ})`;
+
+            document.getElementById('sw2553-config').textContent = `conf t
+ip routing
+interface vlan ${currentYYY}
+ip address 10.2.${currentXXX}.254 255.255.255.0
+no shutdown
+interface vlan ${currentZZZ}
+ip address 10.3.${currentXXX}.254 255.255.255.0
+no shutdown
+interface vlan 255
+ip address 10.2.255.254 255.255.255.0
+no shutdown
+no ip default-gateway
+end
+wr`;
+
+            document.getElementById('pcxxx-v3').textContent = `IP: 10.2.${currentXXX}.1
+Subnet: 255.255.255.0
+Gateway: 10.2.${currentXXX}.254
+DNS: 10.2.${currentXXX}.254`;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function showVersion(version, event) {
+            event.preventDefault();
+            document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+            document.getElementById(version).classList.add('active');
+        }
+
+        // Initial load
+        autoCalculate();
+    </script>
+</body>
+</html>
