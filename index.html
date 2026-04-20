@@ -161,16 +161,16 @@
 
         <div class="config-panel">
             <div class="input-group">
-                <label>XXX:</label>
+                abel>XXX:</label>
                 <input type="number" id="xxx" value="71" min="1" max="599" onchange="autoCalculate()">
-                <label>YYY:</label>
+                abel>YYY:</label>
                 <input type="number" id="yyy" class="auto-calc" value="471" readonly>
                 <span style="color:#27ae60; font-weight:bold;">(XXX+400)</span>
                 <br>
-                <label>ZZZ:</label>
+                abel>ZZZ:</label>
                 <input type="number" id="zzz" class="auto-calc" value="771" readonly>
                 <span style="color:#27ae60; font-weight:bold;">(XXX+700)</span>
-                <button class="generate-btn" onclick="generateConfig()">🔄 Genereer Config</button>
+                <button class="generate-btn" onclick="generateConfig()">Genereer Config</button>
             </div>
             <div id="status" class="status"></div>
         </div>
@@ -181,6 +181,7 @@
             <a href="#versie3" onclick="showVersion('versie3', event)">Versie 3</a>
         </nav>
 
+        <!-- VERSIE 1 -->
         <section id="versie1" class="active">
             <div class="version-title" id="v1-title">
                 Versie 1: RXXX routing - PAgP wint STP (LW3_v1.pkt)
@@ -191,34 +192,296 @@
             </div>
 
             <div class="device-section">
-                <h3>RXXX Router</h3>
-                <pre id="r1-config">conf t
+                <h3>RXXX Router - BASIS CONFIG</h3>
+                <pre id="r1-config">// BASIS CONFIG //
+
+en
+conf t
 hostname RXXX
-... (klik Genereer voor volledige config)
+ip domain-name digital-net.net
+ip name-server 10.1.255.254
+no ip domain-lookup
+crypto key generate rsa
+2048
+ip ssh version 2
+username cisco privilege 15 secret cisco
+enable secret class
+banner motd !Dit is router XXX van XXX!
+line vty 0 15
+login local
+transport input ssh
+exit
+
+// INTERFACES //
+
+int g0/0/0
+no ip address
+no shut
+exit
+
+int g0/0/0.13
+encapsulation dot1q 13 native
+no ip address
+exit
+
+int g0/0/0.YYY
+encapsulation dot1q YYY
+ip address 10.2.XXX.254 255.255.255.0
+exit
+
+int g0/0/0.ZZZ
+encapsulation dot1q ZZZ
+ip address 10.3.XXX.254 255.255.255.0
+exit
+
+int g0/0/0.255
+encapsulation dot1q 255
+ip address 10.2.255.254 255.255.255.0
+exit
+end
+
+// OPSLAAN //
+wr
+show run
 </pre>
             </div>
 
             <div class="device-section">
-                <h3>SWXXX (2960)</h3>
-                <pre id="swxxx1-config">conf t
+                <h3>SWXXX (2960) - BASIS CONFIG</h3>
+                <pre id="swxxx1-config">// BASIS CONFIG //
+
+en
+conf t
 hostname SWXXX
-... (klik Genereer voor volledige config)
+ip domain-name digital-net.net
+ip name-server 10.1.255.254
+no ip domain-lookup
+crypto key generate rsa
+2048
+ip ssh version 2
+username cisco privilege 15 secret cisco
+enable secret class
+banner motd !Dit is switch XXX van XXX!
+line vty 0 15
+login local
+transport input ssh
+exit
+
+// VLANs aanmaken //
+
+vtp mode transparent
+vlan 13
+name NativeVlan13
+exit
+
+vlan 255
+name SWVlan255
+no shut
+exit
+
+vlan YYY
+name PCVlanYYY
+no shut
+exit
+
+vlan ZZZ
+name SWVlanZZZ
+no shut
+exit
+
+// ACCESS POORT PC //
+
+int fa0/1
+switchport mode access
+switchport access vlan YYY
+spanning-tree portfast
+spanning-tree bpduguard enable
+no shut
+exit
+
+// TRUNK NAAR ROUTER //
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+exit
+
+// SVI INSTELLEN //
+
+int vlan ZZZ
+ip address 10.3.XXX.248 255.255.255.0
+no shut
+exit
+
+int vlan 1
+shut
+exit
+
+ip default-gateway 10.2.XXX.254
+end
+
+// PAGP CONFIG //
+
+int port-channel 1
+description PAgP trunk
+exit
+
+int range fa0/21-22
+channel-group 1 mode desirable
+exit
+
+int port-channel 1
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+exit
+
+// LACP CONFIG //
+
+int port-channel 2
+description LACP trunk
+exit
+
+int range fa0/23-24
+channel-group 2 mode active
+exit
+
+int port-channel 2
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+end
+
+// OPSLAAN //
+wr
+show run
 </pre>
             </div>
 
             <div class="device-section">
-                <h3>SW255 (3560)</h3>
-                <pre id="sw2551-config">conf t
+                <h3>SW255 (3560) - BASIS CONFIG</h3>
+                <pre id="sw2551-config">// BASIS CONFIG //
+
+en
+conf t
 hostname SW255
-... (klik Genereer voor volledige config)
+ip domain-name digital-net.net
+ip name-server 10.1.255.254
+no ip domain-lookup
+crypto key generate rsa
+2048
+ip ssh version 2
+username cisco privilege 15 secret cisco
+enable secret class
+banner motd !Dit is switch 255 van XXX!
+line vty 0 15
+login local
+transport input ssh
+exit
+
+// VLANs aanmaken //
+
+vtp mode transparent
+vlan 13
+name NativeVlan13
+exit
+
+vlan 255
+name SWVlan255
+no shut
+exit
+
+vlan YYY
+name PCVlanYYY
+no shut
+exit
+
+vlan ZZZ
+name SWVlanZZZ
+no shut
+exit
+
+// ACCESS POORT SERVER //
+
+int fa0/1
+switchport mode access
+switchport access vlan 255
+spanning-tree portfast
+spanning-tree bpduguard enable
+no shut
+exit
+
+// SVI INSTELLEN //
+
+int vlan 255
+ip address 10.2.255.248 255.255.255.0
+no shut
+exit
+
+int vlan 1
+shut
+exit
+
+ip default-gateway 10.2.255.254
+end
+
+// PAGP CONFIG //
+
+int port-channel 1
+description PAgP trunk
+exit
+
+int range fa0/21-22
+channel-group 1 mode desirable
+exit
+
+int port-channel 1
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+exit
+
+// LACP CONFIG //
+
+int port-channel 2
+description LACP trunk
+exit
+
+int range fa0/23-24
+channel-group 2 mode active
+exit
+
+int port-channel 2
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+end
+
+// OPSLAAN //
+wr
+show run
 </pre>
             </div>
 
             <div class="note">
-                STP: Port-channel 1 (PAgP Fa0/21-22) moet forwarding zijn
+                PAgP/LACP: zorg dat in Versie 1 de juiste EtherChannel de STP‑winnaar wordt (kosten aanpassen in Versie 2).
             </div>
         </section>
 
+        <!-- VERSIE 2: alleen STP-aanpassing -->
         <section id="versie2">
             <div class="version-title">
                 Versie 2: RXXX routing - LACP wint STP (LW3_v2.pkt)
@@ -229,7 +492,7 @@ hostname SW255
             </div>
 
             <div class="device-section">
-                <h3>STP aanpassing voor LACP</h3>
+                <h3>STP-aanpassing voor LACP</h3>
                 <pre id="stp-v2-config">SWXXX:
 conf t
 interface port-channel 1
@@ -246,10 +509,12 @@ spanning-tree cost 10
 interface port-channel 2
 spanning-tree cost 100
 end
-wr</pre>
+wr
+</pre>
             </div>
         </section>
 
+        <!-- VERSIE 3: SW255 routing + PC + SERVER -->
         <section id="versie3">
             <div class="version-title">
                 Versie 3: SW255 routing (LW3_v3.pkt)
@@ -260,7 +525,7 @@ wr</pre>
             </div>
 
             <div class="device-section">
-                <h3>SW255 - Routing activeren</h3>
+                <h3>SW255 - Routing activeren + SVI's</h3>
                 <pre id="sw2553-config">conf t
 ip routing
 interface vlan YYY
@@ -274,15 +539,42 @@ ip address 10.2.255.254 255.255.255.0
 no shutdown
 no ip default-gateway
 end
-wr</pre>
+wr
+</pre>
             </div>
 
             <div class="device-section">
-                <h3>PCXXX Desktop</h3>
-                <pre id="pcxxx-v3">IP: 10.2.XXX.1
-Subnet: 255.255.255.0
-Gateway: 10.2.XXX.254
-DNS: 10.2.XXX.254</pre>
+                <h3>PCXXX Desktop - IP CONFIG</h3>
+                <pre id="pcxxx-v3">// PC IP CONFIG //
+
+10.2.XXX.1
+255.255.255.0
+10.2.XXX.254
+10.1.255.254
+
+// testen of je kan bereiken //
+
+ipconfig
+
+ping 10.2.XXX.254
+
+ping 10.2.255.254
+
+ping 10.3.XXX.254
+
+ping 10.3.XXX.248
+</pre>
+            </div>
+
+            <div class="device-section">
+                <h3>SERVER - IP CONFIG</h3>
+                <pre id="server-config">// SERVER zoals PC IP CONFIG //
+
+10.2.255.201
+255.255.255.0
+10.2.255.254
+10.1.255.254
+</pre>
             </div>
         </section>
 
@@ -314,142 +606,313 @@ DNS: 10.2.XXX.254</pre>
         }
 
         function generateConfig() {
-            const xxxInput = document.getElementById('xxx').value;
-            autoCalculate(); // Zorgt voor auto YYY/ZZZ
-            
+            autoCalculate();
             showStatus(`Config gegenereerd voor XXX=${currentXXX}, YYY=${currentYYY}, ZZZ=${currentZZZ}`, 'success');
         }
 
+        function replacePlaceholders(template) {
+            return template
+                .replace(/RXXX/g, 'R' + currentXXX)
+                .replace(/SWXXX/g, 'SW' + currentXXX)
+                .replace(/PCXXX/g, 'PC' + currentXXX)
+                .replace(/XXX/g, currentXXX)
+                .replace(/YYY/g, currentYYY)
+                .replace(/ZZZ/g, currentZZZ);
+        }
+
         function updateAllPlaceholders() {
-            // Titles
+            // Titel & gateways versie 1
             document.getElementById('v1-title').innerHTML = 
                 `Versie 1: R${currentXXX} routing - PAgP wint STP (LW3_v1.pkt)`;
 
-            // Gateways v1
             document.getElementById('v1-gateways').innerHTML = 
                 `Gateways: PC${currentXXX} → 10.2.${currentXXX}.254 | SE255 → 10.2.255.254 | SW${currentXXX} → 10.3.${currentXXX}.254`;
 
-            // R config
-            document.getElementById('r1-config').textContent = `conf t
-hostname R${currentXXX}
-no ip domain-lookup
-ip domain-name digital-net.net
-username cisco privilege 15 secret cisco
-enable secret class
-crypto key generate rsa modulus 2048
-ip ssh version 2
-line vty 0 4
-login local
-transport input ssh
-interface gi0/0
-no shutdown
-interface gi0/0.13
-encapsulation dot1Q 13 native
-interface gi0/0.${currentYYY}
-encapsulation dot1Q ${currentYYY}
-ip address 10.2.${currentXXX}.254 255.255.255.0
-interface gi0/0.${currentZZZ}
-encapsulation dot1Q ${currentZZZ}
-ip address 10.3.${currentXXX}.254 255.255.255.0
-interface gi0/0.255
-encapsulation dot1Q 255
-ip address 10.2.255.254 255.255.255.0
-end
-wr`;
+            // Gateways versie 3
+            document.getElementById('v3-gateways').innerHTML = 
+                `PC${currentXXX} → 10.2.${currentXXX}.254 (SW255 SVI ${currentYYY}) | SW${currentXXX} → 10.3.${currentXXX}.254 (SW255 SVI ${currentZZZ})`;
 
-            // SWXXX config
-            document.getElementById('swxxx1-config').textContent = `conf t
-hostname SW${currentXXX}
-no ip domain-lookup
+            // Template strings opnieuw genereren en vervangen
+            const rTemplate = `// BASIS CONFIG //
+
+en
+conf t
+hostname RXXX
 ip domain-name digital-net.net
+ip name-server 10.1.255.254
+no ip domain-lookup
+crypto key generate rsa
+2048
+ip ssh version 2
 username cisco privilege 15 secret cisco
 enable secret class
-crypto key generate rsa modulus 2048
-ip ssh version 2
-line vty 0 4
+banner motd !Dit is router XXX van XXX!
+line vty 0 15
 login local
 transport input ssh
-vlan ${currentYYY}
-vlan ${currentZZZ}
-interface fa0/1
+exit
+
+// INTERFACES //
+
+int g0/0/0
+no ip address
+no shut
+exit
+
+int g0/0/0.13
+encapsulation dot1q 13 native
+no ip address
+exit
+
+int g0/0/0.YYY
+encapsulation dot1q YYY
+ip address 10.2.XXX.254 255.255.255.0
+exit
+
+int g0/0/0.ZZZ
+encapsulation dot1q ZZZ
+ip address 10.3.XXX.254 255.255.255.0
+exit
+
+int g0/0/0.255
+encapsulation dot1q 255
+ip address 10.2.255.254 255.255.255.0
+exit
+end
+
+// OPSLAAN //
+wr
+show run`;
+
+            const swxxxTemplate = `// BASIS CONFIG //
+
+en
+conf t
+hostname SWXXX
+ip domain-name digital-net.net
+ip name-server 10.1.255.254
+no ip domain-lookup
+crypto key generate rsa
+2048
+ip ssh version 2
+username cisco privilege 15 secret cisco
+enable secret class
+banner motd !Dit is switch XXX van XXX!
+line vty 0 15
+login local
+transport input ssh
+exit
+
+// VLANs aanmaken //
+
+vtp mode transparent
+vlan 13
+name NativeVlan13
+exit
+
+vlan 255
+name SWVlan255
+no shut
+exit
+
+vlan YYY
+name PCVlanYYY
+no shut
+exit
+
+vlan ZZZ
+name SWVlanZZZ
+no shut
+exit
+
+// ACCESS POORT PC //
+
+int fa0/1
 switchport mode access
-switchport access vlan ${currentYYY}
+switchport access vlan YYY
 spanning-tree portfast
 spanning-tree bpduguard enable
-interface gi0/1
-switchport mode trunk
-switchport trunk native vlan 13
-interface range fa0/21-22
-switchport mode trunk
-switchport trunk native vlan 13
-channel-group 1 mode desirable
-interface range fa0/23-24
-switchport mode trunk
-switchport trunk native vlan 13
-channel-group 2 mode active
-interface port-channel 1
-switchport mode trunk
-switchport trunk native vlan 13
-interface port-channel 2
-switchport mode trunk
-switchport trunk native vlan 13
-interface vlan ${currentZZZ}
-ip address 10.3.${currentXXX}.248 255.255.255.0
-no shutdown
-ip default-gateway 10.3.${currentXXX}.254
-end
-wr`;
+no shut
+exit
 
-            // SW255 config
-            document.getElementById('sw2551-config').textContent = `conf t
+// TRUNK NAAR ROUTER //
+
+int g0/1
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+exit
+
+// SVI INSTELLEN //
+
+int vlan ZZZ
+ip address 10.3.XXX.248 255.255.255.0
+no shut
+exit
+
+int vlan 1
+shut
+exit
+
+ip default-gateway 10.2.XXX.254
+end
+
+// PAGP CONFIG //
+
+int port-channel 1
+description PAgP trunk
+exit
+
+int range fa0/21-22
+channel-group 1 mode desirable
+exit
+
+int port-channel 1
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+exit
+
+// LACP CONFIG //
+
+int port-channel 2
+description LACP trunk
+exit
+
+int range fa0/23-24
+channel-group 2 mode active
+exit
+
+int port-channel 2
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+end
+
+// OPSLAAN //
+wr
+show run`;
+
+            const sw255Template = `// BASIS CONFIG //
+
+en
+conf t
 hostname SW255
-no ip domain-lookup
 ip domain-name digital-net.net
+ip name-server 10.1.255.254
+no ip domain-lookup
+crypto key generate rsa
+2048
+ip ssh version 2
 username cisco privilege 15 secret cisco
 enable secret class
-crypto key generate rsa modulus 2048
-ip ssh version 2
-line vty 0 4
+banner motd !Dit is switch 255 van XXX!
+line vty 0 15
 login local
 transport input ssh
+exit
+
+// VLANs aanmaken //
+
+vtp mode transparent
+vlan 13
+name NativeVlan13
+exit
+
 vlan 255
-interface fa0/1
+name SWVlan255
+no shut
+exit
+
+vlan YYY
+name PCVlanYYY
+no shut
+exit
+
+vlan ZZZ
+name SWVlanZZZ
+no shut
+exit
+
+// ACCESS POORT SERVER //
+
+int fa0/1
 switchport mode access
 switchport access vlan 255
 spanning-tree portfast
 spanning-tree bpduguard enable
-interface range fa0/21-22
-switchport mode trunk
-switchport trunk native vlan 13
-channel-group 1 mode desirable
-interface range fa0/23-24
-switchport mode trunk
-switchport trunk native vlan 13
-channel-group 2 mode active
-interface port-channel 1
-switchport mode trunk
-switchport trunk native vlan 13
-interface port-channel 2
-switchport mode trunk
-switchport trunk native vlan 13
-interface vlan 255
+no shut
+exit
+
+// SVI INSTELLEN //
+
+int vlan 255
 ip address 10.2.255.248 255.255.255.0
-no shutdown
+no shut
+exit
+
+int vlan 1
+shut
+exit
+
 ip default-gateway 10.2.255.254
 end
-wr`;
 
-            // Versie 3
-            document.getElementById('v3-gateways').innerHTML = 
-                `PC${currentXXX} → 10.2.${currentXXX}.254 (SW255 SVI ${currentYYY}) | SW${currentXXX} → 10.3.${currentXXX}.254 (SW255 SVI ${currentZZZ})`;
+// PAGP CONFIG //
 
-            document.getElementById('sw2553-config').textContent = `conf t
+int port-channel 1
+description PAgP trunk
+exit
+
+int range fa0/21-22
+channel-group 1 mode desirable
+exit
+
+int port-channel 1
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+exit
+
+// LACP CONFIG //
+
+int port-channel 2
+description LACP trunk
+exit
+
+int range fa0/23-24
+channel-group 2 mode active
+exit
+
+int port-channel 2
+switchport trunk encapsulation dot1q
+switchport mode trunk
+switchport trunk native vlan 13
+switchport trunk allowed vlan 13,YYY,ZZZ,255
+switchport access vlan 13
+no shut
+end
+
+// OPSLAAN //
+wr
+show run`;
+
+            const sw255RoutingTemplate = `conf t
 ip routing
-interface vlan ${currentYYY}
-ip address 10.2.${currentXXX}.254 255.255.255.0
+interface vlan YYY
+ip address 10.2.XXX.254 255.255.255.0
 no shutdown
-interface vlan ${currentZZZ}
-ip address 10.3.${currentXXX}.254 255.255.255.0
+interface vlan ZZZ
+ip address 10.3.XXX.254 255.255.255.0
 no shutdown
 interface vlan 255
 ip address 10.2.255.254 255.255.255.0
@@ -458,10 +921,38 @@ no ip default-gateway
 end
 wr`;
 
-            document.getElementById('pcxxx-v3').textContent = `IP: 10.2.${currentXXX}.1
-Subnet: 255.255.255.0
-Gateway: 10.2.${currentXXX}.254
-DNS: 10.2.${currentXXX}.254`;
+            const pcTemplate = `// PC IP CONFIG //
+
+10.2.XXX.1
+255.255.255.0
+10.2.XXX.254
+10.1.255.254
+
+// testen of je kan bereiken //
+
+ipconfig
+
+ping 10.2.XXX.254
+
+ping 10.2.255.254
+
+ping 10.3.XXX.254
+
+ping 10.3.XXX.248`;
+
+            const serverTemplate = `// SERVER zoals PC IP CONFIG //
+
+10.2.255.201
+255.255.255.0
+10.2.255.254
+10.1.255.254`;
+
+            document.getElementById('r1-config').textContent = replacePlaceholders(rTemplate);
+            document.getElementById('swxxx1-config').textContent = replacePlaceholders(swxxxTemplate);
+            document.getElementById('sw2551-config').textContent = replacePlaceholders(sw255Template);
+            document.getElementById('sw2553-config').textContent = replacePlaceholders(sw255RoutingTemplate);
+            document.getElementById('pcxxx-v3').textContent = replacePlaceholders(pcTemplate);
+            document.getElementById('server-config').textContent = replacePlaceholders(serverTemplate);
         }
 
         function showStatus(message, type) {
