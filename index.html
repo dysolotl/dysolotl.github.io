@@ -475,6 +475,36 @@ wr
 show run
 </pre>
             </div>
+            <!-- ===== VERSIE 1 - PAAGP WINNEN BLOK ===== -->
+<div class="device-section">
+    <h3>PAgP wint STP (Versie 1)</h3>
+    <div class="note">
+        In Versie 1 laat je PAgP (port‑channel 1) winnen door de PAgP‑bundle een <strong>lagere STP‑kost</strong> te geven dan LACP (port‑channel 2).
+    </div>
+
+    <pre>SWXXX:
+conf t
+interface port-channel 1
+ spanning-tree cost 10
+interface port-channel 2
+ spanning-tree cost 100
+end
+wr
+
+SW255:
+conf t
+interface port-channel 1
+ spanning-tree cost 10
+interface port-channel 2
+ spanning-tree cost 100
+end
+wr
+</pre>
+
+    <div class="note">
+        Zo kiest STP automatisch PAgP (port‑channel 1) als forwarding‑pad, omdat de kost 10 lager is dan 100.
+    </div>
+</div>
 
             <div class="note">
                 PAgP/LACP: zorg dat in Versie 1 de juiste EtherChannel de STP‑winnaar wordt (kosten aanpassen in Versie 2).
