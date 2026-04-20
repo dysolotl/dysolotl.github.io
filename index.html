@@ -276,17 +276,14 @@ exit
 
 vlan 255
 name SWVlan255
-no shut
 exit
 
 vlan YYY
 name PCVlanYYY
-no shut
 exit
 
 vlan ZZZ
 name SWVlanZZZ
-no shut
 exit
 
 // ACCESS POORT PC //
@@ -395,17 +392,14 @@ exit
 
 vlan 255
 name SWVlan255
-no shut
 exit
 
 vlan YYY
 name PCVlanYYY
-no shut
 exit
 
 vlan ZZZ
 name SWVlanZZZ
-no shut
 exit
 
 // ACCESS POORT SERVER //
@@ -535,9 +529,9 @@ wr
 SW255:
 conf t
 interface port-channel 1
-spanning-tree cost 10
-interface port-channel 2
 spanning-tree cost 100
+interface port-channel 2
+spanning-tree cost 10
 end
 wr
 </pre>
@@ -742,17 +736,14 @@ exit
 
 vlan 255
 name SWVlan255
-no shut
 exit
 
 vlan YYY
 name PCVlanYYY
-no shut
 exit
 
 vlan ZZZ
 name SWVlanZZZ
-no shut
 exit
 
 // ACCESS POORT PC //
@@ -857,17 +848,14 @@ exit
 
 vlan 255
 name SWVlan255
-no shut
 exit
 
 vlan YYY
 name PCVlanYYY
-no shut
 exit
 
 vlan ZZZ
 name SWVlanZZZ
-no shut
 exit
 
 // ACCESS POORT SERVER //
