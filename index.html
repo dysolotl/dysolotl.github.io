@@ -2,6 +2,7 @@
 <html lang="nl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Value Proposition Canvas - PermaFungi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
 <style>
 :root{--bg:#e4e4e2;--panel:#fff;--ink:#111;--soft:#555;--line:#111;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1b;--panel:#272725;--ink:#ecebe6;--soft:#aaa9a2;--line:#ecebe6}}
@@ -10,85 +11,87 @@
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Helvetica Neue",Arial,sans-serif;padding:20px}
 h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
 .hint{color:var(--soft);font-size:14px;margin:0 0 20px}
-.wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:28px;max-width:1200px}
-.head{background:var(--panel);padding:8px 10px;min-height:52px;margin-bottom:20px;font-size:13px}
-.head b{font-weight:400;color:var(--soft);display:block;font-size:12px}
-.head span{font-size:16px;display:block;margin-top:2px}
-.board{position:relative;width:100%;max-width:560px;aspect-ratio:1;margin:0 auto}
+.wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:28px;max-width:1360px}
+.head{display:flex;align-items:center;gap:12px;background:var(--panel);padding:8px 10px;min-height:64px;margin-bottom:20px;font-size:13px;font-style:italic;color:var(--soft)}
+.note,.head span{font-family:"Gochi Hand","Comic Sans MS",cursive;color:#111;text-transform:uppercase}
+.head span{background:#ffb85c;border:1.5px solid #222;padding:6px 10px;font-size:14px;font-style:normal;outline:none;flex:1;max-width:280px;text-align:center;box-shadow:1px 2px 0 rgba(0,0,0,.25)}
+.board{position:relative;width:100%;max-width:640px;aspect-ratio:1;margin:0 auto}
 .board svg{position:absolute;inset:0;width:100%;height:100%}
 .sq{background:var(--panel);border:3px solid var(--line)}
 .circ{background:var(--panel);border:3px solid var(--line);border-radius:50%}
 .zone{position:absolute;display:flex;flex-direction:column;overflow:hidden}
-.zone h2{font-size:13px;font-weight:500;margin:0 0 3px;text-align:center}
-.zone ul{list-style:none;margin:0;padding:0;overflow:auto;flex:1;min-height:0}
-.zone li{display:flex;gap:4px;font-size:11.5px;line-height:1.3;margin-bottom:3px;align-items:flex-start}
-.zone li::before{content:"•";color:var(--soft)}
-.zone li span{flex:1;outline:none;border-radius:2px;padding:0 2px}
-.zone li span:focus,.head span:focus{background:rgba(120,120,120,.2)}
-.zone li button{border:0;background:none;color:var(--soft);cursor:pointer;font-size:14px;line-height:1;padding:0 2px;opacity:.5}
-.zone li button:hover,.zone li button:focus-visible{opacity:1;color:#c0392b}
-.add{border:1px dashed var(--soft);background:none;color:var(--soft);font-size:11px;padding:2px 6px;cursor:pointer;margin:2px auto 0;border-radius:3px}
-.add:hover,.add:focus-visible{color:var(--ink);border-color:var(--ink)}
+.zone h2{font-size:13px;font-weight:400;color:var(--soft);margin:0 0 3px;text-align:center}
+.notes{list-style:none;margin:0;padding:2px;overflow:auto;flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+.note{position:relative;flex:1 1 74px;max-width:112px;min-height:54px;background:var(--n);border:1.5px solid #222;box-shadow:1px 2px 0 rgba(0,0,0,.25);padding:5px 6px;font-size:11.5px;line-height:1.15;text-align:center;display:flex;align-items:center;justify-content:center}
+.note span{outline:none;display:block;width:100%;word-break:break-word}
+.note span:empty::before{content:"typ hier";opacity:.45}
+.note button{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;border:1px solid #222;background:#fff;color:#a00;font-size:12px;line-height:1;cursor:pointer;padding:0;display:none}
+.note:hover button,.note:focus-within button{display:block}
+.tile{flex:0 0 40px;height:54px;border:1.5px dashed var(--soft);background:none;color:var(--soft);font-size:22px;cursor:pointer;padding:0}
+.tile:hover,.tile:focus-visible{color:var(--ink);border-color:var(--ink)}
+[data-c="y"]{--n:#fde96b}[data-c="g"]{--n:#a8e88a}[data-c="p"]{--n:#f9b4bc}
 .bar{margin-top:22px}
 .bar button{font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer}
-@media (max-width:520px){.zone li{font-size:10px}.zone h2{font-size:11px}}
+@media (max-width:520px){.note{font-size:9.5px;min-height:46px;flex-basis:60px}.zone h2{font-size:11px}}
 </style></head><body>
 <h1>The Value Proposition Canvas</h1>
-<p class="hint">Klik op een tekst om die aan te passen. Gebruik "+ toevoegen" voor een nieuw punt en × om te verwijderen. Wijzigingen blijven bewaard in je browser.</p>
+<p class="hint">Klik op een sticky note om de tekst aan te passen. Druk op Enter voor een nieuwe note, of gebruik de + naast de notes. Met × (bij de muis) verwijder je een note. Wijzigingen blijven bewaard in je browser.</p>
 <div class="wrap">
 <section>
-<div class="head"><b>Value Proposition:</b><span contenteditable="true" data-k="vp"></span></div>
+<div class="head">Value Proposition<span contenteditable="true" data-k="vp"></span></div>
 <div class="board sq">
 <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
 <g stroke="var(--line)" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke"><line x1="0" y1="0" x2="50" y2="50"/><line x1="0" y1="100" x2="50" y2="50"/><line x1="56" y1="50" x2="100" y2="50"/></g>
 <g stroke="var(--line)" stroke-width="1.4" fill="var(--panel)"><rect x="43" y="46" width="14" height="10"/><rect x="45" y="41" width="10" height="5"/></g>
 </svg>
-<div class="zone" style="left:4%;top:33%;width:25%;height:34%" data-l="ps"></div>
-<div class="zone" style="left:42%;top:5%;width:53%;height:38%" data-l="gc"></div>
-<div class="zone" style="left:42%;top:57%;width:53%;height:38%" data-l="pr"></div>
+<div class="zone" data-c="y" data-l="ps" style="left:3%;top:30%;width:27%;height:40%"></div>
+<div class="zone" data-c="g" data-l="gc" style="left:40%;top:4%;width:56%;height:38%"></div>
+<div class="zone" data-c="p" data-l="pr" style="left:40%;top:58%;width:56%;height:38%"></div>
 </div>
 </section>
 <section>
-<div class="head"><b>Customer Segment:</b><span contenteditable="true" data-k="cs"></span></div>
+<div class="head">Customer Segment<span contenteditable="true" data-k="cs"></span></div>
 <div class="board circ">
 <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
 <g stroke="var(--line)" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke"><line x1="0" y1="50" x2="43" y2="50"/><line x1="55" y1="45" x2="90" y2="16"/><line x1="55" y1="55" x2="90" y2="84"/></g>
 <g stroke="var(--line)" stroke-width="1.4" fill="var(--panel)"><circle cx="49" cy="50" r="6"/></g>
 </svg>
-<div class="zone" style="left:18%;top:14%;width:36%;height:30%" data-l="ga"></div>
-<div class="zone" style="left:66%;top:32%;width:27%;height:36%" data-l="jo"></div>
-<div class="zone" style="left:18%;top:56%;width:36%;height:30%" data-l="pa"></div>
+<div class="zone" data-c="g" data-l="ga" style="left:17%;top:12%;width:38%;height:33%"></div>
+<div class="zone" data-c="y" data-l="jo" style="left:66%;top:31%;width:29%;height:38%"></div>
+<div class="zone" data-c="p" data-l="pa" style="left:17%;top:55%;width:38%;height:33%"></div>
 </div>
 </section>
 </div>
 <div class="bar"><button id="reset">Terug naar beginwaarden</button></div>
 <script>
 var T={ps:"Producten en diensten",gc:"Gain creators",pr:"Pain relievers",ga:"Gains",jo:"Customer jobs",pa:"Pains"};
-var D={vp:"Digitaal monitoringssysteem voor de productie",cs:"Personeel: productiemedewerkers in de fabriek in Vorst",
-ps:["Sensoren voor temperatuur en vochtigheid","Dashboard met batchoverzicht","Batchregistratie","Meldingen en rapportage"],
-gc:["Minder mislukte batches en minder afval","Overzicht van alle batches op één scherm","Tijdwinst door minder handmatig werk","Data om de kwaliteit te bewijzen"],
-pr:["Automatische waarschuwingen bij afwijkingen","Minder handmatige controles","Geschiedenis per batch om fouten te vinden","Fouten meteen zien, niet te laat"],
-ga:["Meteen een melding bij een afwijking","Minder handmatige controles en tijdwinst","Minder mislukte batches en minder afval","Duidelijk overzicht op één scherm","Vertrouwen in constante kwaliteit"],
-jo:["Grondstoffen mengen en kweekruimtes voorbereiden","Mycelium laten groeien onder de juiste omstandigheden","Kwaliteit van elke batch bewaken","Batches opvolgen tot ze droog zijn"],
-pa:["Batches mislukken door schimmel of verkeerde temperatuur en vochtigheid","Veel handmatig controleren","Geen overzicht van meetgegevens per batch","Fouten worden te laat gemerkt, hele batch verloren"]};
-var S=JSON.parse(JSON.stringify(D)),KEY="vpc-permafungi";
+var D={vp:"Digitaal monitoringssysteem voor de productie",cs:"Personeel: productiemedewerkers in Vorst",
+ps:["Sensoren temperatuur en vochtigheid","Dashboard met batchoverzicht","Batchregistratie","Meldingen en rapportage"],
+gc:["Minder mislukte batches en afval","Overzicht op één scherm","Tijdwinst","Data om kwaliteit te bewijzen"],
+pr:["Automatische waarschuwingen","Minder handmatige controles","Geschiedenis per batch","Fouten meteen zien"],
+ga:["Meteen een melding bij afwijking","Tijdwinst","Minder mislukte batches","Overzicht op één scherm","Constante kwaliteit"],
+jo:["Grondstoffen mengen","Mycelium laten groeien","Kwaliteit bewaken","Batches opvolgen"],
+pa:["Batches mislukken door schimmel","Veel handmatig controleren","Geen overzicht van data","Fouten te laat gemerkt"]};
+var S=JSON.parse(JSON.stringify(D)),KEY="vpc-permafungi-v2";
 try{var raw=localStorage.getItem(KEY);if(raw){S=Object.assign(S,JSON.parse(raw))}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function focusNote(el,i){var s=el.querySelectorAll(".note span")[i];if(s)s.focus()}
 function zone(el){
 var k=el.dataset.l;el.innerHTML="";
 var h=document.createElement("h2");h.textContent=T[k];el.appendChild(h);
-var ul=document.createElement("ul");el.appendChild(ul);
+var ul=document.createElement("ul");ul.className="notes";el.appendChild(ul);
 S[k].forEach(function(t,i){
 var li=document.createElement("li"),sp=document.createElement("span"),b=document.createElement("button");
-sp.contentEditable="true";sp.textContent=t;
+li.className="note";sp.contentEditable="true";sp.textContent=t;
 sp.oninput=function(){S[k][i]=sp.textContent;save()};
-sp.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();sp.blur()}};
-b.textContent="×";b.setAttribute("aria-label","Verwijder punt");
+sp.onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();S[k].splice(i+1,0,"");save();zone(el);focusNote(el,i+1)}};
+b.textContent="×";b.setAttribute("aria-label","Verwijder note");
 b.onclick=function(){S[k].splice(i,1);save();zone(el)};
 li.appendChild(sp);li.appendChild(b);ul.appendChild(li)});
-var a=document.createElement("button");a.className="add";a.textContent="+ toevoegen";
-a.onclick=function(){S[k].push("Nieuw punt");save();zone(el);var s=el.querySelectorAll("li span");var l=s[s.length-1];l.focus();document.execCommand&&document.execCommand("selectAll")};
-el.appendChild(a)}
+var li=document.createElement("li"),a=document.createElement("button");
+a.className="tile";a.textContent="+";a.setAttribute("aria-label","Nieuwe note toevoegen");
+a.onclick=function(){S[k].push("");save();zone(el);focusNote(el,S[k].length-1)};
+li.appendChild(a);ul.appendChild(li)}
 function build(){
 document.querySelectorAll(".zone").forEach(zone);
 document.querySelectorAll(".head span").forEach(function(sp){
