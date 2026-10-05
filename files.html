@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Files</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 24px;
+            background: #f5f6f8;
+            color: #222;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
+        .topbar .right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .user-email { font-size: 14px; color: #666; }
+        #logout-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        #logout-btn:hover { background: #eee; }
+
+        h1 { font-size: clamp(22px, 3vw, 30px); font-weight: 600; margin: 0 0 6px; }
+        .hint { color: #666; font-size: 14px; margin: 0 0 24px; }
+
+        /* Add-file form */
+        #add-file-form {
+            background: white;
+            padding: 24px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        #add-file-form h3 { margin-top: 0; }
+        label { display: block; font-size: 13px; color: #444; font-weight: 500; margin-top: 10px; }
+        input[type="text"], input[type="url"], textarea, select {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            margin: 6px 0 0 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+            background: white;
+        }
+        textarea { resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 180px; gap: 12px; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+        .btn-primary {
+            margin-top: 14px;
+            padding: 10px 20px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .btn-primary:hover { background: #0052cc; }
+        .btn-primary:disabled { background: #99b8ff; cursor: not-allowed; }
+        .btn-secondary {
+            padding: 8px 14px;
+            background: white;
+            color: #222;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-secondary:hover { background: #eee; }
+        .btn-danger {
+            padding: 8px 14px;
+            background: white;
+            color: #c00;
+            border: 1px solid #c00;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-danger:hover { background: #fff0f0; }
+
+        /* File cards */
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        .file-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.12s, box-shadow 0.12s;
+        }
+        .file-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.09);
+        }
+        .file-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .file-icon {
+            font-size: 28px;
+            line-height: 1;
+            flex-shrink: 0;
+            width: 36px;
+            text-align: center;
+        }
+        .file-name {
+            font-weight: 600;
+            font-size: 15px;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+        .file-name a { color: #0066ff; text-decoration: none; }
+        .file-name a:hover { text-decoration: underline; }
+        .file-desc {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .file-meta {
+            font-size: 11px;
+            color: #999;
+            margin-top: auto;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .file-actions { display: flex; gap: 6px; }
+        .file-actions .btn-secondary,
+        .file-actions .btn-danger {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .empty-state {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            color: #777;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        /* Edit form inside a card */
+        .edit-form {
+            border: 1px dashed #0066ff;
+            border-radius: 8px;
+            padding: 14px;
+            background: #f7faff;
+            display: flex;
+            flex-direction: column;
+        }
+        .edit-form .actions { display: flex; gap: 8px; margin-top: 10px; }
+
+        /* Filter tabs */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .filter-bar button {
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid #ccc;
+            background: white;
+            color: #444;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .filter-bar button.active {
+            background: #0066ff;
+            border-color: #0066ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="index.html">← Home</a>
+        <div class="right">
+            <span class="user-email" id="user-email"></span>
+            <button id="logout-btn">Log Out</button>
+        </div>
+    </div>
+
+    <h1>Shared Files</h1>
+    <p class="hint">Links to team documents (Word, Excel, and others). Paste a share link from OneDrive, SharePoint, or Google Drive. Any team member can add a file; only the uploader can edit or delete.</p>
+
+    <div id="add-file-form">
+        <h3>Add a File Link</h3>
+        <label>Name</label>
+        <input type="text" id="file-name" placeholder="e.g. Q4 Budget Spreadsheet">
+
+        <label>URL</label>
+        <input type="url" id="file-url" placeholder="https://...">
+
+        <label>Description (optional)</label>
+        <textarea id="file-desc" rows="2" placeholder="What's this file for?"></textarea>
+
+        <div class="form-row">
+            <div>
+                <label>Type</label>
+                <select id="file-type">
+                    <option value="word">Word document</option>
+                    <option value="excel">Excel spreadsheet</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <button id="add-file-btn" class="btn-primary">Add File</button>
+    </div>
+
+    <div class="filter-bar" id="filter-bar">
+        <button data-filter="all" class="active">All</button>
+        <button data-filter="word">Word</button>
+        <button data-filter="excel">Excel</button>
+        <button data-filter="other">Other</button>
+    </div>
+
+    <div id="files-container">
+        <p style="color:#777;">Loading…</p>
+    </div>
+
+    <script src="supabaseClient.js"></script>
+    <script>
+        const userEmailSpan = document.getElementById('user-email');
+        const logoutBtn = document.getElementById('logout-btn');
+        const addBtn = document.getElementById('add-file-btn');
+        const nameInput = document.getElementById('file-name');
+        const urlInput = document.getElementById('file-url');
+        const descInput = document.getElementById('file-desc');
+        const typeSelect = document.getElementById('file-type');
+        const container = document.getElementById('files-container');
+        const filterBar = document.getElementById('filter-bar');
+
+        let currentUser = null;
+        let filesCache = [];
+        let editingId = null;
+        let activeFilter = 'all';
+
+        async function init() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
+            currentUser = session.user;
+            userEmailSpan.textContent = currentUser.email;
+
+            await loadFiles();
+            subscribeToChanges();
+        }
+
+        logoutBtn.addEventListener('click', async () => {
+            await sb.auth.signOut();
+            window.location.href = 'login.html';
+        });
+
+        filterBar.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-filter]');
+            if (!btn) return;
+            activeFilter = btn.dataset.filter;
+            filterBar.querySelectorAll('button').forEach(b =>
+                b.classList.toggle('active', b === btn));
+            render();
+        });
+
+        /* ---------- Load ---------- */
+        async function loadFiles() {
+            const { data, error } = await sb
+                .from('files')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Failed to load files:', error);
+                container.innerHTML = '<p style="color:#c00;">Failed to load files: ' + error.message + '</p>';
+                return;
+            }
+            filesCache = data || [];
+            render();
+        }
+
+        /* ---------- Render ---------- */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text ?? '';
+            return div.innerHTML;
+        }
+        function escapeAttr(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function iconFor(type) {
+            if (type === 'word') return '📝';
+            if (type === 'excel') return '📊';
+            return '📄';
+        }
+
+        function render() {
+            const filtered = activeFilter === 'all'
+                ? filesCache
+                : filesCache.filter(f => f.type === activeFilter);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        ${filesCache.length === 0
+                            ? 'No files yet. Add the first one above!'
+                            : 'No files match this filter.'}
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = '';
+            const grid = document.createElement('div');
+            grid.className = 'files-grid';
+
+            filtered.forEach(f => grid.appendChild(buildFileCard(f)));
+            container.appendChild(grid);
+        }
+
+        function buildFileCard(f) {
+            const isOwner = f.user_id === currentUser.id;
+            const isEditing = editingId === f.id;
+            const card = document.createElement('div');
+            card.className = 'file-card';
+            card.dataset.id = f.id;
+
+            if (isEditing) {
+                card.innerHTML = `
+                    <div class="edit-form">
+                        <label>Name</label>
+                        <input type="text" class="edit-name" value="${escapeAttr(f.name)}">
+                        <label>URL</label>
+                        <input type="url" class="edit-url" value="${escapeAttr(f.url)}">
+                        <label>Description</label>
+                        <textarea class="edit-desc" rows="2">${escapeHtml(f.description || '')}</textarea>
+                        <label>Type</label>
+                        <select class="edit-type">
+                            <option value="word"  ${f.type === 'word' ? 'selected' : ''}>Word document</option>
+                            <option value="excel" ${f.type === 'excel' ? 'selected' : ''}>Excel spreadsheet</option>
+                            <option value="other" ${f.type === 'other' ? 'selected' : ''}>Other</option>
+                        </select>
+                        <div class="actions">
+                            <button class="btn-primary edit-save-btn">Save</button>
+                            <button class="btn-secondary edit-cancel-btn">Cancel</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <div class="file-head">
+                        <div class="file-icon">${iconFor(f.type)}</div>
+                        <div class="file-name">
+                            <a href="${escapeAttr(f.url)}" target="_blank" rel="noopener noreferrer">
+                                ${escapeHtml(f.name)}
+                            </a>
+                        </div>
+                    </div>
+                    ${f.description ? `<div class="file-desc">${escapeHtml(f.description)}</div>` : ''}
+                    <div class="file-meta">
+                        <span>${escapeHtml(f.user_email)} · ${new Date(f.created_at).toLocaleDateString()}</span>
+                        ${isOwner ? `
+                            <div class="file-actions">
+                                <button class="btn-secondary edit-btn">Edit</button>
+                                <button class="btn-danger delete-btn">Delete</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+
+            // Wire buttons
+            if (isEditing) {
+                card.querySelector('.edit-save-btn').addEventListener('click', () => saveEdit(f));
+                card.querySelector('.edit-cancel-btn').addEventListener('click', () => {
+                    editingId = null;
+                    render();
+                });
+            } else if (isOwner) {
+                card.querySelector('.edit-btn').addEventListener('click', () => {
+                    editingId = f.id;
+                    render();
+                });
+                card.querySelector('.delete-btn').addEventListener('click', () => deleteFile(f));
+            }
+
+            return card;
+        }
+
+        /* ---------- Add ---------- */
+        addBtn.addEventListener('click', async () => {
+            const name = nameInput.value.trim();
+            const url = urlInput.value.trim();
+            const description = descInput.value.trim();
+            const type = typeSelect.value;
+
+            if (!name) { alert('Please enter a name.'); return; }
+            if (!url) { alert('Please enter a URL.'); return; }
+            if (!/^https?:\/\//i.test(url)) {
+                alert('URL must start with http:// or https://');
+                return;
+            }
+
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding…';
+
+            try {
+                const { error } = await sb.from('files').insert({
+                    user_id: currentUser.id,
+                    user_email: currentUser.email,
+                    name, description, url, type
+                });
+                if (error) throw error;
+
+                nameInput.value = '';
+                urlInput.value = '';
+                descInput.value = '';
+                typeSelect.value = 'word';
+
+                await loadFiles();
+            } catch (err) {
+                console.error('Failed to add file:', err);
+                alert('Failed to add: ' + err.message);
+            } finally {
+                addBtn.disabled = false;
+                addBtn.textContent = 'Add File';
+            }
+        });
+
+        /* ---------- Edit ---------- */
+        async function saveEdit(f) {
+            const card = document.querySelector(`.file-card[data-id="${f.id}"]`);
+            if (!card) return;
+
+            const name = card.querySelector('.edit-name').value.trim();
+            const url = card.querySelector('.edit-url').value.trim();
+            const description = card.querySelector('.edit-desc').value.trim();
+            const type = card.querySelector('.edit-type').value;
+            const saveBtn = card.querySelector('.edit-save-btn');
+
+            if (!name || !url) { alert('Name and URL are required.'); return; }
+            if (!/^https?:\/\//i.test(url)) { alert('URL must start with http:// or https://'); return; }
+
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving…';
+
+            try {
+                const { error } = await sb
+                    .from('files')
+                    .update({ name, url, description, type })
+                    .eq('id', f.id);
+                if (error) throw error;
+
+                editingId = null;
+                await loadFiles();
+            } catch (err) {
+                console.error('Failed to update:', err);
+                alert('Failed to update: ' + err.message);
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        }
+
+        /* ---------- Delete ---------- */
+        async function deleteFile(f) {
+            if (!confirm(`Delete "${f.name}"? This only removes the link, not the actual file.`)) return;
+
+            const { error } = await sb.from('files').delete().eq('id', f.id);
+            if (error) {
+                console.error('Failed to delete:', error);
+                alert('Failed to delete: ' + error.message);
+                return;
+            }
+            await loadFiles();
+        }
+
+        /* ---------- Realtime ---------- */
+        function subscribeToChanges() {
+            sb.channel('file-updates')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'files' },
+                    async () => { await loadFiles(); })
+                .subscribe();
+        }
+
+        init();
+    </script>
+</body>
+</html>
