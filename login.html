@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            max-width: 400px;
+            margin: 80px auto;
+            padding: 24px;
+            background: #f5f6f8;
+            color: #222;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        h2 { margin-top: 0; margin-bottom: 20px; }
+        input {
+            display: block;
+            width: 100%;
+            padding: 10px 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+        }
+        #login-btn { background: #0066ff; color: white; }
+        #login-btn:hover { background: #0052cc; }
+        #signup-btn { background: #eee; color: #333; }
+        #signup-btn:hover { background: #ddd; }
+        .btn-row { display: flex; gap: 10px; margin-top: 6px; }
+        #message { margin-top: 18px; font-size: 14px; color: #c00; min-height: 20px; }
+        .success { color: #080 !important; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Project Login</h2>
+        <form id="auth-form">
+            <input type="email" id="email" placeholder="Email" required autocomplete="email">
+            <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+            <div class="btn-row">
+                <button type="submit" id="login-btn">Log In</button>
+                <button type="button" id="signup-btn">Sign Up</button>
+            </div>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script src="supabaseClient.js"></script>
+    <script>
+        const form = document.getElementById('auth-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const signupBtn = document.getElementById('signup-btn');
+        const messageDiv = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('success');
+
+            const { error } = await sb.auth.signInWithPassword({
+                email: emailInput.value,
+                password: passwordInput.value,
+            });
+
+            if (error) {
+                messageDiv.textContent = error.message;
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+
+        signupBtn.addEventListener('click', async () => {
+            messageDiv.textContent = '';
+            messageDiv.classList.remove('success');
+
+            if (!emailInput.value || !passwordInput.value) {
+                messageDiv.textContent = 'Enter an email and password first.';
+                return;
+            }
+
+            const { error } = await sb.auth.signUp({
+                email: emailInput.value,
+                password: passwordInput.value,
+            });
+
+            if (error) {
+                messageDiv.textContent = error.message;
+            } else {
+                messageDiv.classList.add('success');
+                messageDiv.textContent = 'Sign-up successful! Check your email to confirm (if email confirmation is enabled), then log in.';
+            }
+        });
+
+        // Redirect if already logged in
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) window.location.href = 'index.html';
+        })();
+    </script>
+</body>
+</html>

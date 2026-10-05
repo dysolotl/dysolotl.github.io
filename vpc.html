@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPC Workspace</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 24px;
+            background: #f5f6f8;
+            color: #222;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
+        .user-email { font-size: 14px; color: #666; margin-right: 12px; }
+        #logout-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .placeholder {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <a href="index.html">← Home</a>
+        <div>
+            <span class="user-email" id="user-email"></span>
+            <button id="logout-btn">Log Out</button>
+        </div>
+    </div>
+
+    <h1>VPC Workspace</h1>
+
+    <div class="placeholder">
+        <p>This is your protected VPC page.</p>
+        <p>Drop your existing VPC content here — everything on this page is only accessible to logged-in team members.</p>
+    </div>
+
+    <script src="supabaseClient.js"></script>
+    <script>
+        const userEmailSpan = document.getElementById('user-email');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+            userEmailSpan.textContent = session.user.email;
+        })();
+
+        logoutBtn.addEventListener('click', async () => {
+            await sb.auth.signOut();
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>
