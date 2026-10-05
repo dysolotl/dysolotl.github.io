@@ -125,7 +125,7 @@
         }
         #notebooks-list > p { color: #777; }
 
-        /* Inline edit form inside a notebook card */
+        /* Inline edit form */
         .edit-form {
             border: 1px dashed #0066ff;
             border-radius: 8px;
@@ -136,6 +136,65 @@
         .edit-form label { font-size: 13px; color: #444; font-weight: 500; }
         .edit-form .actions { display: flex; gap: 10px; margin-top: 8px; }
         .edit-note { font-size: 12px; color: #666; margin-top: 6px; }
+
+        /* ---------- Comments ---------- */
+        .comments-section {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .comments-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .comment {
+            background: #f7f8fa;
+            border-radius: 8px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .comment-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .comment-author { font-size: 12px; font-weight: 600; color: #333; }
+        .comment-time { font-size: 11px; color: #999; }
+        .comment-body { font-size: 14px; color: #333; white-space: pre-wrap; line-height: 1.4; }
+        .comment-delete {
+            background: none;
+            border: none;
+            color: #c00;
+            cursor: pointer;
+            font-size: 11px;
+            padding: 0;
+            margin-left: auto;
+            text-decoration: underline;
+        }
+        .comment-delete:hover { color: #900; }
+
+        .no-comments { font-size: 13px; color: #999; font-style: italic; margin-bottom: 12px; }
+
+        .comment-form textarea {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            min-height: 60px;
+        }
+        .comment-form .comment-submit { padding: 8px 16px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -172,8 +231,9 @@
         const listDiv = document.getElementById('notebooks-list');
 
         let currentUser = null;
-        let notebooksCache = [];   // keeps the last loaded list
-        let editingId = null;      // id of notebook currently being edited (or null)
+        let notebooksCache = [];
+        let commentsCache = {};    // { notebook_id: [comments...] }
+        let editingId = null;
 
         /* ---------- Auth ---------- */
         async function init() {
@@ -182,8 +242,8 @@
             currentUser = session.user;
             userEmailSpan.textContent = currentUser.email;
 
-            await loadNotebooks();
-            subscribeToNotebookChanges();
+            await loadEverything();
+            subscribeToChanges();
         }
 
         logoutBtn.addEventListener('click', async () => {
@@ -191,7 +251,12 @@
             window.location.href = 'login.html';
         });
 
-        /* ---------- Load & render ---------- */
+        /* ---------- Load ---------- */
+        async function loadEverything() {
+            await Promise.all([loadNotebooks(), loadComments()]);
+            renderAll();
+        }
+
         async function loadNotebooks() {
             const { data, error } = await sb
                 .from('notebooks')
@@ -204,80 +269,30 @@
                 return;
             }
             notebooksCache = data || [];
-            renderNotebooks();
         }
 
+        async function loadComments() {
+            const { data, error } = await sb
+                .from('comments')
+                .select('*')
+                .order('created_at', { ascending: true }); // oldest first inside each notebook
+
+            if (error) {
+                console.error('Error loading comments:', error);
+                return;
+            }
+            commentsCache = {};
+            (data || []).forEach(c => {
+                if (!commentsCache[c.notebook_id]) commentsCache[c.notebook_id] = [];
+                commentsCache[c.notebook_id].push(c);
+            });
+        }
+
+        /* ---------- Render ---------- */
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text ?? '';
             return div.innerHTML;
-        }
-
-        function renderNotebooks() {
-            listDiv.innerHTML = '';
-            if (notebooksCache.length === 0) {
-                listDiv.innerHTML = '<p>No notebooks yet. Create one above!</p>';
-                return;
-            }
-
-            notebooksCache.forEach(nb => {
-                const isOwner = nb.user_id === currentUser.id;
-                const isEditing = editingId === nb.id;
-
-                const div = document.createElement('div');
-                div.className = 'notebook';
-                div.dataset.id = nb.id;
-
-                if (isEditing) {
-                    div.innerHTML = `
-                        <div class="edit-form">
-                            <label>Title</label>
-                            <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
-                            <label>Content</label>
-                            <textarea class="edit-content" rows="4">${escapeHtml(nb.content || '')}</textarea>
-                            <label>Replace image (leave empty to keep current)</label>
-                            <input type="file" class="edit-image" accept="image/*">
-                            <div class="edit-note">Only you can see this form because you created this notebook.</div>
-                            <div class="actions">
-                                <button class="btn-primary edit-save-btn">Save Changes</button>
-                                <button class="btn-secondary edit-cancel-btn">Cancel</button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    div.innerHTML = `
-                        <div class="notebook-header">
-                            <div class="notebook-title">${escapeHtml(nb.title)}</div>
-                            ${isOwner ? `
-                                <div class="notebook-actions">
-                                    <button class="btn-secondary edit-btn">Edit</button>
-                                    <button class="btn-danger delete-btn">Delete</button>
-                                </div>
-                            ` : ''}
-                        </div>
-                        <div class="notebook-content">${escapeHtml(nb.content || '')}</div>
-                        ${nb.image_url ? `<img src="${nb.image_url}" alt="Notebook image">` : ''}
-                        <div class="notebook-meta">${new Date(nb.created_at).toLocaleString()}</div>
-                    `;
-                }
-
-                // Wire up the buttons for this card
-                if (isEditing) {
-                    div.querySelector('.edit-save-btn').addEventListener('click', () => saveEdit(nb));
-                    div.querySelector('.edit-cancel-btn').addEventListener('click', () => {
-                        editingId = null;
-                        renderNotebooks();
-                    });
-                } else if (isOwner) {
-                    div.querySelector('.edit-btn').addEventListener('click', () => {
-                        editingId = nb.id;
-                        renderNotebooks();
-                    });
-                    div.querySelector('.delete-btn').addEventListener('click', () => deleteNotebook(nb));
-                }
-
-                listDiv.appendChild(div);
-            });
         }
 
         function escapeAttr(text) {
@@ -288,7 +303,113 @@
                 .replace(/>/g, '&gt;');
         }
 
-        /* ---------- Create ---------- */
+        function renderAll() {
+            listDiv.innerHTML = '';
+            if (notebooksCache.length === 0) {
+                listDiv.innerHTML = '<p>No notebooks yet. Create one above!</p>';
+                return;
+            }
+            notebooksCache.forEach(nb => listDiv.appendChild(buildNotebookCard(nb)));
+        }
+
+        function buildNotebookCard(nb) {
+            const isOwner = nb.user_id === currentUser.id;
+            const isEditing = editingId === nb.id;
+            const comments = commentsCache[nb.id] || [];
+
+            const div = document.createElement('div');
+            div.className = 'notebook';
+            div.dataset.id = nb.id;
+
+            if (isEditing) {
+                div.innerHTML = `
+                    <div class="edit-form">
+                        <label>Title</label>
+                        <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
+                        <label>Content</label>
+                        <textarea class="edit-content" rows="4">${escapeHtml(nb.content || '')}</textarea>
+                        <label>Replace image (leave empty to keep current)</label>
+                        <input type="file" class="edit-image" accept="image/*">
+                        <div class="edit-note">Only you can see this form because you created this notebook.</div>
+                        <div class="actions">
+                            <button class="btn-primary edit-save-btn">Save Changes</button>
+                            <button class="btn-secondary edit-cancel-btn">Cancel</button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const commentsHtml = comments.length === 0
+                    ? `<div class="no-comments">No comments yet. Be the first!</div>`
+                    : `<div class="comments-list">` + comments.map(c => {
+                        const isCommentAuthor = c.user_id === currentUser.id;
+                        return `
+                            <div class="comment" data-comment-id="${c.id}">
+                                <div class="comment-head">
+                                    <span class="comment-author">${escapeHtml(c.user_email)}</span>
+                                    <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
+                                    ${isCommentAuthor ? `<button class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
+                                </div>
+                                <div class="comment-body">${escapeHtml(c.content)}</div>
+                            </div>
+                        `;
+                    }).join('') + `</div>`;
+
+                div.innerHTML = `
+                    <div class="notebook-header">
+                        <div class="notebook-title">${escapeHtml(nb.title)}</div>
+                        ${isOwner ? `
+                            <div class="notebook-actions">
+                                <button class="btn-secondary edit-btn">Edit</button>
+                                <button class="btn-danger delete-btn">Delete</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="notebook-content">${escapeHtml(nb.content || '')}</div>
+                    ${nb.image_url ? `<img src="${nb.image_url}" alt="Notebook image">` : ''}
+                    <div class="notebook-meta">${new Date(nb.created_at).toLocaleString()}</div>
+
+                    <div class="comments-section">
+                        <div class="comments-title">Comments (${comments.length})</div>
+                        ${commentsHtml}
+                        <div class="comment-form">
+                            <textarea class="comment-input" placeholder="Add a comment…" rows="2"></textarea>
+                            <button class="btn-primary comment-submit">Post Comment</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Wire up buttons
+            if (isEditing) {
+                div.querySelector('.edit-save-btn').addEventListener('click', () => saveEdit(nb));
+                div.querySelector('.edit-cancel-btn').addEventListener('click', () => {
+                    editingId = null;
+                    renderAll();
+                });
+            } else {
+                if (isOwner) {
+                    div.querySelector('.edit-btn').addEventListener('click', () => {
+                        editingId = nb.id;
+                        renderAll();
+                    });
+                    div.querySelector('.delete-btn').addEventListener('click', () => deleteNotebook(nb));
+                }
+
+                // Comment submit
+                const submitBtn = div.querySelector('.comment-submit');
+                const textarea = div.querySelector('.comment-input');
+                submitBtn.addEventListener('click', () => postComment(nb.id, textarea, submitBtn));
+
+                // Comment delete buttons
+                div.querySelectorAll('.comment-delete').forEach(btn => {
+                    btn.addEventListener('click', () => deleteComment(btn.dataset.commentId, nb.id));
+                });
+            }
+
+            return div;
+        }
+
+        /* ---------- Create notebook ---------- */
         saveBtn.addEventListener('click', async () => {
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
@@ -301,11 +422,9 @@
 
             try {
                 const imageUrl = file ? await uploadImage(file) : null;
-
                 const { error: dbError } = await sb
                     .from('notebooks')
                     .insert({ user_id: currentUser.id, title, content, image_url: imageUrl });
-
                 if (dbError) throw dbError;
 
                 titleInput.value = '';
@@ -313,6 +432,7 @@
                 imageInput.value = '';
 
                 await loadNotebooks();
+                renderAll();
             } catch (err) {
                 console.error('Failed to save notebook:', err);
                 alert('Failed to save: ' + err.message);
@@ -322,7 +442,7 @@
             }
         });
 
-        /* ---------- Edit (save) ---------- */
+        /* ---------- Edit notebook ---------- */
         async function saveEdit(nb) {
             const card = document.querySelector(`.notebook[data-id="${nb.id}"]`);
             if (!card) return;
@@ -340,21 +460,17 @@
 
             try {
                 const updates = { title: newTitle, content: newContent };
-
-                // If a new image was chosen, upload it and update the URL.
-                if (newFile) {
-                    updates.image_url = await uploadImage(newFile);
-                }
+                if (newFile) updates.image_url = await uploadImage(newFile);
 
                 const { error } = await sb
                     .from('notebooks')
                     .update(updates)
                     .eq('id', nb.id);
-
                 if (error) throw error;
 
                 editingId = null;
                 await loadNotebooks();
+                renderAll();
             } catch (err) {
                 console.error('Failed to update notebook:', err);
                 alert('Failed to update: ' + err.message);
@@ -366,30 +482,66 @@
             }
         }
 
-        /* ---------- Delete ---------- */
+        /* ---------- Delete notebook ---------- */
         async function deleteNotebook(nb) {
-            if (!confirm(`Delete "${nb.title}"? This cannot be undone.`)) return;
+            if (!confirm(`Delete "${nb.title}"? Its comments will also be removed. This cannot be undone.`)) return;
 
-            const { error } = await sb
-                .from('notebooks')
-                .delete()
-                .eq('id', nb.id);
-
+            const { error } = await sb.from('notebooks').delete().eq('id', nb.id);
             if (error) {
                 console.error('Failed to delete:', error);
                 alert('Failed to delete: ' + error.message);
                 return;
             }
 
-            // Also remove the associated image from storage (best-effort).
             if (nb.image_url) {
                 const path = extractStoragePath(nb.image_url);
-                if (path) {
-                    await sb.storage.from('notebook-images').remove([path]).catch(() => {});
-                }
+                if (path) await sb.storage.from('notebook-images').remove([path]).catch(() => {});
             }
 
             await loadNotebooks();
+            renderAll();
+        }
+
+        /* ---------- Add comment ---------- */
+        async function postComment(notebookId, textarea, submitBtn) {
+            const content = textarea.value.trim();
+            if (!content) return;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Posting…';
+
+            const { error } = await sb.from('comments').insert({
+                notebook_id: notebookId,
+                user_id: currentUser.id,
+                user_email: currentUser.email,
+                content: content
+            });
+
+            if (error) {
+                console.error('Failed to post comment:', error);
+                alert('Failed to post comment: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post Comment';
+                return;
+            }
+
+            textarea.value = '';
+            await loadComments();
+            renderAll();
+        }
+
+        /* ---------- Delete comment ---------- */
+        async function deleteComment(commentId, notebookId) {
+            if (!confirm('Delete this comment?')) return;
+
+            const { error } = await sb.from('comments').delete().eq('id', commentId);
+            if (error) {
+                console.error('Failed to delete comment:', error);
+                alert('Failed to delete comment: ' + error.message);
+                return;
+            }
+            await loadComments();
+            renderAll();
         }
 
         /* ---------- Helpers ---------- */
@@ -400,17 +552,14 @@
             const { error: uploadError } = await sb.storage
                 .from('notebook-images')
                 .upload(filePath, file);
-
             if (uploadError) throw uploadError;
 
             const { data: urlData } = sb.storage
                 .from('notebook-images')
                 .getPublicUrl(filePath);
-
             return urlData.publicUrl;
         }
 
-        // Turn a public URL back into the storage path used by .remove()
         function extractStoragePath(publicUrl) {
             const marker = '/notebook-images/';
             const idx = publicUrl.indexOf(marker);
@@ -419,13 +568,14 @@
         }
 
         /* ---------- Realtime ---------- */
-        function subscribeToNotebookChanges() {
+        function subscribeToChanges() {
             sb.channel('notebook-updates')
-                .on(
-                    'postgres_changes',
+                .on('postgres_changes',
                     { event: '*', schema: 'public', table: 'notebooks' },
-                    () => { loadNotebooks(); }
-                )
+                    async () => { await loadNotebooks(); renderAll(); })
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'comments' },
+                    async () => { await loadComments(); renderAll(); })
                 .subscribe();
         }
 
