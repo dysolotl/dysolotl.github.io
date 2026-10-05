@@ -7,50 +7,121 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root{--bg:#e4e4e2;--panel:#fff;--ink:#111;--soft:#555;--line:#111;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1c1b;--panel:#272725;--ink:#ecebe6;--soft:#aaa9a2;--line:#ecebe6}}
-:root[data-theme="dark"]{--bg:#1c1c1b;--panel:#272725;--ink:#ecebe6;--soft:#aaa9a2;--line:#ecebe6}
+/* ---------- Site-wide theme (matches index/notebook) ---------- */
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Helvetica Neue",Arial,sans-serif;padding:20px}
-h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
-.hint{color:var(--soft);font-size:14px;margin:0 0 20px}
-.wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:28px;max-width:1360px}
-.head{display:flex;align-items:center;gap:12px;background:var(--panel);padding:8px 10px;min-height:64px;margin-bottom:20px;font-size:13px;font-style:italic;color:var(--soft)}
+body{
+    margin:0;
+    background:#f5f6f8;
+    color:#222;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    padding:24px;
+}
+h1{font-size:clamp(24px,3vw,32px);font-weight:600;margin:0 0 6px}
+.hint{color:#666;font-size:14px;margin:0 0 24px;line-height:1.5}
+
+/* ---------- Top bar (matches other pages) ---------- */
+.topbar{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:32px;flex-wrap:wrap;gap:12px;
+}
+.topbar a{
+    color:#0066ff;text-decoration:none;font-size:14px;
+}
+.topbar a:hover{text-decoration:underline}
+.topbar .right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.user-email{font-size:14px;color:#666}
+#logout-btn{
+    padding:8px 16px;border:1px solid #ccc;background:white;
+    border-radius:6px;cursor:pointer;font-size:14px;color:#222;
+}
+#logout-btn:hover{background:#eee}
+
+/* ---------- Sync pill ---------- */
+.sync{
+    font-size:12px;color:#666;display:flex;align-items:center;gap:6px;
+    background:white;padding:5px 10px;border-radius:999px;border:1px solid #e3e5e8;
+}
+.sync .dot{width:8px;height:8px;border-radius:50%;background:#bbb;transition:background .2s}
+.sync.saving .dot{background:#f0a500}
+.sync.saved  .dot{background:#19a974}
+.sync.error  .dot{background:#d33}
+
+/* ---------- Layout ---------- */
+.wrap{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));
+    gap:24px;
+    max-width:1360px;
+}
+
+/* ---------- Head strip ("Value Proposition" bar) ---------- */
+.head{
+    display:flex;align-items:center;gap:12px;
+    background:white;padding:14px 16px;min-height:64px;margin-bottom:16px;
+    border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    font-size:13px;color:#666;font-weight:500;
+}
 .note,.head span{font-family:"Gochi Hand","Comic Sans MS",cursive;color:#111;text-transform:uppercase}
-.head span{background:#ffb85c;border:1.5px solid #222;padding:6px 10px;font-size:14px;font-style:normal;outline:none;flex:1;max-width:280px;text-align:center;box-shadow:1px 2px 0 rgba(0,0,0,.25)}
+.head span{
+    background:#ffb85c;border:1.5px solid #222;padding:6px 10px;font-size:14px;
+    outline:none;flex:1;max-width:280px;text-align:center;
+    box-shadow:1px 2px 0 rgba(0,0,0,.25);
+}
+
+/* ---------- Canvas card ---------- */
+.canvas-card{
+    background:white;
+    border-radius:10px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    padding:16px;
+}
 .board{position:relative;width:100%;max-width:640px;aspect-ratio:1;margin:0 auto}
 .board svg{position:absolute;inset:0;width:100%;height:100%}
-.sq{background:var(--panel);border:3px solid var(--line)}
-.circ{background:var(--panel);border:3px solid var(--line);border-radius:50%}
+.sq{background:var(--panel,#fff);border:3px solid #111}
+.circ{background:var(--panel,#fff);border:3px solid #111;border-radius:50%}
 .zone{position:absolute;display:flex;flex-direction:column;overflow:hidden}
-.zone h2{font-size:13px;font-weight:400;color:var(--soft);margin:0 0 3px;text-align:center}
+.zone h2{font-size:13px;font-weight:500;color:#666;margin:0 0 3px;text-align:center;font-family:inherit;text-transform:none}
+
+/* ---------- Sticky notes (unchanged sketch look) ---------- */
 .notes{list-style:none;margin:0;padding:2px;overflow:auto;flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
-.note{position:relative;flex:1 1 74px;max-width:112px;min-height:54px;background:var(--n);border:1.5px solid #222;box-shadow:1px 2px 0 rgba(0,0,0,.25);padding:5px 6px;font-size:11.5px;line-height:1.15;text-align:center;display:flex;align-items:center;justify-content:center}
+.note{
+    position:relative;flex:1 1 74px;max-width:112px;min-height:54px;
+    background:var(--n);border:1.5px solid #222;
+    box-shadow:1px 2px 0 rgba(0,0,0,.25);
+    padding:5px 6px;font-size:11.5px;line-height:1.15;text-align:center;
+    display:flex;align-items:center;justify-content:center;
+}
 .note span{outline:none;display:block;width:100%;word-break:break-word}
 .note span:empty::before{content:"typ hier";opacity:.45}
-.note button{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;border:1px solid #222;background:#fff;color:#a00;font-size:12px;line-height:1;cursor:pointer;padding:0;display:none}
+.note button{
+    position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
+    border:1px solid #222;background:#fff;color:#a00;font-size:12px;line-height:1;
+    cursor:pointer;padding:0;display:none;
+}
 .note:hover button,.note:focus-within button{display:block}
-.tile{flex:0 0 40px;height:54px;border:1.5px dashed var(--soft);background:none;color:var(--soft);font-size:22px;cursor:pointer;padding:0}
-.tile:hover,.tile:focus-visible{color:var(--ink);border-color:var(--ink)}
+.tile{
+    flex:0 0 40px;height:54px;border:1.5px dashed #999;background:none;
+    color:#999;font-size:22px;cursor:pointer;padding:0;
+}
+.tile:hover,.tile:focus-visible{color:#111;border-color:#111}
 [data-c="y"]{--n:#fde96b}[data-c="g"]{--n:#a8e88a}[data-c="p"]{--n:#f9b4bc}
-.bar{margin-top:22px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.bar button{font:inherit;font-size:14px;padding:8px 14px;background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer}
 
-/* Top bar */
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px}
-.topbar a{color:var(--ink);text-decoration:none;font-size:14px;border:1px solid var(--line);padding:6px 12px;background:var(--panel)}
-.topbar .right{display:flex;align-items:center;gap:12px}
-.user-email{font-size:13px;color:var(--soft)}
-#logout-btn{padding:8px 16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;font:inherit;font-size:14px}
+/* ---------- Bottom bar ---------- */
+.bar{
+    margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+    max-width:1360px;
+}
+.bar button{
+    font:inherit;font-size:14px;padding:9px 16px;border-radius:6px;
+    cursor:pointer;border:1px solid #ccc;background:white;color:#a00;
+}
+.bar button:hover{background:#fff0f0;border-color:#a00}
 
-/* Sync status pill */
-.sync{font-size:12px;color:var(--soft);display:flex;align-items:center;gap:6px}
-.sync .dot{width:8px;height:8px;border-radius:50%;background:#bbb}
-.sync.saving .dot{background:#f0a500}
-.sync.saved .dot{background:#19a974}
-.sync.error .dot{background:#d33}
-
-@media (max-width:520px){.note{font-size:9.5px;min-height:46px;flex-basis:60px}.zone h2{font-size:11px}}
+@media (max-width:520px){
+    .note{font-size:9.5px;min-height:46px;flex-basis:60px}
+    .zone h2{font-size:11px}
+    body{padding:16px}
+}
 </style>
 </head>
 <body>
@@ -64,36 +135,62 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
     </div>
 </div>
 
-<h1>The Value Proposition Canvas</h1>
+<h1>Value Proposition Canvas</h1>
 <p class="hint">Klik op een sticky note om de tekst aan te passen. Druk op Enter voor een nieuwe note, of gebruik de + naast de notes. Met × (bij de muis) verwijder je een note. Wijzigingen worden direct gedeeld met je team.</p>
+
 <div class="wrap">
-<section>
-<div class="head">Value Proposition<span contenteditable="true" data-k="vp"></span></div>
-<div class="board sq">
-<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-<g stroke="var(--line)" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke"><line x1="0" y1="0" x2="50" y2="50"/><line x1="0" y1="100" x2="50" y2="50"/><line x1="56" y1="50" x2="100" y2="50"/></g>
-<g stroke="var(--line)" stroke-width="1.4" fill="var(--panel)"><rect x="43" y="46" width="14" height="10"/><rect x="45" y="41" width="10" height="5"/></g>
-</svg>
-<div class="zone" data-c="y" data-l="ps" style="left:3%;top:30%;width:27%;height:40%"></div>
-<div class="zone" data-c="g" data-l="gc" style="left:40%;top:4%;width:56%;height:38%"></div>
-<div class="zone" data-c="p" data-l="pr" style="left:40%;top:58%;width:56%;height:38%"></div>
+    <section>
+        <div class="head">
+            Value Proposition
+            <span contenteditable="true" data-k="vp"></span>
+        </div>
+        <div class="canvas-card">
+            <div class="board sq">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <g stroke="#111" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke">
+                        <line x1="0" y1="0" x2="50" y2="50"/>
+                        <line x1="0" y1="100" x2="50" y2="50"/>
+                        <line x1="56" y1="50" x2="100" y2="50"/>
+                    </g>
+                    <g stroke="#111" stroke-width="1.4" fill="#fff">
+                        <rect x="43" y="46" width="14" height="10"/>
+                        <rect x="45" y="41" width="10" height="5"/>
+                    </g>
+                </svg>
+                <div class="zone" data-c="y" data-l="ps" style="left:3%;top:30%;width:27%;height:40%"></div>
+                <div class="zone" data-c="g" data-l="gc" style="left:40%;top:4%;width:56%;height:38%"></div>
+                <div class="zone" data-c="p" data-l="pr" style="left:40%;top:58%;width:56%;height:38%"></div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <div class="head">
+            Customer Segment
+            <span contenteditable="true" data-k="cs"></span>
+        </div>
+        <div class="canvas-card">
+            <div class="board circ">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <g stroke="#111" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke">
+                        <line x1="0" y1="50" x2="43" y2="50"/>
+                        <line x1="55" y1="45" x2="90" y2="16"/>
+                        <line x1="55" y1="55" x2="90" y2="84"/>
+                    </g>
+                    <g stroke="#111" stroke-width="1.4" fill="#fff">
+                        <circle cx="49" cy="50" r="6"/>
+                    </g>
+                </svg>
+                <div class="zone" data-c="g" data-l="ga" style="left:17%;top:12%;width:38%;height:33%"></div>
+                <div class="zone" data-c="y" data-l="jo" style="left:66%;top:31%;width:29%;height:38%"></div>
+                <div class="zone" data-c="p" data-l="pa" style="left:17%;top:55%;width:38%;height:33%"></div>
+            </div>
+        </div>
+    </section>
 </div>
-</section>
-<section>
-<div class="head">Customer Segment<span contenteditable="true" data-k="cs"></span></div>
-<div class="board circ">
-<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-<g stroke="var(--line)" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke"><line x1="0" y1="50" x2="43" y2="50"/><line x1="55" y1="45" x2="90" y2="16"/><line x1="55" y1="55" x2="90" y2="84"/></g>
-<g stroke="var(--line)" stroke-width="1.4" fill="var(--panel)"><circle cx="49" cy="50" r="6"/></g>
-</svg>
-<div class="zone" data-c="g" data-l="ga" style="left:17%;top:12%;width:38%;height:33%"></div>
-<div class="zone" data-c="y" data-l="jo" style="left:66%;top:31%;width:29%;height:38%"></div>
-<div class="zone" data-c="p" data-l="pa" style="left:17%;top:55%;width:38%;height:33%"></div>
-</div>
-</section>
-</div>
+
 <div class="bar">
-    <button id="reset">Terug naar beginwaarden</button>
+    <button id="reset">Reset voor hele team</button>
 </div>
 
 <script src="supabaseClient.js"></script>
@@ -110,7 +207,7 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
         window.location.href = 'login.html';
     });
 
-    /* ---------- 2. Labels & default data ---------- */
+    /* ---------- 2. Labels & defaults ---------- */
     const T = { ps:"Producten en diensten", gc:"Gain creators", pr:"Pain relievers",
                 ga:"Gains", jo:"Customer jobs", pa:"Pains" };
 
@@ -125,28 +222,23 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
         pa: ["Batches mislukken door schimmel","Veel handmatig controleren","Geen overzicht van data","Fouten te laat gemerkt"]
     };
 
-    // Local working copy. Cloned from defaults, then overwritten by Supabase.
     let S = JSON.parse(JSON.stringify(DEFAULTS));
+    let focusedKey = null;
+    let focusedIndex = null;
 
-    // Track which text element currently has focus, so remote updates don't
-    // clobber what the local user is typing.
-    let focusedKey = null;      // e.g. "vp" or "ps"
-    let focusedIndex = null;    // for arrays: index; for strings: null
-
-    /* ---------- 3. Sync status pill ---------- */
-    const syncEl = document.getElementById('sync');
+    /* ---------- 3. Sync pill ---------- */
+    const syncEl   = document.getElementById('sync');
     const syncText = document.getElementById('sync-text');
     function setSync(state, text) {
         syncEl.className = 'sync ' + state;
         syncText.textContent = text;
     }
 
-    /* ---------- 4. Load initial state from Supabase ---------- */
+    /* ---------- 4. Load ---------- */
     async function loadAll() {
         const { data, error } = await sb.from('vpc_state').select('key, value');
         if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
 
-        // If the table is empty, seed it with defaults.
         if (!data || data.length === 0) {
             const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
                 key, value, updated_by: session.user.id
@@ -160,19 +252,17 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
         }
     }
 
-    /* ---------- 5. Save a single key (debounced) ---------- */
+    /* ---------- 5. Debounced save ---------- */
     const saveTimers = {};
     function queueSave(key) {
         setSync('saving', 'Opslaan…');
         clearTimeout(saveTimers[key]);
         saveTimers[key] = setTimeout(async () => {
             const { error } = await sb.from('vpc_state').upsert({
-                key,
-                value: S[key],
+                key, value: S[key],
                 updated_at: new Date().toISOString(),
                 updated_by: session.user.id
             }, { onConflict: 'key' });
-
             if (error) setSync('error', 'Fout: ' + error.message);
             else setSync('saved', 'Opgeslagen');
         }, 600);
@@ -226,7 +316,7 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
         sp.textContent = S[k];
         sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = null; });
         sp.addEventListener('blur',  () => { focusedKey = null; focusedIndex = null; });
-        sp.oninput = function () { S[k] = sp.textContent; queueSave(k); };
+        sp.oninput   = function () { S[k] = sp.textContent; queueSave(k); };
         sp.onkeydown = function (e) {
             if (e.key === "Enter") { e.preventDefault(); sp.blur(); }
         };
@@ -237,7 +327,7 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
         document.querySelectorAll(".head span").forEach(renderHeader);
     }
 
-    /* ---------- 7. Realtime: apply remote changes ---------- */
+    /* ---------- 7. Realtime ---------- */
     function subscribeRealtime() {
         sb.channel('vpc-updates')
             .on('postgres_changes',
@@ -246,9 +336,7 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
                     const row = payload.new || payload.old;
                     if (!row || !row.key) return;
 
-                    // Ignore echo of our own recent save
                     if (row.updated_by && row.updated_by === session.user.id) {
-                        // But still refresh our local view if data differs.
                         if (JSON.stringify(S[row.key]) !== JSON.stringify(row.value)) {
                             S[row.key] = row.value;
                             softRerender(row.key);
@@ -262,10 +350,8 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
             .subscribe();
     }
 
-    // Re-render only if the user isn't actively editing that key,
-    // and skip the element they're typing in.
     function softRerender(key) {
-        if (focusedKey === key) return; // don't disturb the local editor
+        if (focusedKey === key) return;
 
         if (key === 'vp' || key === 'cs') {
             const sp = document.querySelector('.head span[data-k="' + key + '"]');
@@ -277,13 +363,15 @@ h1{font-size:clamp(26px,4vw,40px);font-weight:500;margin:0 0 6px}
         setSync('saved', 'Bijgewerkt');
     }
 
-    /* ---------- 8. Reset button ---------- */
+    /* ---------- 8. Reset ---------- */
     document.getElementById("reset").onclick = async function () {
         if (!confirm("Weet je zeker dat je de VPC voor het hele team wilt resetten naar de beginwaarden?")) return;
 
         setSync('saving', 'Resetten…');
         const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
-            key, value, updated_at: new Date().toISOString(), updated_by: session.user.id
+            key, value,
+            updated_at: new Date().toISOString(),
+            updated_by: session.user.id
         }));
         const { error } = await sb.from('vpc_state').upsert(rows, { onConflict: 'key' });
 
