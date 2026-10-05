@@ -20,9 +20,12 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 12px;
         }
         .topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
-        .user-email { font-size: 14px; color: #666; margin-right: 12px; }
+        .topbar .right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .user-email { font-size: 14px; color: #666; }
         #logout-btn {
             padding: 8px 16px;
             border: 1px solid #ccc;
@@ -31,6 +34,8 @@
             cursor: pointer;
             font-size: 14px;
         }
+        #logout-btn:hover { background: #eee; }
+
         #create-notebook-form {
             background: white;
             padding: 24px;
@@ -51,7 +56,8 @@
         }
         textarea { resize: vertical; }
         input[type="file"] { margin: 10px 0; font-size: 14px; }
-        #save-notebook-btn {
+
+        .btn-primary {
             padding: 10px 20px;
             background: #0066ff;
             color: white;
@@ -61,8 +67,31 @@
             font-size: 15px;
             font-weight: 500;
         }
-        #save-notebook-btn:hover { background: #0052cc; }
-        #save-notebook-btn:disabled { background: #99b8ff; cursor: not-allowed; }
+        .btn-primary:hover { background: #0052cc; }
+        .btn-primary:disabled { background: #99b8ff; cursor: not-allowed; }
+
+        .btn-secondary {
+            padding: 8px 14px;
+            background: white;
+            color: #222;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-secondary:hover { background: #eee; }
+
+        .btn-danger {
+            padding: 8px 14px;
+            background: white;
+            color: #c00;
+            border: 1px solid #c00;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-danger:hover { background: #fff0f0; }
+
         .notebook {
             background: white;
             border-radius: 10px;
@@ -70,13 +99,22 @@
             margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .notebook-title { font-weight: 600; font-size: 1.15em; margin-bottom: 6px; }
-        .notebook-content { white-space: pre-wrap; line-height: 1.5; color: #333; }
+        .notebook-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .notebook-title { font-weight: 600; font-size: 1.15em; margin-bottom: 6px; flex: 1; min-width: 200px; }
+        .notebook-actions { display: flex; gap: 8px; }
+        .notebook-content { white-space: pre-wrap; line-height: 1.5; color: #333; margin-top: 4px; }
         .notebook img {
             max-width: 100%;
             border-radius: 6px;
             margin-top: 14px;
             border: 1px solid #eee;
+            display: block;
         }
         .notebook-meta {
             font-size: 0.8em;
@@ -86,14 +124,24 @@
             padding-top: 10px;
         }
         #notebooks-list > p { color: #777; }
+
+        /* Inline edit form inside a notebook card */
+        .edit-form {
+            border: 1px dashed #0066ff;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f7faff;
+            margin-top: 8px;
+        }
+        .edit-form label { font-size: 13px; color: #444; font-weight: 500; }
+        .edit-form .actions { display: flex; gap: 10px; margin-top: 8px; }
+        .edit-note { font-size: 12px; color: #666; margin-top: 6px; }
     </style>
 </head>
 <body>
     <div class="topbar">
-        <div>
-            <a href="index.html">← Home</a>
-        </div>
-        <div>
+        <a href="index.html">← Home</a>
+        <div class="right">
             <span class="user-email" id="user-email"></span>
             <button id="logout-btn">Log Out</button>
         </div>
@@ -106,7 +154,7 @@
         <input type="text" id="notebook-title" placeholder="Title" required>
         <textarea id="notebook-content" rows="4" placeholder="Write your notes here..."></textarea>
         <input type="file" id="notebook-image" accept="image/*">
-        <button id="save-notebook-btn">Save Notebook</button>
+        <button id="save-notebook-btn" class="btn-primary">Save Notebook</button>
     </div>
 
     <div id="notebooks-list">
@@ -124,13 +172,13 @@
         const listDiv = document.getElementById('notebooks-list');
 
         let currentUser = null;
+        let notebooksCache = [];   // keeps the last loaded list
+        let editingId = null;      // id of notebook currently being edited (or null)
 
+        /* ---------- Auth ---------- */
         async function init() {
             const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-                window.location.href = 'login.html';
-                return;
-            }
+            if (!session) { window.location.href = 'login.html'; return; }
             currentUser = session.user;
             userEmailSpan.textContent = currentUser.email;
 
@@ -143,6 +191,7 @@
             window.location.href = 'login.html';
         });
 
+        /* ---------- Load & render ---------- */
         async function loadNotebooks() {
             const { data, error } = await sb
                 .from('notebooks')
@@ -154,74 +203,108 @@
                 listDiv.innerHTML = '<p>Failed to load notebooks: ' + error.message + '</p>';
                 return;
             }
-            renderNotebooks(data);
-        }
-
-        function renderNotebooks(notebooks) {
-            listDiv.innerHTML = '';
-            if (!notebooks || notebooks.length === 0) {
-                listDiv.innerHTML = '<p>No notebooks yet. Create one above!</p>';
-                return;
-            }
-            notebooks.forEach(nb => {
-                const div = document.createElement('div');
-                div.className = 'notebook';
-                div.innerHTML = `
-                    <div class="notebook-title">${escapeHtml(nb.title)}</div>
-                    <div class="notebook-content">${escapeHtml(nb.content || '')}</div>
-                    ${nb.image_url ? `<img src="${nb.image_url}" alt="Notebook image">` : ''}
-                    <div class="notebook-meta">${new Date(nb.created_at).toLocaleString()}</div>
-                `;
-                listDiv.appendChild(div);
-            });
+            notebooksCache = data || [];
+            renderNotebooks();
         }
 
         function escapeHtml(text) {
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = text ?? '';
             return div.innerHTML;
         }
 
+        function renderNotebooks() {
+            listDiv.innerHTML = '';
+            if (notebooksCache.length === 0) {
+                listDiv.innerHTML = '<p>No notebooks yet. Create one above!</p>';
+                return;
+            }
+
+            notebooksCache.forEach(nb => {
+                const isOwner = nb.user_id === currentUser.id;
+                const isEditing = editingId === nb.id;
+
+                const div = document.createElement('div');
+                div.className = 'notebook';
+                div.dataset.id = nb.id;
+
+                if (isEditing) {
+                    div.innerHTML = `
+                        <div class="edit-form">
+                            <label>Title</label>
+                            <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
+                            <label>Content</label>
+                            <textarea class="edit-content" rows="4">${escapeHtml(nb.content || '')}</textarea>
+                            <label>Replace image (leave empty to keep current)</label>
+                            <input type="file" class="edit-image" accept="image/*">
+                            <div class="edit-note">Only you can see this form because you created this notebook.</div>
+                            <div class="actions">
+                                <button class="btn-primary edit-save-btn">Save Changes</button>
+                                <button class="btn-secondary edit-cancel-btn">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    div.innerHTML = `
+                        <div class="notebook-header">
+                            <div class="notebook-title">${escapeHtml(nb.title)}</div>
+                            ${isOwner ? `
+                                <div class="notebook-actions">
+                                    <button class="btn-secondary edit-btn">Edit</button>
+                                    <button class="btn-danger delete-btn">Delete</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="notebook-content">${escapeHtml(nb.content || '')}</div>
+                        ${nb.image_url ? `<img src="${nb.image_url}" alt="Notebook image">` : ''}
+                        <div class="notebook-meta">${new Date(nb.created_at).toLocaleString()}</div>
+                    `;
+                }
+
+                // Wire up the buttons for this card
+                if (isEditing) {
+                    div.querySelector('.edit-save-btn').addEventListener('click', () => saveEdit(nb));
+                    div.querySelector('.edit-cancel-btn').addEventListener('click', () => {
+                        editingId = null;
+                        renderNotebooks();
+                    });
+                } else if (isOwner) {
+                    div.querySelector('.edit-btn').addEventListener('click', () => {
+                        editingId = nb.id;
+                        renderNotebooks();
+                    });
+                    div.querySelector('.delete-btn').addEventListener('click', () => deleteNotebook(nb));
+                }
+
+                listDiv.appendChild(div);
+            });
+        }
+
+        function escapeAttr(text) {
+            return String(text ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        /* ---------- Create ---------- */
         saveBtn.addEventListener('click', async () => {
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
             const file = imageInput.files[0];
 
-            if (!title) {
-                alert('Please enter a title.');
-                return;
-            }
+            if (!title) { alert('Please enter a title.'); return; }
 
             saveBtn.disabled = true;
             saveBtn.textContent = 'Saving…';
 
-            let imageUrl = null;
-
             try {
-                if (file) {
-                    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                    const filePath = `${currentUser.id}/${Date.now()}_${safeName}`;
-
-                    const { error: uploadError } = await sb.storage
-                        .from('notebook-images')
-                        .upload(filePath, file);
-
-                    if (uploadError) throw uploadError;
-
-                    const { data: urlData } = sb.storage
-                        .from('notebook-images')
-                        .getPublicUrl(filePath);
-                    imageUrl = urlData.publicUrl;
-                }
+                const imageUrl = file ? await uploadImage(file) : null;
 
                 const { error: dbError } = await sb
                     .from('notebooks')
-                    .insert({
-                        user_id: currentUser.id,
-                        title: title,
-                        content: content,
-                        image_url: imageUrl
-                    });
+                    .insert({ user_id: currentUser.id, title, content, image_url: imageUrl });
 
                 if (dbError) throw dbError;
 
@@ -230,7 +313,6 @@
                 imageInput.value = '';
 
                 await loadNotebooks();
-
             } catch (err) {
                 console.error('Failed to save notebook:', err);
                 alert('Failed to save: ' + err.message);
@@ -240,6 +322,103 @@
             }
         });
 
+        /* ---------- Edit (save) ---------- */
+        async function saveEdit(nb) {
+            const card = document.querySelector(`.notebook[data-id="${nb.id}"]`);
+            if (!card) return;
+
+            const newTitle = card.querySelector('.edit-title').value.trim();
+            const newContent = card.querySelector('.edit-content').value.trim();
+            const fileInput = card.querySelector('.edit-image');
+            const newFile = fileInput.files[0];
+            const saveEditBtn = card.querySelector('.edit-save-btn');
+
+            if (!newTitle) { alert('Title cannot be empty.'); return; }
+
+            saveEditBtn.disabled = true;
+            saveEditBtn.textContent = 'Saving…';
+
+            try {
+                const updates = { title: newTitle, content: newContent };
+
+                // If a new image was chosen, upload it and update the URL.
+                if (newFile) {
+                    updates.image_url = await uploadImage(newFile);
+                }
+
+                const { error } = await sb
+                    .from('notebooks')
+                    .update(updates)
+                    .eq('id', nb.id);
+
+                if (error) throw error;
+
+                editingId = null;
+                await loadNotebooks();
+            } catch (err) {
+                console.error('Failed to update notebook:', err);
+                alert('Failed to update: ' + err.message);
+            } finally {
+                if (document.body.contains(saveEditBtn)) {
+                    saveEditBtn.disabled = false;
+                    saveEditBtn.textContent = 'Save Changes';
+                }
+            }
+        }
+
+        /* ---------- Delete ---------- */
+        async function deleteNotebook(nb) {
+            if (!confirm(`Delete "${nb.title}"? This cannot be undone.`)) return;
+
+            const { error } = await sb
+                .from('notebooks')
+                .delete()
+                .eq('id', nb.id);
+
+            if (error) {
+                console.error('Failed to delete:', error);
+                alert('Failed to delete: ' + error.message);
+                return;
+            }
+
+            // Also remove the associated image from storage (best-effort).
+            if (nb.image_url) {
+                const path = extractStoragePath(nb.image_url);
+                if (path) {
+                    await sb.storage.from('notebook-images').remove([path]).catch(() => {});
+                }
+            }
+
+            await loadNotebooks();
+        }
+
+        /* ---------- Helpers ---------- */
+        async function uploadImage(file) {
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const filePath = `${currentUser.id}/${Date.now()}_${safeName}`;
+
+            const { error: uploadError } = await sb.storage
+                .from('notebook-images')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: urlData } = sb.storage
+                .from('notebook-images')
+                .getPublicUrl(filePath);
+
+            return urlData.publicUrl;
+        }
+
+        // Turn a public URL back into the storage path used by .remove()
+        function extractStoragePath(publicUrl) {
+            const marker = '/notebook-images/';
+            const idx = publicUrl.indexOf(marker);
+            if (idx === -1) return null;
+            return publicUrl.substring(idx + marker.length);
+        }
+
+        /* ---------- Realtime ---------- */
         function subscribeToNotebookChanges() {
             sb.channel('notebook-updates')
                 .on(
