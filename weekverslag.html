@@ -373,7 +373,8 @@ textarea { resize: vertical; min-height: 60px; }
         },
         teamNumber: "7",
         classGroup: "2TI-BA-Vr-7",
-        caseName: "PermaFungi"
+        caseName: "Permafungi",
+        lessonDay: "vr"
     };
 
     // Parse member names for the dropdowns
@@ -419,8 +420,7 @@ textarea { resize: vertical; min-height: 60px; }
     function computeFileName() {
         if (!data.date) return 'BA-Weekverslag-Team-??-?-??????.pdf';
         const d = new Date(data.date + 'T12:00:00');
-        const dayMap = { 1: 'ma', 2: 'di', 3: 'wo', 4: 'do', 5: 'vr', 6: 'za', 0: 'zo' };
-        const dd = dayMap[d.getDay()] || '??';
+        const dd = TEAM.lessonDay || 'vr';
         const X = data.team || '?';
         const yy = String(d.getFullYear()).slice(-2);
         const mm = String(d.getMonth() + 1).padStart(2, '0');
