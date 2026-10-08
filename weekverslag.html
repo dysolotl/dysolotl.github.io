@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Weekverslag Generator - PermaFungi</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
 * { box-sizing: border-box; }
 body {
@@ -81,7 +82,6 @@ textarea { resize: vertical; min-height: 60px; }
     line-height: 1.4;
 }
 
-/* Roles grid */
 .roles-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -216,12 +216,6 @@ textarea { resize: vertical; min-height: 60px; }
 #report-doc ul { margin: 6px 0; padding-left: 20px; }
 #report-doc li { margin: 3px 0; }
 #report-doc .info-table td:first-child { width: 150px; background: #f5f7fa; font-weight: 500; }
-
-@media print {
-    body * { visibility: hidden; }
-    #report-doc, #report-doc * { visibility: visible; }
-    #report-doc { position: absolute; left: 0; top: 0; width: 100%; }
-}
 </style>
 </head>
 <body>
@@ -249,7 +243,7 @@ textarea { resize: vertical; min-height: 60px; }
             </div>
             <div class="row-2">
                 <div>
-                    <label>Datum les (bepaalt dd en YYMMDD)</label>
+                    <label>Datum les</label>
                     <input type="date" id="f-date">
                 </div>
                 <div>
@@ -290,9 +284,7 @@ textarea { resize: vertical; min-height: 60px; }
             <div class="team-hint">
                 Kies voor elke rol wie de rol opneemt en wie de vervanger is. Kandidaten komen uit de teamledenlijst.
             </div>
-            <div class="roles-grid" id="roles-grid">
-                <!-- filled by JS -->
-            </div>
+            <div class="roles-grid" id="roles-grid"></div>
         </section>
 
         <section>
@@ -333,7 +325,7 @@ textarea { resize: vertical; min-height: 60px; }
     <div class="preview-panel">
 
         <div class="preview-toolbar">
-            <span class="filename" id="filename-preview">BA-Weekverslag-Team-??-?-??????.pdf</span>
+            <span class="filename" id="filename-preview">BA-Weekverslag-Team-vr-7-??????.pdf</span>
             <button class="btn-secondary" id="copy-filename">Kopieer naam</button>
             <button class="btn-primary" id="export-btn">Exporteer PDF</button>
         </div>
@@ -365,25 +357,23 @@ textarea { resize: vertical; min-height: 60px; }
        TEAM CONFIGURATIE — pas hier aan als het team wijzigt
        ============================================================ */
     const TEAM = {
-        members: "Adam Allali, Dylan De Marie, Dingming Zhu, Daniel Allauca Orozco, Bilal Amraoui",
+        members: "Adam Allali, Dylan De Marie, Dingming Zhu, Daniel Allauca Orozco",
         roles: {
-            leader:      { primary: "Dingming", replacement: "Adam" },
-            secretary:   { primary: "Dylan",    replacement: "Daniel"   },
-            editor:      { primary: "Adam",     replacement: "Bilal" },
+            leader:    { primary: "Dingming", replacement: "Daniel" },
+            secretary: { primary: "Dylan",    replacement: "Adam"   },
+            editor:    { primary: "Adam",     replacement: "Dingming" }
         },
         teamNumber: "7",
         classGroup: "2TI-BA-Vr-7",
-        caseName: "Permafungi",
-        lessonDay: "vr"
+        caseName: "PermaFungi",
+        lessonDay: "vr"     // vaste lesdag van de groep
     };
 
-    // Parse member names for the dropdowns
     function parseMembers(str) {
         return str.split(',').map(s => s.trim()).filter(Boolean);
     }
     const MEMBER_LIST = parseMembers(TEAM.members);
 
-    // Role definitions (key, Dutch label)
     const ROLE_DEFS = [
         { key: 'leader',    label: 'Leider' },
         { key: 'secretary', label: 'Secretaris' },
@@ -401,11 +391,10 @@ textarea { resize: vertical; min-height: 60px; }
         case: TEAM.caseName,
         weeklabel: 'Week 1',
         members: TEAM.members,
-        // Each role: { primary, replacement }
         roles: {
-            leader:      { ...TEAM.roles.leader },
-            secretary:   { ...TEAM.roles.secretary },
-            editor:      { ...TEAM.roles.editor }
+            leader:    { ...TEAM.roles.leader },
+            secretary: { ...TEAM.roles.secretary },
+            editor:    { ...TEAM.roles.editor }
         },
         status: { paragraph: '', bullets: '' },
         open: '',
@@ -418,10 +407,10 @@ textarea { resize: vertical; min-height: 60px; }
        FILENAME / DATES
        ============================================================ */
     function computeFileName() {
-        if (!data.date) return 'BA-Weekverslag-Team-??-?-??????.pdf';
+        if (!data.date) return `BA-Weekverslag-Team-${TEAM.lessonDay}-${TEAM.teamNumber}-??????.pdf`;
         const d = new Date(data.date + 'T12:00:00');
         const dd = TEAM.lessonDay || 'vr';
-        const X = data.team || '?';
+        const X  = data.team || TEAM.teamNumber;
         const yy = String(d.getFullYear()).slice(-2);
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -448,7 +437,7 @@ textarea { resize: vertical; min-height: 60px; }
     $('f-case').value = TEAM.caseName;
 
     /* ============================================================
-       ROLES GRID — each role has primary + replacement dropdown
+       ROLES GRID
        ============================================================ */
     function buildRolesGrid() {
         const grid = $('roles-grid');
@@ -496,8 +485,6 @@ textarea { resize: vertical; min-height: 60px; }
             sel.appendChild(opt);
         });
 
-        // If currentValue isn't in the list (e.g. "Dingming" vs full name "Dingming Zhu"),
-        // add it as an extra option so it isn't lost.
         if (currentValue && !MEMBER_LIST.includes(currentValue)) {
             const opt = document.createElement('option');
             opt.value = currentValue;
@@ -530,6 +517,8 @@ textarea { resize: vertical; min-height: 60px; }
     /* ============================================================
        DYNAMIC LISTS
        ============================================================ */
+    function escapeAttr(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
     function renderTasks() {
         const c = $('f-tasks-list');
         c.innerHTML = '';
@@ -627,11 +616,8 @@ textarea { resize: vertical; min-height: 60px; }
         d.textContent = s ?? '';
         return d.innerHTML;
     }
-    function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
 
     function rolesSummary() {
-        // Build a readable summary that shows primary + replacement per role.
-        // Example: "Leider: Dingming (vervanger: Daniel) · Secretaris: Dylan (vervanger: Adam) · Eindredacteur: Adam (vervanger: Dingming)"
         return ROLE_DEFS.map(r => {
             const p = data.roles[r.key].primary || '—';
             const rep = data.roles[r.key].replacement;
@@ -757,16 +743,14 @@ textarea { resize: vertical; min-height: 60px; }
             .from('weekverslagen').select('*').eq('id', key).limit(1);
         if (error || !rows || rows.length === 0) return;
 
-        // Merge loaded data, but keep TEAM values authoritative for team-level fields
         Object.assign(data, rows[0].data);
         data.team = TEAM.teamNumber;
         data.class = TEAM.classGroup;
         data.case = TEAM.caseName;
         data.members = TEAM.members;
 
-        // Migrate old roles format if needed
+        // Migrate old roles format
         if (data.roles && typeof data.roles.leader === 'string') {
-            // old format: { leader: 'Dingming', secretary: 'Dylan', editor: 'Adam', replacement: 'Daniel' }
             const old = data.roles;
             data.roles = {
                 leader:      { primary: old.leader || '',      replacement: old.replacement || '' },
@@ -774,7 +758,6 @@ textarea { resize: vertical; min-height: 60px; }
                 editor:      { primary: old.editor || '',      replacement: '' }
             };
         } else {
-            // Ensure each role has both fields
             ROLE_DEFS.forEach(r => {
                 if (!data.roles[r.key]) data.roles[r.key] = { primary: '', replacement: '' };
                 if (typeof data.roles[r.key] === 'string') {
@@ -797,25 +780,185 @@ textarea { resize: vertical; min-height: 60px; }
     $('f-date').addEventListener('change', loadForDate);
 
     /* ============================================================
-       PDF EXPORT
+       PDF EXPORT — built directly from data
        ============================================================ */
-    $('export-btn').addEventListener('click', async () => {
+    function rolesPlainText() {
+        return ROLE_DEFS.map(r => {
+            const p = data.roles[r.key].primary || '—';
+            const rep = data.roles[r.key].replacement;
+            return rep
+                ? `${r.label}: ${p} (vervanger: ${rep})`
+                : `${r.label}: ${p}`;
+        }).join('  ·  ');
+    }
+
+    $('export-btn').addEventListener('click', () => {
         const btn = $('export-btn');
         btn.disabled = true;
         btn.textContent = 'Bezig…';
 
         try {
-            const filename = computeFileName();
-            const element = $('report-doc');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
-            await html2pdf().set({
-                margin: [10, 10, 14, 10],
-                filename: filename,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-            }).from(element).save();
+            const PAGE_W = 210;
+            const PAGE_H = 297;
+            const MARGIN_X = 15;
+            const MARGIN_TOP = 15;
+            const MARGIN_BOTTOM = 15;
+            const CONTENT_W = PAGE_W - MARGIN_X * 2;
+            let y = MARGIN_TOP;
+
+            const LINE_H = 4.5;
+
+            function ensureSpace(needed) {
+                if (y + needed > PAGE_H - MARGIN_BOTTOM) {
+                    doc.addPage();
+                    y = MARGIN_TOP;
+                }
+            }
+
+            function heading(text) {
+                ensureSpace(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.setTextColor(26, 58, 92);
+                doc.text(text, MARGIN_X, y);
+                y += 2;
+                doc.setDrawColor(220, 225, 230);
+                doc.setLineWidth(0.2);
+                doc.line(MARGIN_X, y, MARGIN_X + CONTENT_W, y);
+                y += 5;
+                doc.setTextColor(20, 20, 20);
+            }
+
+            function paragraph(text) {
+                if (!text) return;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                const lines = doc.splitTextToSize(String(text), CONTENT_W);
+                const needed = lines.length * LINE_H + 2;
+                ensureSpace(needed);
+                doc.text(lines, MARGIN_X, y);
+                y += needed;
+            }
+
+            function bulletList(items) {
+                if (!items || items.length === 0) return;
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                items.forEach(item => {
+                    const lines = doc.splitTextToSize(String(item), CONTENT_W - 5);
+                    const needed = lines.length * LINE_H + 1;
+                    ensureSpace(needed);
+                    doc.text('•', MARGIN_X, y);
+                    doc.text(lines, MARGIN_X + 4, y);
+                    y += needed;
+                });
+            }
+
+            function autoTable(opts) {
+                doc.autoTable({
+                    margin: { left: MARGIN_X, right: MARGIN_X, bottom: MARGIN_BOTTOM },
+                    theme: 'grid',
+                    styles: { font: 'helvetica', fontSize: 9, cellPadding: 2, lineColor: [210, 215, 220], lineWidth: 0.2, textColor: [30, 30, 30] },
+                    headStyles: { fillColor: [245, 247, 250], textColor: [26, 58, 92], fontStyle: 'bold' },
+                    ...opts,
+                    startY: y
+                });
+                y = doc.lastAutoTable.finalY + 6;
+            }
+
+            // --- Titel ---
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.setTextColor(20, 20, 20);
+            doc.text(`Weekverslag BA ${data.case} – ${data.week}`, MARGIN_X, y);
+            y += 8;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+            doc.setTextColor(110, 110, 110);
+            doc.text(formatDateNL(data.date), MARGIN_X, y);
+            y += 8;
+            doc.setTextColor(20, 20, 20);
+
+            // --- Info ---
+            heading('Info');
+            autoTable({
+                body: [
+                    ['Team',         data.class],
+                    ['Case',         data.case],
+                    ['Week',         data.week],
+                    ['Teamleden',    data.members],
+                    ['Rollen',       rolesPlainText()],
+                    ['Bestandsnaam', computeFileName()]
+                ],
+                columnStyles: {
+                    0: { cellWidth: 40, fontStyle: 'bold', fillColor: [245, 247, 250] },
+                    1: { cellWidth: CONTENT_W - 40 }
+                }
+            });
+
+            // --- Stand van zaken ---
+            const bullets = data.status.bullets.split('\n').map(s => s.trim()).filter(Boolean);
+            if (data.status.paragraph || bullets.length > 0) {
+                heading('Stand van zaken');
+                paragraph(data.status.paragraph);
+                bulletList(bullets);
+                y += 4;
+            }
+
+            // --- Nog open ---
+            const openItems = data.open.split('\n').map(s => s.trim()).filter(Boolean);
+            if (openItems.length > 0) {
+                heading('Nog open');
+                bulletList(openItems);
+                y += 4;
+            }
+
+            // --- Taakverdeling ---
+            if (data.tasks.length > 0) {
+                heading('Taakverdeling');
+                const weekNr = data.week.replace(/[^0-9]/g, '');
+                autoTable({
+                    head: [['Naam', `Taken week ${weekNr}`]],
+                    body: data.tasks.map(t => [t.name || '', t.tasks || '']),
+                    columnStyles: {
+                        0: { cellWidth: 45 },
+                        1: { cellWidth: CONTENT_W - 45 }
+                    }
+                });
+            }
+
+            // --- Vergaderingen ---
+            if (data.meetings.length > 0) {
+                heading('Vergaderingen');
+                autoTable({
+                    head: [['Datum', 'Onderwerp', 'Conclusie']],
+                    body: data.meetings.map(m => [m.date || '', m.topic || '', m.conclusion || '']),
+                    columnStyles: {
+                        0: { cellWidth: 30 },
+                        1: { cellWidth: 55 },
+                        2: { cellWidth: CONTENT_W - 85 }
+                    }
+                });
+            }
+
+            // --- Planning volgende week ---
+            if (data.planning.length > 0) {
+                heading('Planning volgende week');
+                autoTable({
+                    head: [['Taak', 'Wie']],
+                    body: data.planning.map(p => [p.task || '', p.who || '']),
+                    columnStyles: {
+                        0: { cellWidth: CONTENT_W - 45 },
+                        1: { cellWidth: 45 }
+                    }
+                });
+            }
+
+            doc.save(computeFileName());
         } catch (err) {
             console.error('PDF error:', err);
             alert('Fout bij PDF export: ' + err.message);
