@@ -57,10 +57,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
     margin-top: 12px;
 }
 
-/* A "column" that can stack two panels vertically (Activities+Resources, Relationships+Channels) */
 .bmc-col-stack { display: flex; flex-direction: column; gap: 12px; }
 
-/* A block = one labeled BMC cell */
 .block {
     display: flex;
     flex-direction: column;
@@ -100,12 +98,12 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
     overflow: visible;
 }
 
-/* Individual items inside a block — the "sticky note" rows from the reference */
+/* Individual items */
 .item {
     position: relative;
-    background: #cfe2f3;         /* default blue */
+    background: #cfe2f3;
     border: 1px solid #1f3b57;
-    padding: 8px 10px;
+    padding: 8px 10px 8px 22px;  /* extra left padding for tone buttons */
     font-size: 12.5px;
     line-height: 1.3;
     box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
@@ -114,6 +112,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
     align-items: center;
 }
 .item[data-tone="yellow"] { background: #ffe599; border-color: #7f6000; }
+.item[data-tone="green"]  { background: #b6d7a8; border-color: #38761d; }
+
 .item span {
     display: block;
     width: 100%;
@@ -121,6 +121,34 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
     outline: none;
 }
 .item span:empty::before { content: "typ hier"; opacity: .45; }
+
+/* Tone picker (left edge, visible on hover/focus) */
+.tone-group {
+    position: absolute;
+    left: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+    flex-direction: column;
+    gap: 3px;
+}
+.item:hover .tone-group,
+.item:focus-within .tone-group { display: flex; }
+.tone-btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid #111;
+    cursor: pointer;
+    padding: 0;
+    transition: transform .1s;
+}
+.tone-btn[data-tone="blue"]   { background: #cfe2f3; }
+.tone-btn[data-tone="yellow"] { background: #ffe599; }
+.tone-btn[data-tone="green"]  { background: #b6d7a8; }
+.tone-btn:hover { transform: scale(1.25); }
+
+/* Delete button */
 .item .del {
     position: absolute;
     top: -8px;
@@ -153,7 +181,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
 }
 .bar button:hover { background: #fff0f0; border-color: #a00; }
 
-/* Responsive: collapse to fewer columns on small screens */
+/* Responsive */
 @media (max-width: 1100px) {
     .bmc-top { grid-template-columns: 1fr 1fr; }
     .bmc-top > *:nth-child(5) { grid-column: span 2; }
@@ -178,17 +206,15 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
 </div>
 
 <h1>Business Model Canvas</h1>
-<p class="hint">Klik op een blok om de tekst aan te passen. Gebruik + in de kolomkop om een blok toe te voegen, of × om te verwijderen. Wijzigingen worden direct gedeeld met je team.</p>
+<p class="hint">Klik op een blok om de tekst aan te passen. Gebruik + in de kolomkop om een blok toe te voegen, of × om te verwijderen. Verplaats de cursor over een blok en klik op een gekleurde stip links om de kleur te wijzigen. Wijzigingen worden direct gedeeld met je team.</p>
 
 <div class="canvas">
     <div class="bmc-top">
-        <!-- 1. Key Partners -->
         <div class="block" data-c="blue" data-k="kp">
             <div class="block-header"><span>Key Partners</span><button class="add-btn" aria-label="Add">+</button></div>
             <div class="block-body"></div>
         </div>
 
-        <!-- 2. Key Activities (top) + Key Resources (bottom) -->
         <div class="bmc-col-stack">
             <div class="block" data-c="yellow" data-k="ka">
                 <div class="block-header"><span>Key Activities</span><button class="add-btn" aria-label="Add">+</button></div>
@@ -200,13 +226,11 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
             </div>
         </div>
 
-        <!-- 3. Value Propositions -->
         <div class="block" data-c="blue" data-k="vp">
             <div class="block-header"><span>Value Propositions</span><button class="add-btn" aria-label="Add">+</button></div>
             <div class="block-body"></div>
         </div>
 
-        <!-- 4. Customer Relationships (top) + Channels (bottom) -->
         <div class="bmc-col-stack">
             <div class="block" data-c="blue" data-k="cr">
                 <div class="block-header"><span>Customer Relationships</span><button class="add-btn" aria-label="Add">+</button></div>
@@ -218,7 +242,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
             </div>
         </div>
 
-        <!-- 5. Customer Segments -->
         <div class="block" data-c="blue" data-k="cs">
             <div class="block-header"><span>Customer Segments</span><button class="add-btn" aria-label="Add">+</button></div>
             <div class="block-body"></div>
@@ -255,7 +278,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
         window.location.href = 'login.html';
     });
 
-    /* ---------- 2. Default data, mirroring the reference image ---------- */
+    /* ---------- 2. Defaults ---------- */
     const DEFAULTS = {
         kp: [
             { t: "Apto-demo (17% aandeelhouder)", tone: "blue" },
@@ -366,15 +389,34 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
     /* ---------- 6. Render ---------- */
     function renderBlock(blockEl) {
         const k = blockEl.dataset.k;
-        const tone = blockEl.dataset.c; // default tone for new items
+        const defaultTone = blockEl.dataset.c;
         const body = blockEl.querySelector('.block-body');
         body.innerHTML = '';
 
         S[k].forEach((item, i) => {
             const div = document.createElement('div');
             div.className = 'item';
-            div.dataset.tone = item.tone || tone;
+            div.dataset.tone = item.tone || defaultTone;
 
+            /* --- Tone picker (left edge) --- */
+            const toneGroup = document.createElement('div');
+            toneGroup.className = 'tone-group';
+            ['blue', 'yellow', 'green'].forEach(toneName => {
+                const tb = document.createElement('button');
+                tb.className = 'tone-btn';
+                tb.dataset.tone = toneName;
+                tb.title = 'Kleur: ' + toneName;
+                tb.setAttribute('aria-label', 'Kleur ' + toneName);
+                tb.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    S[k][i].tone = toneName;
+                    queueSave(k);
+                    renderBlock(blockEl);
+                });
+                toneGroup.appendChild(tb);
+            });
+
+            /* --- Editable text --- */
             const sp = document.createElement('span');
             sp.contentEditable = 'true';
             sp.textContent = item.t;
@@ -389,7 +431,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
             sp.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    S[k].splice(i + 1, 0, { t: '', tone: item.tone || tone });
+                    S[k].splice(i + 1, 0, { t: '', tone: item.tone || defaultTone });
                     queueSave(k);
                     renderBlock(blockEl);
                     const next = blockEl.querySelectorAll('.item span')[i + 1];
@@ -397,6 +439,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
                 }
             });
 
+            /* --- Delete button --- */
             const del = document.createElement('button');
             del.className = 'del';
             del.textContent = '×';
@@ -407,6 +450,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
                 renderBlock(blockEl);
             });
 
+            div.appendChild(toneGroup);
             div.appendChild(sp);
             div.appendChild(del);
             body.appendChild(div);
@@ -417,7 +461,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; }
         document.querySelectorAll('.block').forEach(renderBlock);
     }
 
-    /* ---------- 7. Wire up + / edit ---------- */
+    /* ---------- 7. Add button ---------- */
     document.querySelectorAll('.block').forEach(blockEl => {
         const k = blockEl.dataset.k;
         const tone = blockEl.dataset.c;
