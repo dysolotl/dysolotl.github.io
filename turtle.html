@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Turtle Diagrams - PermaFungi</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: #f5f6f8;
+    color: #222;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    padding: 24px;
+}
+h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-align: center; }
+.hint { color: #666; font-size: 14px; margin: 0 auto 24px; line-height: 1.5; text-align: center; max-width: 720px; }
+
+/* Topbar */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
+.topbar a:hover { text-decoration: underline; }
+.topbar .right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.user-email { font-size: 14px; color: #666; }
+#logout-btn { padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; color: #222; }
+#logout-btn:hover { background: #eee; }
+
+/* Sync pill */
+.sync { font-size: 12px; color: #666; display: flex; align-items: center; gap: 6px; background: white; padding: 5px 10px; border-radius: 999px; border: 1px solid #e3e5e8; }
+.sync .dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; transition: background .2s; }
+.sync.saving .dot { background: #f0a500; }
+.sync.saved  .dot { background: #19a974; }
+.sync.error  .dot { background: #d33; }
+
+/* Page navigation bar */
+.nav-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.nav-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #222;
+}
+.nav-btn:hover:not(:disabled) { background: #0066ff; color: white; border-color: #0066ff; }
+.nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.page-indicator {
+    font-size: 14px;
+    color: #444;
+    min-width: 120px;
+    text-align: center;
+    background: white;
+    padding: 10px 20px;
+    border-radius: 999px;
+    border: 1px solid #e3e5e8;
+    font-weight: 500;
+}
+
+/* Diagram card */
+.diagram-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.diagram-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 20px;
+    outline: none;
+    border-bottom: 1px dashed transparent;
+    display: inline-block;
+    padding: 2px 6px;
+}
+.diagram-title:hover { border-bottom-color: #ccc; }
+.diagram-title:focus { border-bottom-color: #0066ff; }
+
+/* Turtle diagram: 3-column layout with the center arrow */
+.turtle {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 14px;
+    align-items: stretch;
+}
+
+/* Left column: Start, Input, Stakeholders */
+.col-left    { display: flex; flex-direction: column; gap: 14px; }
+/* Center column: Regels, arrow, Verantwoordelijke */
+.col-center  { display: flex; flex-direction: column; gap: 14px; }
+/* Right column: DOEL, EINDE, OUTPUT, Klanten */
+.col-right   { display: flex; flex-direction: column; gap: 14px; }
+
+/* Bottom row spans all three columns */
+.bottom-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-top: 14px;
+}
+
+/* Block */
+.block {
+    position: relative;
+    border: 1px solid #1f3b57;
+    background: #cfe2f3;         /* default: light blue */
+    padding: 12px 14px;
+    min-height: 70px;
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.block[data-tone="teal"]   { background: #a9e0e0; border-color: #0c5a5a; }
+.block[data-tone="yellow"] { background: #ffe599; border-color: #7f6000; }
+.block[data-tone="green"]  { background: #b6d7a8; border-color: #38761d; }
+
+.block-label {
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    outline: none;
+    letter-spacing: 0.02em;
+}
+.block-text {
+    font-size: 12.5px;
+    line-height: 1.35;
+    color: #222;
+    outline: none;
+    white-space: pre-wrap;
+    flex: 1;
+}
+.block-text:empty::before,
+.block-label:empty::before { content: "typ hier"; opacity: .45; }
+
+/* Block action buttons */
+.block .actions {
+    position: absolute;
+    top: -9px;
+    right: -9px;
+    display: none;
+    gap: 4px;
+}
+.block:hover .actions,
+.block:focus-within .actions { display: flex; }
+.block .actions button {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid #111;
+    background: white;
+    cursor: pointer;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1;
+}
+.block .actions .tone-btn { border: 1px solid #111; }
+.block .actions .tone-btn[data-tone="blue"]   { background: #cfe2f3; }
+.block .actions .tone-btn[data-tone="teal"]   { background: #a9e0e0; }
+.block .actions .tone-btn[data-tone="yellow"] { background: #ffe599; }
+.block .actions .tone-btn[data-tone="green"]  { background: #b6d7a8; }
+.block .actions .del { color: #a00; }
+
+/* Center red arrow */
+.center-arrow {
+    position: relative;
+    background: #ea4335;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 24px 40px;
+    min-height: 70px;
+    outline: none;
+}
+.center-arrow::before,
+.center-arrow::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background: #ea4335;
+}
+.center-arrow::before {
+    left: -28px;
+    clip-path: polygon(100% 50%, 0 0, 0 100%);
+}
+.center-arrow::after {
+    right: -28px;
+    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+}
+.center-arrow span {
+    outline: none;
+    width: 100%;
+}
+.center-arrow span:empty::before { content: "typ hier"; opacity: .7; }
+
+/* Add-block button */
+.add-block-btn {
+    margin-top: 16px;
+    padding: 8px 14px;
+    background: white;
+    color: #0066ff;
+    border: 1px dashed #0066ff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+}
+.add-block-btn:hover { background: #f0f6ff; }
+
+/* Bottom bar */
+.bar { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 1200px; margin-left: auto; margin-right: auto; }
+.bar button {
+    font: inherit;
+    font-size: 14px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: white;
+    color: #a00;
+}
+.bar button:hover { background: #fff0f0; border-color: #a00; }
+
+/* Responsive */
+@media (max-width: 900px) {
+    .turtle { grid-template-columns: 1fr; }
+    .bottom-row { grid-template-columns: 1fr 1fr; }
+    .center-arrow::before, .center-arrow::after { display: none; }
+    .center-arrow { border-radius: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar" style="display:none">
+    <a href="index.html">← Home</a>
+    <div class="right">
+        <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
+        <span class="user-email" id="user-email"></span>
+        <button id="logout-btn">Log Out</button>
+    </div>
+</div>
+
+<h1>Turtle Diagrams</h1>
+<p class="hint">Klik op een blok om de tekst aan te passen. Beweeg over een blok om de kleur te wijzigen of te verwijderen. Gebruik de pijltjes om tussen diagrammen te wisselen. Wijzigingen worden direct gedeeld met je team.</p>
+
+<div class="nav-bar" id="nav-bar" style="display:none">
+    <button class="nav-btn" id="prev-btn" aria-label="Vorige">‹</button>
+    <span class="page-indicator" id="page-indicator">Pagina 1 / 2</span>
+    <button class="nav-btn" id="next-btn" aria-label="Volgende">›</button>
+</div>
+
+<div id="diagram-container"></div>
+
+<div class="bar" id="bottom-bar" style="display:none">
+    <button id="reset">Reset voor hele team</button>
+</div>
+
+<script src="supabaseClient.js"></script>
+<script>
+(async () => {
+    /* ---------- 1. Auth guard ---------- */
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) { window.location.href = 'login.html'; return; }
+
+    document.getElementById('topbar').style.display = 'flex';
+    document.getElementById('nav-bar').style.display = 'flex';
+    document.getElementById('bottom-bar').style.display = 'flex';
+    document.getElementById('user-email').textContent = session.user.email;
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+        await sb.auth.signOut();
+        window.location.href = 'login.html';
+    });
+
+    /* ---------- 2. Defaults ---------- */
+    const PAGES = ['page1', 'page2'];
+
+    const DEFAULTS = {
+        page1: {
+            title: "Page 1 - Produceren",
+            center: "Een batch produceren",
+            blocks: [
+                { id: "regels",   label: "Regels",            text: "Werken in een steriele productieomgeving, veiligheidsregels respecteren, Productie volgens de standaard werkinstructies", tone: "blue" },
+                { id: "doel",     label: "DOEL",              text: "Mycelium verpakkingen produceren volgens de vereiste hoeveelheid en kwaliteit", tone: "blue" },
+                { id: "start",    label: "Start",             text: "Grondstoffen zijn beschikbaar en voorbereid, omgeving is klaar voor productieactiviteiten", tone: "blue" },
+                { id: "einde",    label: "EINDE",             text: "Productiebatch is gegenereerd en klaar voor kwaliteitscontrole", tone: "blue" },
+                { id: "input",    label: "Input",             text: "Koffiedik en afval / grondstoffen, productieplanning", tone: "blue" },
+                { id: "output",   label: "OUTPUT",            text: "Geproduceerde mycelium verpakking / productiebatch", tone: "blue" },
+                { id: "stake",    label: "Stakeholders",      text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten, Proces- en productie-ingenieurs", tone: "blue" },
+                { id: "verant",   label: "VERANTWOORDELIJKE", text: "Productiemedewerkers in Vorst", tone: "blue" },
+                { id: "res",      label: "RESOURCES",         text: "Fabriek in Vorst, productieomgeving, microbiologische kennis, productiemedewerkers", tone: "blue" },
+                { id: "klanten",  label: "KLANTEN",           text: "Kwaliteitscontrole / volgende stap in het productieproces", tone: "blue" }
+            ]
+        },
+        page2: {
+            title: "Page 2 - Kwaliteitscontrole",
+            center: "Een kwaliteitscontrole uitvoeren",
+            blocks: [
+                { id: "regels",   label: "Regels",            text: "Controle volgens het kwaliteitshandboek en de vastgelegde criteria, veiligheidsregels respecteren. Afwijkingen verplicht registreren", tone: "teal" },
+                { id: "doel",     label: "DOEL",              text: "Kwaliteit van de productiebatch controleren en afwijkingen detecteren", tone: "teal" },
+                { id: "start",    label: "Start",             text: "Productiebatch is gegenereerd", tone: "teal" },
+                { id: "einde",    label: "EINDE",             text: "Batch is goedgekeurd en resultaat is vastgelegd", tone: "teal" },
+                { id: "input",    label: "Input",             text: "Geproduceerde productiebatch + productiegegevens, kwaliteitscriteria", tone: "teal" },
+                { id: "output",   label: "OUTPUT",            text: "Kwaliteitsresultaat / geregistreerde afwijking", tone: "teal" },
+                { id: "stake",    label: "Stakeholders",      text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten", tone: "teal" },
+                { id: "verant",   label: "VERANTWOORDELIJKE", text: "Microbiologen & kwaliteitslaboranten", tone: "teal" },
+                { id: "res",      label: "RESOURCES",         text: "Kwaliteitscontrole, proces-ingenieurs, productiedashboard, batchregistratie, Controle-harnais, Weegschaal en meetinstrumenten", tone: "teal" },
+                { id: "klanten",  label: "KLANTEN",           text: "Productiemedewerkers / verdere productie- of leveringsstap", tone: "teal" }
+            ]
+        }
+    };
+
+    /* ---------- 3. State ---------- */
+    let state = JSON.parse(JSON.stringify(DEFAULTS)); // { page1: {...}, page2: {...} }
+    let currentPage = 0;                                // index into PAGES
+    let focused = null;                                 // { page, blockId, field } for skipping remote echoes
+
+    /* ---------- 4. Sync pill ---------- */
+    const syncEl = document.getElementById('sync');
+    const syncText = document.getElementById('sync-text');
+    function setSync(s, t) { syncEl.className = 'sync ' + s; syncText.textContent = t; }
+
+    /* ---------- 5. Load ---------- */
+    async function loadAll() {
+        const { data, error } = await sb.from('turtle_state').select('*');
+        if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
+
+        if (!data || data.length === 0) {
+            // seed
+            const rows = PAGES.map(id => ({
+                id,
+                title: DEFAULTS[id].title,
+                center: DEFAULTS[id].center,
+                blocks: DEFAULTS[id].blocks,
+                updated_by: session.user.id
+            }));
+            const { error: seedErr } = await sb.from('turtle_state').insert(rows);
+            if (seedErr) setSync('error', 'Seed-fout: ' + seedErr.message);
+            else setSync('saved', 'Opgeslagen');
+        } else {
+            data.forEach(row => {
+                state[row.id] = {
+                    title: row.title,
+                    center: row.center,
+                    blocks: row.blocks
+                };
+            });
+            setSync('saved', 'Opgeslagen');
+        }
+    }
+
+    /* ---------- 6. Debounced save ---------- */
+    const saveTimers = {};
+    function queueSave(pageId) {
+        setSync('saving', 'Opslaan…');
+        clearTimeout(saveTimers[pageId]);
+        saveTimers[pageId] = setTimeout(async () => {
+            const { error } = await sb.from('turtle_state').upsert({
+                id: pageId,
+                title: state[pageId].title,
+                center: state[pageId].center,
+                blocks: state[pageId].blocks,
+                updated_at: new Date().toISOString(),
+                updated_by: session.user.id
+            }, { onConflict: 'id' });
+            if (error) setSync('error', 'Fout: ' + error.message);
+            else setSync('saved', 'Opgeslagen');
+        }, 600);
+    }
+
+    /* ---------- 7. Render ---------- */
+    function findBlock(pageId, blockId) {
+        return state[pageId].blocks.find(b => b.id === blockId);
+    }
+
+    // Layout mapping: which block id goes where
+    const POSITIONS = {
+        leftTop:    'start',      // Start
+        leftMid:    'input',      // Input
+        leftBottom: 'stake',      // Stakeholders
+        centerTop:  'regels',     // Regels
+        centerBottom:'verant',    // Verantwoordelijke
+        rightTop:   'doel',       // DOEL
+        rightMid:   'einde',      // EINDE
+        rightBottom:'output',     // OUTPUT
+        bottom1:    'stake',      // (we only use bottom for extra blocks)
+        // Bottom row uses named extra slots:
+        bottomFar:  'klanten'     // KLANTEN
+    };
+
+    // Simple: build the diagram using explicit ids in fixed slots.
+    // Any blocks added by the user beyond the 10 defaults are placed in the bottom row too.
+    const DEFAULT_LAYOUT = {
+        left:    ['start', 'input'],
+        center:  ['regels'],
+        right:   ['doel', 'einde', 'output'],
+        bottom:  ['stake', 'verant', 'res', 'klanten']
+    };
+
+    function renderDiagram() {
+        const container = document.getElementById('diagram-container');
+        container.innerHTML = '';
+
+        const pageId = PAGES[currentPage];
+        const page = state[pageId];
+
+        const card = document.createElement('div');
+        card.className = 'diagram-card';
+
+        // Title (editable)
+        const title = document.createElement('div');
+        title.className = 'diagram-title';
+        title.contentEditable = 'true';
+        title.textContent = page.title;
+        title.addEventListener('focus', () => { focused = { page: pageId, field: 'title' }; });
+        title.addEventListener('blur',  () => { focused = null; });
+        title.addEventListener('input', () => { page.title = title.textContent; queueSave(pageId); });
+        card.appendChild(title);
+
+        // Turtle grid
+        const turtle = document.createElement('div');
+        turtle.className = 'turtle';
+
+        /* Left column */
+        const left = document.createElement('div');
+        left.className = 'col-left';
+        DEFAULT_LAYOUT.left.forEach(id => left.appendChild(buildBlock(pageId, id)));
+        turtle.appendChild(left);
+
+        /* Center column: Regels + red arrow + Verantwoordelijke */
+        const center = document.createElement('div');
+        center.className = 'col-center';
+
+        const regelsEl = findBlock(pageId, 'regels');
+        if (regelsEl) center.appendChild(buildBlock(pageId, 'regels'));
+
+        const arrow = document.createElement('div');
+        arrow.className = 'center-arrow';
+        const arrowSpan = document.createElement('span');
+        arrowSpan.contentEditable = 'true';
+        arrowSpan.textContent = page.center;
+        arrowSpan.addEventListener('focus', () => { focused = { page: pageId, field: 'center' }; });
+        arrowSpan.addEventListener('blur',  () => { focused = null; });
+        arrowSpan.addEventListener('input', () => { page.center = arrowSpan.textContent; queueSave(pageId); });
+        arrow.appendChild(arrowSpan);
+        center.appendChild(arrow);
+
+        const verantEl = findBlock(pageId, 'verant');
+        if (verantEl) center.appendChild(buildBlock(pageId, 'verant'));
+
+        turtle.appendChild(center);
+
+        /* Right column */
+        const right = document.createElement('div');
+        right.className = 'col-right';
+        DEFAULT_LAYOUT.right.forEach(id => right.appendChild(buildBlock(pageId, id)));
+        turtle.appendChild(right);
+
+        /* Bottom row (spanning all columns) */
+        const bottom = document.createElement('div');
+        bottom.className = 'bottom-row';
+        // Always include defaults, plus any custom blocks
+        const bottomIds = ['stake', 'res', 'klanten'];
+        bottomIds.forEach(id => {
+            const b = findBlock(pageId, id);
+            if (b) bottom.appendChild(buildBlock(pageId, id));
+        });
+
+        // Any remaining custom blocks (added by user) get appended to bottom row too
+        page.blocks.forEach(b => {
+            const isKnown = ['start','input','regels','verant','doel','einde','output','stake','res','klanten'].includes(b.id);
+            if (!isKnown) bottom.appendChild(buildBlock(pageId, b.id));
+        });
+
+        turtle.appendChild(bottom);
+        card.appendChild(turtle);
+
+        // "+ Add block" button
+        const addBtn = document.createElement('button');
+        addBtn.className = 'add-block-btn';
+        addBtn.textContent = '+ Blok toevoegen';
+        addBtn.addEventListener('click', () => {
+            const id = 'custom_' + Date.now();
+            const tone = (page.blocks[0] && page.blocks[0].tone) || 'blue';
+            page.blocks.push({ id, label: 'Nieuw blok', text: '', tone });
+            queueSave(pageId);
+            renderDiagram();
+        });
+        card.appendChild(addBtn);
+
+        container.appendChild(card);
+
+        // Update nav indicator
+        document.getElementById('page-indicator').textContent =
+            `Pagina ${currentPage + 1} / ${PAGES.length}`;
+        document.getElementById('prev-btn').disabled = currentPage === 0;
+        document.getElementById('next-btn').disabled = currentPage === PAGES.length - 1;
+    }
+
+    function buildBlock(pageId, blockId) {
+        const page = state[pageId];
+        const block = findBlock(pageId, blockId);
+        if (!block) return document.createElement('div');
+
+        const el = document.createElement('div');
+        el.className = 'block';
+        el.dataset.tone = block.tone || 'blue';
+
+        /* Actions: color + delete */
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        ['blue', 'teal', 'yellow', 'green'].forEach(tone => {
+            const tb = document.createElement('button');
+            tb.className = 'tone-btn';
+            tb.dataset.tone = tone;
+            tb.title = 'Kleur: ' + tone;
+            tb.addEventListener('click', (e) => {
+                e.stopPropagation();
+                block.tone = tone;
+                queueSave(pageId);
+                renderDiagram();
+            });
+            actions.appendChild(tb);
+        });
+
+        const del = document.createElement('button');
+        del.className = 'del';
+        del.textContent = '×';
+        del.title = 'Verwijder blok';
+        del.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!confirm('Dit blok verwijderen?')) return;
+            page.blocks = page.blocks.filter(b => b.id !== blockId);
+            queueSave(pageId);
+            renderDiagram();
+        });
+        actions.appendChild(del);
+        el.appendChild(actions);
+
+        /* Label */
+        const labelEl = document.createElement('div');
+        labelEl.className = 'block-label';
+        labelEl.contentEditable = 'true';
+        labelEl.textContent = block.label;
+        labelEl.addEventListener('focus', () => { focused = { page: pageId, blockId, field: 'label' }; });
+        labelEl.addEventListener('blur',  () => { focused = null; });
+        labelEl.addEventListener('input', () => { block.label = labelEl.textContent; queueSave(pageId); });
+        el.appendChild(labelEl);
+
+        /* Text */
+        const textEl = document.createElement('div');
+        textEl.className = 'block-text';
+        textEl.contentEditable = 'true';
+        textEl.textContent = block.text;
+        textEl.addEventListener('focus', () => { focused = { page: pageId, blockId, field: 'text' }; });
+        textEl.addEventListener('blur',  () => { focused = null; });
+        textEl.addEventListener('input', () => { block.text = textEl.textContent; queueSave(pageId); });
+        el.appendChild(textEl);
+
+        return el;
+    }
+
+    /* ---------- 8. Navigation ---------- */
+    document.getElementById('prev-btn').addEventListener('click', () => {
+        if (currentPage > 0) { currentPage--; renderDiagram(); }
+    });
+    document.getElementById('next-btn').addEventListener('click', () => {
+        if (currentPage < PAGES.length - 1) { currentPage++; renderDiagram(); }
+    });
+    document.addEventListener('keydown', (e) => {
+        // Only when not editing text
+        if (document.activeElement && document.activeElement.isContentEditable) return;
+        if (e.key === 'ArrowLeft'  && currentPage > 0) { currentPage--; renderDiagram(); }
+        if (e.key === 'ArrowRight' && currentPage < PAGES.length - 1) { currentPage++; renderDiagram(); }
+    });
+
+    /* ---------- 9. Realtime ---------- */
+    function subscribeRealtime() {
+        sb.channel('turtle-updates')
+            .on('postgres_changes',
+                { event: '*', schema: 'public', table: 'turtle_state' },
+                (payload) => {
+                    const row = payload.new || payload.old;
+                    if (!row || !row.id) return;
+
+                    // Skip echo of our own recent save for the field we're editing
+                    if (row.updated_by && row.updated_by === session.user.id
+                        && focused && focused.page === row.id) {
+                        return;
+                    }
+
+                    state[row.id] = {
+                        title: row.title,
+                        center: row.center,
+                        blocks: row.blocks
+                    };
+
+                    if (PAGES[currentPage] === row.id) {
+                        // Save which block/field is focused so we can restore focus
+                        const active = document.activeElement;
+                        const focusInfo = active && active.isContentEditable
+                            ? { label: active.textContent }
+                            : null;
+                        renderDiagram();
+                        // Focus restoration is complex; for now we skip it — realtime
+                        // rerenders won't fire for our own edits thanks to the guard above.
+                    }
+                    setSync('saved', 'Bijgewerkt');
+                })
+            .subscribe();
+    }
+
+    /* ---------- 10. Reset ---------- */
+    document.getElementById('reset').onclick = async () => {
+        if (!confirm('Alle turtle diagrams resetten naar de beginwaarden voor het hele team?')) return;
+        setSync('saving', 'Resetten…');
+        const rows = PAGES.map(id => ({
+            id,
+            title: DEFAULTS[id].title,
+            center: DEFAULTS[id].center,
+            blocks: DEFAULTS[id].blocks,
+            updated_at: new Date().toISOString(),
+            updated_by: session.user.id
+        }));
+        const { error } = await sb.from('turtle_state').upsert(rows, { onConflict: 'id' });
+        if (error) { setSync('error', 'Resetfout: ' + error.message); return; }
+        state = JSON.parse(JSON.stringify(DEFAULTS));
+        renderDiagram();
+        setSync('saved', 'Gerest');
+    };
+
+    /* ---------- 11. Boot ---------- */
+    setSync('saving', 'Laden…');
+    await loadAll();
+    renderDiagram();
+    subscribeRealtime();
+})();
+</script>
+</body>
+</html>
