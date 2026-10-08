@@ -32,6 +32,26 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .sync.saved  .dot { background: #19a974; }
 .sync.error  .dot { background: #d33; }
 
+/* Intro card */
+.intro {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 24px 28px;
+    max-width: 1000px;
+    margin: 0 auto 24px;
+}
+.intro h2 { font-size: 20px; font-weight: 700; margin: 0 0 4px; color: #c0392b; }
+.intro .tag {
+    display: inline-block; background: #fff9a8;
+    padding: 4px 10px; font-size: 13px; color: #333;
+    margin-bottom: 16px;
+}
+.intro p { font-size: 15px; line-height: 1.6; margin: 8px 0; color: #1a3a5c; }
+.intro strong { color: #1a5c8a; }
+.intro ul { margin: 6px 0 0 0; padding-left: 20px; }
+.intro li { font-size: 14px; color: #1a5c8a; margin: 4px 0; }
+
 /* 2×2 grid */
 .grid {
     display: grid;
@@ -64,11 +84,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     align-items: center;
     gap: 10px;
 }
-.cell-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: #1a3a5c;
-}
+.cell-title { font-size: 17px; font-weight: 600; }
 .cell[data-theme="primary"]    .cell-title { color: #2c6d9c; }
 .cell[data-theme="support"]    .cell-title { color: #2e6b2e; }
 .cell[data-theme="management"] .cell-title { color: #7f6000; }
@@ -143,7 +159,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     padding: 8px 0;
 }
 
-/* Add button */
 .add-btn {
     align-self: flex-start;
     padding: 6px 12px;
@@ -181,7 +196,21 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 </div>
 
 <h1>Processen</h1>
-<p class="hint">Klik op een item om de tekst aan te passen. Gebruik + om een nieuw item toe te voegen, of × om te verwijderen. Wijzigingen worden direct gedeeld met je team.</p>
+<p class="hint">Klik op een item om de tekst aan te passen. Gebruik + om een nieuw item toe te voegen, of × om te verwijderen. Plak je meerdere bullets in één keer, dan worden ze automatisch opgesplitst in aparte items.</p>
+
+<div class="intro">
+    <h2>Opdracht 1 – Deel 2a/5</h2>
+    <span class="tag">Maakt deel uit van een Type A (verplichte) evaluatie</span>
+    <p>▪ Gebruik de aangeleerde methodes voor het bedrijf dat u als topic voor uw team toegewezen kreeg</p>
+    <p>▪ Bepaal de <strong>getroffen stakeholders en processen</strong></p>
+    <p>▪ Benoem relevante</p>
+    <ul>
+        <li>primaire case –,</li>
+        <li>support case –,</li>
+        <li>management –</li>
+        <li>en strategische processen</li>
+    </ul>
+</div>
 
 <div class="grid" id="grid"></div>
 
@@ -259,14 +288,29 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         }, 600);
     }
 
-    /* ---------- 4. Render ---------- */
+    /* ---------- 4. Paste splitting ---------- */
+    // Splits raw text into individual items using a range of separators:
+    // newlines, bullet chars (– — • ▪ * ·), hyphen-space, numbered lists (1. 2.),
+    // and the pattern "capital-letter-start after . " when a period is present.
+    function splitIntoItems(raw) {
+        if (!raw) return [];
+        let s = String(raw).replace(/\r\n?/g, '\n');
+
+        // Split on newlines first
+        let parts = s.split('\n');
+
+        // Split each chunk on inline bullet markers + numbered-list prefixes
+        parts = parts.flatMap(p => p.split(/\s*(?:[–—•▪*·])+\s*|\s+[-]\s+|\s+\d+[.)]\s+/g));
+
+        // Trim and filter empties
+        return parts.map(p => p.trim()).filter(Boolean);
+    }
+
+    /* ---------- 5. Render ---------- */
     function render() {
         const grid = document.getElementById('grid');
         grid.innerHTML = '';
-
-        CATEGORIES.forEach(cat => {
-            grid.appendChild(buildCell(cat));
-        });
+        CATEGORIES.forEach(cat => grid.appendChild(buildCell(cat)));
     }
 
     function buildCell(cat) {
@@ -277,7 +321,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         cell.dataset.theme = cat.theme;
         cell.dataset.key = cat.key;
 
-        // Header
         const header = document.createElement('div');
         header.className = 'cell-header';
         const title = document.createElement('div');
@@ -289,10 +332,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         count.className = 'cell-count';
         count.textContent = items.length + (items.length === 1 ? ' item' : ' items');
         header.appendChild(count);
-
         cell.appendChild(header);
 
-        // Items list
         if (items.length === 0) {
             const empty = document.createElement('div');
             empty.className = 'no-items';
@@ -301,13 +342,10 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         } else {
             const ul = document.createElement('ul');
             ul.className = 'items';
-            items.forEach((text, i) => {
-                ul.appendChild(buildItem(cat.key, i, text));
-            });
+            items.forEach((text, i) => ul.appendChild(buildItem(cat.key, i, text)));
             cell.appendChild(ul);
         }
 
-        // Add button
         const addBtn = document.createElement('button');
         addBtn.className = 'add-btn';
         addBtn.textContent = '+ Item toevoegen';
@@ -315,7 +353,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             state[cat.key].push('');
             queueSave(cat.key);
             render();
-            // Focus the new item
             const newItem = document.querySelector(`.cell[data-key="${cat.key}"] .item:last-child span`);
             if (newItem) newItem.focus();
         });
@@ -331,12 +368,45 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         const span = document.createElement('span');
         span.contentEditable = 'true';
         span.textContent = text;
+
         span.addEventListener('focus', () => { focused = { key, index }; });
         span.addEventListener('blur',  () => { focused = null; });
+
+        // Paste handler — splits multi-item content into separate items
+        span.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const raw = (e.clipboardData || window.clipboardData).getData('text');
+            const chunks = splitIntoItems(raw);
+            if (chunks.length === 0) return;
+
+            // Replace current item with first chunk, insert the rest after
+            state[key][index] = chunks[0];
+            if (chunks.length > 1) {
+                state[key].splice(index + 1, 0, ...chunks.slice(1));
+            }
+            queueSave(key);
+            render();
+
+            // Focus back into the first pasted item
+            const target = document.querySelector(
+                `.cell[data-key="${key}"] .item:nth-child(${index + 1}) span`
+            );
+            if (target) {
+                target.focus();
+                const r = document.createRange();
+                r.selectNodeContents(target);
+                r.collapse(false);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(r);
+            }
+        });
+
         span.addEventListener('input', () => {
             state[key][index] = span.textContent;
             queueSave(key);
         });
+
         span.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -353,7 +423,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                 const prev = document.querySelector(`.cell[data-key="${key}"] .item:nth-child(${index}) span`);
                 if (prev) {
                     prev.focus();
-                    // move cursor to end
                     const r = document.createRange();
                     r.selectNodeContents(prev);
                     r.collapse(false);
@@ -380,7 +449,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         return li;
     }
 
-    /* ---------- 5. Realtime ---------- */
+    /* ---------- 6. Realtime ---------- */
     function subscribeRealtime() {
         sb.channel('processes-updates')
             .on('postgres_changes',
@@ -404,13 +473,12 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     }
 
     function softRerender(key) {
-        // Skip if user is currently editing an item in that cell
         if (focused && focused.key === key) return;
         render();
         setSync('saved', 'Bijgewerkt');
     }
 
-    /* ---------- 6. Reset ---------- */
+    /* ---------- 7. Reset ---------- */
     document.getElementById('reset').onclick = async () => {
         if (!confirm('Alle processen resetten naar de beginwaarden voor het hele team?')) return;
         setSync('saving', 'Resetten…');
@@ -426,7 +494,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         setSync('saved', 'Gerest');
     };
 
-    /* ---------- 7. Boot ---------- */
+    /* ---------- 8. Boot ---------- */
     setSync('saving', 'Laden…');
     await loadAll();
     render();
