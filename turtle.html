@@ -175,27 +175,31 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .block .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
 .block .actions .del { color: #a00; font-weight: 700; }
 
-/* ---------- Thick arrow process shape ---------- */
+/* ---------- Process wrapper (NOT clipped — holds the arrow + action buttons) ---------- */
+.process-wrapper {
+    position: absolute;
+    left: 33%;
+    top: 37%;
+    width: 34%;
+    height: 20%;
+    z-index: 2;
+}
+
+/* The visual arrow shape — clipped */
 .process-shape {
     position: absolute;
-    left: 33%;       /* 400 / 1200 */
-    top: 37%;        /* 240 / 640 */
-    width: 34%;      /* 410 / 1200 — wider to accommodate the arrow tip */
-    height: 20%;     /* 128 / 640 */
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 2;
-    padding: 0 60px 0 60px;
-
-    /* Thick arrow: flat top/bottom, triangle tip on right, chevron notch on left */
+    padding: 0 60px;
     clip-path: polygon(
-        0% 0%,       /* top-left */
-        76% 0%,      /* top-right before arrowhead */
-        100% 50%,    /* arrow tip (right point) */
-        76% 100%,    /* bottom-right before arrowhead */
-        0% 100%,     /* bottom-left */
-        15% 50%      /* chevron notch (V-cut into the left side) */
+        0% 0%,
+        76% 0%,
+        100% 50%,
+        76% 100%,
+        0% 100%,
+        15% 50%
     );
 }
 
@@ -214,15 +218,17 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 }
 .process-text:empty::before { content: "typ hier"; opacity: .6; }
 
-.process-shape .actions {
+/* Action buttons live on the wrapper, above the arrow, never clipped */
+.process-wrapper .actions {
     position: absolute;
-    top: 0; right: 0;
-    display: none; gap: 4px;
-    z-index: 3;
-    transform: translate(0, -110%);
+    top: -28px;
+    right: 8px;
+    display: none;
+    gap: 4px;
+    z-index: 5;
 }
-.process-shape:hover .actions { display: flex; }
-.process-shape .actions button {
+.process-wrapper:hover .actions { display: flex; }
+.process-wrapper .actions button {
     width: 22px; height: 22px;
     border-radius: 50%;
     border: 1px solid #111;
@@ -232,11 +238,12 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     font-size: 12px;
     line-height: 1;
 }
-.process-shape .actions .tone-btn[data-tone="yellow"] { background: #eaf24a; }
-.process-shape .actions .tone-btn[data-tone="blue"]   { background: #4aa3d9; }
-.process-shape .actions .tone-btn[data-tone="teal"]   { background: #33c6c6; }
-.process-shape .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
+.process-wrapper .actions .tone-btn[data-tone="yellow"] { background: #eaf24a; }
+.process-wrapper .actions .tone-btn[data-tone="blue"]   { background: #4aa3d9; }
+.process-wrapper .actions .tone-btn[data-tone="teal"]   { background: #33c6c6; }
+.process-wrapper .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
 
+/* Extras */
 .extras { margin-top: 32px; padding-top: 20px; border-top: 1px dashed #ddd; }
 .extras-label { font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
 .extras-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
@@ -266,8 +273,10 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     .turtle-stage { aspect-ratio: auto; display: flex; flex-direction: column; gap: 12px; position: static; max-width: 100%; }
     .turtle-stage svg.arrows { display: none; }
     .block { position: static !important; width: 100% !important; left: auto !important; top: auto !important; height: auto !important; min-height: 80px; }
+    .process-wrapper { position: static; width: 100%; height: auto; }
     .process-shape { position: static; clip-path: none; border-radius: 8px; width: 100%; height: auto; min-height: 70px; padding: 20px; }
     .process-text { padding-left: 0; }
+    .process-wrapper .actions { top: -28px; right: 8px; }
 }
 </style>
 </head>
@@ -370,6 +379,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                 id,
                 title: DEFAULTS[id].title,
                 center: DEFAULTS[id].center,
+                process_tone: 'yellow',
                 blocks: DEFAULTS[id].blocks,
                 updated_by: session.user.id
             }));
@@ -510,17 +520,17 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     }
 
     function buildProcessShape(pageId, page) {
-        const el = document.createElement('div');
-        el.className = 'process-shape';
-        el.dataset.tone = page.processTone || 'yellow';
+        const wrapper = document.createElement('div');
+        wrapper.className = 'process-wrapper';
 
+        // Actions live on the wrapper (not clipped)
         const actions = document.createElement('div');
         actions.className = 'actions';
         ['yellow', 'blue', 'teal', 'green'].forEach(tone => {
             const tb = document.createElement('button');
             tb.className = 'tone-btn';
             tb.dataset.tone = tone;
-            tb.title = 'Kleur van het proces-blok';
+            tb.title = 'Kleur van het middenblok';
             tb.addEventListener('click', (e) => {
                 e.stopPropagation();
                 page.processTone = tone;
@@ -529,7 +539,12 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             });
             actions.appendChild(tb);
         });
-        el.appendChild(actions);
+        wrapper.appendChild(actions);
+
+        // The clipped visual arrow
+        const shape = document.createElement('div');
+        shape.className = 'process-shape';
+        shape.dataset.tone = page.processTone || 'yellow';
 
         const span = document.createElement('span');
         span.className = 'process-text';
@@ -538,9 +553,10 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         span.addEventListener('focus', () => { focused = { page: pageId, field: 'center' }; });
         span.addEventListener('blur',  () => { focused = null; });
         span.addEventListener('input', () => { page.center = span.textContent; queueSave(pageId); });
-        el.appendChild(span);
+        shape.appendChild(span);
 
-        return el;
+        wrapper.appendChild(shape);
+        return wrapper;
     }
 
     function buildBlock(pageId, block) {
@@ -567,6 +583,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         const del = document.createElement('button');
         del.className = 'del';
         del.textContent = '×';
+        del.title = 'Verwijder blok';
         del.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!confirm('Dit blok verwijderen?')) return;
@@ -619,19 +636,15 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         const pH      = p.height;
         const pMidY   = p.top - stageRect.top + pH / 2;
 
-        // Anchor points considering the new thick-arrow shape:
-        //   top/bottom edges extend from 0% to 76% of pW
-        //   left point of chevron notch is at 15% of pW
-        //   arrow tip is at 100% of pW
         const anchors = {
             regels:  { x: pLeft + pW * 0.30, y: pTop    },
             doel:    { x: pLeft + pW * 0.62, y: pTop    },
-            start:   { x: pLeft + pW * 0.15, y: pMidY - pH * 0.15 }, // chevron notch
-            input:   { x: pLeft + pW * 0.15, y: pMidY + pH * 0.15 }, // chevron notch
+            start:   { x: pLeft + pW * 0.15, y: pMidY - pH * 0.15 },
+            input:   { x: pLeft + pW * 0.15, y: pMidY + pH * 0.15 },
             stake:   { x: pLeft + pW * 0.18, y: pBottom },
             verant:  { x: pLeft + pW * 0.40, y: pBottom },
             res:     { x: pLeft + pW * 0.65, y: pBottom },
-            output:  { x: pRight,             y: pMidY   } // arrow tip
+            output:  { x: pRight,             y: pMidY   }
         };
 
         const sources = {
