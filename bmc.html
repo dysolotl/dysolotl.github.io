@@ -1,533 +1,704 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Business Model Canvas - PermaFungi</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-* { box-sizing: border-box; }
-body {
-    margin: 0;
-    background: #f5f6f8;
-    color: #222;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    padding: 24px;
-}
-h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-align: center; }
-.hint { color: #666; font-size: 14px; margin: 0 0 24px; line-height: 1.5; text-align: center; max-width: 720px; }
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Business Model Canvas - PermaFungi</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-/* Topbar */
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
-.topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
-.topbar a:hover { text-decoration: underline; }
-.topbar .right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.user-email { font-size: 14px; color: #666; }
-#logout-btn { padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; color: #222; }
-#logout-btn:hover { background: #eee; }
+        body {
+            margin: 0;
+            background: #f5f6f8;
+            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            padding: 24px;
+        }
 
-/* Sync pill */
-.sync { font-size: 12px; color: #666; display: flex; align-items: center; gap: 6px; background: white; padding: 5px 10px; border-radius: 999px; border: 1px solid #e3e5e8; }
-.sync .dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; transition: background .2s; }
-.sync.saving .dot { background: #f0a500; }
-.sync.saved  .dot { background: #19a974; }
-.sync.error  .dot { background: #d33; }
+        h1 {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 600;
+            margin: 0 0 6px;
+            text-align: center;
+        }
 
-/* Canvas wrapper */
-.canvas {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    padding: 16px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 24px;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-/* Top 5-column section + bottom 2-column section */
-.bmc-top {
-    display: grid;
-    grid-template-columns: 1fr 1.15fr 1.15fr 1.15fr 1fr;
-    gap: 12px;
-    align-items: start;
-}
-.bmc-bottom {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 12px;
-}
+        /* Topbar */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
 
-.bmc-col-stack { display: flex; flex-direction: column; gap: 12px; }
+        .topbar a {
+            color: #0066ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
 
-.block {
-    display: flex;
-    flex-direction: column;
-    border: 2px solid #111;
-    background: #eaf2fb;
-    min-height: 160px;
-}
-.block-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 10px;
-    background: rgba(255,255,255,0.6);
-    border-bottom: 1px solid rgba(0,0,0,0.15);
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-}
-.block-header .add-btn {
-    background: none;
-    border: none;
-    color: #0066ff;
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 4px;
-    font-weight: 700;
-}
-.block-header .add-btn:hover { color: #0052cc; }
+        .topbar a:hover {
+            text-decoration: underline;
+        }
 
-.block-body {
-    flex: 1;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    overflow: visible;
-}
+        .topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
 
-/* Individual items */
-.item {
-    position: relative;
-    background: #cfe2f3;
-    border: 1px solid #1f3b57;
-    padding: 8px 10px 8px 22px;  /* extra left padding for tone buttons */
-    font-size: 12.5px;
-    line-height: 1.3;
-    box-shadow: 1px 1px 0 rgba(0,0,0,0.15);
-    min-height: 34px;
-    display: flex;
-    align-items: center;
-}
-.item[data-tone="yellow"] { background: #ffe599; border-color: #7f6000; }
-.item[data-tone="green"]  { background: #b6d7a8; border-color: #38761d; }
+        .user-email {
+            font-size: 14px;
+            color: #666;
+        }
 
-.item span {
-    display: block;
-    width: 100%;
-    word-break: break-word;
-    outline: none;
-}
-.item span:empty::before { content: "typ hier"; opacity: .45; }
+        #logout-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #222;
+        }
 
-/* Tone picker (left edge, visible on hover/focus) */
-.tone-group {
-    position: absolute;
-    left: 4px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: none;
-    flex-direction: column;
-    gap: 3px;
-}
-.item:hover .tone-group,
-.item:focus-within .tone-group { display: flex; }
-.tone-btn {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1px solid #111;
-    cursor: pointer;
-    padding: 0;
-    transition: transform .1s;
-}
-.tone-btn[data-tone="blue"]   { background: #cfe2f3; }
-.tone-btn[data-tone="yellow"] { background: #ffe599; }
-.tone-btn[data-tone="green"]  { background: #b6d7a8; }
-.tone-btn:hover { transform: scale(1.25); }
+        #logout-btn:hover {
+            background: #eee;
+        }
 
-/* Delete button */
-.item .del {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    border: 1px solid #111;
-    background: #fff;
-    color: #a00;
-    font-size: 12px;
-    line-height: 1;
-    padding: 0;
-    cursor: pointer;
-    display: none;
-}
-.item:hover .del, .item:focus-within .del { display: block; }
+        /* Sync pill */
+        .sync {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid #e3e5e8;
+        }
 
-/* Bottom reset bar */
-.bar { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
-.bar button {
-    font: inherit;
-    font-size: 14px;
-    padding: 9px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    background: white;
-    color: #a00;
-}
-.bar button:hover { background: #fff0f0; border-color: #a00; }
+        .sync .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #bbb;
+            transition: background .2s;
+        }
 
-/* Responsive */
-@media (max-width: 1100px) {
-    .bmc-top { grid-template-columns: 1fr 1fr; }
-    .bmc-top > *:nth-child(5) { grid-column: span 2; }
-}
-@media (max-width: 700px) {
-    .bmc-top, .bmc-bottom { grid-template-columns: 1fr; }
-    .bmc-top > *:nth-child(5) { grid-column: auto; }
-    body { padding: 16px; }
-    .item { font-size: 12px; }
-}
-</style>
+        .sync.saving .dot {
+            background: #f0a500;
+        }
+
+        .sync.saved .dot {
+            background: #19a974;
+        }
+
+        .sync.error .dot {
+            background: #d33;
+        }
+
+        /* Canvas wrapper */
+        .canvas {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Top 5-column section + bottom 2-column section */
+        .bmc-top {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr 1.15fr 1.15fr 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .bmc-bottom {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .bmc-col-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .block {
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #111;
+            background: #eaf2fb;
+            min-height: 160px;
+        }
+
+        .block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.6);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .block-header .add-btn {
+            background: none;
+            border: none;
+            color: #0066ff;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+            font-weight: 700;
+        }
+
+        .block-header .add-btn:hover {
+            color: #0052cc;
+        }
+
+        .block-body {
+            flex: 1;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: visible;
+        }
+
+        /* Individual items */
+        .item {
+            position: relative;
+            background: #cfe2f3;
+            border: 1px solid #1f3b57;
+            padding: 8px 10px 8px 22px;
+            /* extra left padding for tone buttons */
+            font-size: 12.5px;
+            line-height: 1.3;
+            box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+        }
+
+        .item[data-tone="yellow"] {
+            background: #ffe599;
+            border-color: #7f6000;
+        }
+
+        .item[data-tone="green"] {
+            background: #b6d7a8;
+            border-color: #38761d;
+        }
+
+        .item span {
+            display: block;
+            width: 100%;
+            word-break: break-word;
+            outline: none;
+        }
+
+        .item span:empty::before {
+            content: "typ hier";
+            opacity: .45;
+        }
+
+        /* Tone picker (left edge, visible on hover/focus) */
+        .tone-group {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item:hover .tone-group,
+        .item:focus-within .tone-group {
+            display: flex;
+        }
+
+        .tone-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid #111;
+            cursor: pointer;
+            padding: 0;
+            transition: transform .1s;
+        }
+
+        .tone-btn[data-tone="blue"] {
+            background: #cfe2f3;
+        }
+
+        .tone-btn[data-tone="yellow"] {
+            background: #ffe599;
+        }
+
+        .tone-btn[data-tone="green"] {
+            background: #b6d7a8;
+        }
+
+        .tone-btn:hover {
+            transform: scale(1.25);
+        }
+
+        /* Delete button */
+        .item .del {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid #111;
+            background: #fff;
+            color: #a00;
+            font-size: 12px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+            display: none;
+        }
+
+        .item:hover .del,
+        .item:focus-within .del {
+            display: block;
+        }
+
+        /* Bottom reset bar */
+        .bar {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-left: auto;
+            margin-right: auto;
+            justify-content: center;
+        }
+
+        .bar button {
+            font: inherit;
+            font-size: 14px;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: white;
+            color: #a00;
+        }
+
+        .bar button:hover {
+            background: #fff0f0;
+            border-color: #a00;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .bmc-top {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .bmc-top>*:nth-child(5) {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .bmc-top,
+            .bmc-bottom {
+                grid-template-columns: 1fr;
+            }
+
+            .bmc-top>*:nth-child(5) {
+                grid-column: auto;
+            }
+
+            body {
+                padding: 16px;
+            }
+
+            .item {
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="topbar" id="topbar" style="display:none">
-    <a href="index.html">← Home</a>
-    <div class="right">
-        <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
-        <span class="user-email" id="user-email"></span>
-        <button id="logout-btn">Log Out</button>
-    </div>
-</div>
-
-<h1>Business Model Canvas</h1>
-<p class="hint">Klik op een blok om de tekst aan te passen. Gebruik + in de kolomkop om een blok toe te voegen, of × om te verwijderen. Verplaats de cursor over een blok en klik op een gekleurde stip links om de kleur te wijzigen. Wijzigingen worden direct gedeeld met je team.</p>
-
-<div class="canvas">
-    <div class="bmc-top">
-        <div class="block" data-c="blue" data-k="kp">
-            <div class="block-header"><span>Key Partners</span><button class="add-btn" aria-label="Add">+</button></div>
-            <div class="block-body"></div>
-        </div>
-
-        <div class="bmc-col-stack">
-            <div class="block" data-c="yellow" data-k="ka">
-                <div class="block-header"><span>Key Activities</span><button class="add-btn" aria-label="Add">+</button></div>
-                <div class="block-body"></div>
-            </div>
-            <div class="block" data-c="yellow" data-k="kr">
-                <div class="block-header"><span>Key Resources</span><button class="add-btn" aria-label="Add">+</button></div>
-                <div class="block-body"></div>
-            </div>
-        </div>
-
-        <div class="block" data-c="blue" data-k="vp">
-            <div class="block-header"><span>Value Propositions</span><button class="add-btn" aria-label="Add">+</button></div>
-            <div class="block-body"></div>
-        </div>
-
-        <div class="bmc-col-stack">
-            <div class="block" data-c="blue" data-k="cr">
-                <div class="block-header"><span>Customer Relationships</span><button class="add-btn" aria-label="Add">+</button></div>
-                <div class="block-body"></div>
-            </div>
-            <div class="block" data-c="yellow" data-k="ch">
-                <div class="block-header"><span>Channels</span><button class="add-btn" aria-label="Add">+</button></div>
-                <div class="block-body"></div>
-            </div>
-        </div>
-
-        <div class="block" data-c="blue" data-k="cs">
-            <div class="block-header"><span>Customer Segments</span><button class="add-btn" aria-label="Add">+</button></div>
-            <div class="block-body"></div>
+    <div class="topbar" id="topbar" style="display:none">
+        <a href="index.html">← Home</a>
+        <div class="right">
+            <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
+            <span class="user-email" id="user-email"></span>
+            <button id="logout-btn">Log Out</button>
         </div>
     </div>
 
-    <div class="bmc-bottom">
-        <div class="block" data-c="blue" data-k="cost">
-            <div class="block-header"><span>Cost Structure</span><button class="add-btn" aria-label="Add">+</button></div>
-            <div class="block-body"></div>
+    <h1>Business Model Canvas - PermaFungi</h1>
+    <p class="hint">Klik op een blok om de tekst aan te passen. Gebruik + in de kolomkop om een blok toe te voegen, of ×
+        om te verwijderen. Verplaats de cursor over een blok en klik op een gekleurde stip links om de kleur te
+        wijzigen. Wijzigingen worden direct gedeeld met je team.</p>
+
+    <div class="canvas">
+        <div class="bmc-top">
+            <div class="block" data-c="blue" data-k="kp">
+                <div class="block-header"><span>Key Partners</span><button class="add-btn" aria-label="Add">+</button>
+                </div>
+                <div class="block-body"></div>
+            </div>
+
+            <div class="bmc-col-stack">
+                <div class="block" data-c="yellow" data-k="ka">
+                    <div class="block-header"><span>Key Activities</span><button class="add-btn"
+                            aria-label="Add">+</button></div>
+                    <div class="block-body"></div>
+                </div>
+                <div class="block" data-c="yellow" data-k="kr">
+                    <div class="block-header"><span>Key Resources</span><button class="add-btn"
+                            aria-label="Add">+</button></div>
+                    <div class="block-body"></div>
+                </div>
+            </div>
+
+            <div class="block" data-c="blue" data-k="vp">
+                <div class="block-header"><span>Value Propositions</span><button class="add-btn"
+                        aria-label="Add">+</button></div>
+                <div class="block-body"></div>
+            </div>
+
+            <div class="bmc-col-stack">
+                <div class="block" data-c="blue" data-k="cr">
+                    <div class="block-header"><span>Customer Relationships</span><button class="add-btn"
+                            aria-label="Add">+</button></div>
+                    <div class="block-body"></div>
+                </div>
+                <div class="block" data-c="yellow" data-k="ch">
+                    <div class="block-header"><span>Channels</span><button class="add-btn" aria-label="Add">+</button>
+                    </div>
+                    <div class="block-body"></div>
+                </div>
+            </div>
+
+            <div class="block" data-c="blue" data-k="cs">
+                <div class="block-header"><span>Customer Segments</span><button class="add-btn"
+                        aria-label="Add">+</button></div>
+                <div class="block-body"></div>
+            </div>
         </div>
-        <div class="block" data-c="blue" data-k="rev">
-            <div class="block-header"><span>Revenue Streams</span><button class="add-btn" aria-label="Add">+</button></div>
-            <div class="block-body"></div>
+
+        <div class="bmc-bottom">
+            <div class="block" data-c="blue" data-k="cost">
+                <div class="block-header"><span>Cost Structure</span><button class="add-btn" aria-label="Add">+</button>
+                </div>
+                <div class="block-body"></div>
+            </div>
+            <div class="block" data-c="blue" data-k="rev">
+                <div class="block-header"><span>Revenue Streams</span><button class="add-btn"
+                        aria-label="Add">+</button></div>
+                <div class="block-body"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="bar">
-    <button id="reset">Reset voor hele team</button>
-</div>
+    <div class="bar">
+        <button id="reset">Reset voor hele team</button>
+    </div>
 
-<script src="supabaseClient.js"></script>
-<script>
-(async () => {
-    /* ---------- 1. Auth guard ---------- */
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    <script src="supabaseClient.js"></script>
+    <script>
+        (async () => {
+            /* ---------- 1. Auth guard ---------- */
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
 
-    document.getElementById('topbar').style.display = 'flex';
-    document.getElementById('user-email').textContent = session.user.email;
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-        await sb.auth.signOut();
-        window.location.href = 'login.html';
-    });
-
-    /* ---------- 2. Defaults ---------- */
-    const DEFAULTS = {
-        kp: [
-            { t: "Apto-demo (17% aandeelhouder)", tone: "blue" },
-            { t: "Finance&invest.brussels (16% aandeelhouder)", tone: "blue" },
-            { t: "Leveranciers van koffiedik (o.a. Torrefa en cateraars zoals Sodexo)", tone: "blue" }
-        ],
-        ka: [
-            { t: "Afval verzamelen en mengen met regenwater", tone: "blue" },
-            { t: "Inoculatie: mycelium toevoegen in een steriele omgeving", tone: "blue" },
-            { t: "Kolonisatie: mycelium laten groeien in de mal", tone: "blue" },
-            { t: "Drogen om het materiaal inert te maken", tone: "blue" },
-            { t: "Co-engineering & Mail-onwerp (R&D)", tone: "yellow" }
-        ],
-        kr: [
-            { t: "Microbiologen & Kwaliteitslaboranten", tone: "yellow" },
-            { t: "B2B Sales & Contract Management", tone: "yellow" },
-            { t: "Fabriek in Vorst (investering van 2 miljoen euro)", tone: "blue" },
-            { t: "Kennis en technologie rond mycelium", tone: "blue" },
-            { t: "Steriele productieomgeving", tone: "blue" },
-            { t: "Grondstoffen: koffiedik en stedelijk afval", tone: "blue" },
-            { t: "Technical Sales Engineers / Key Accountmanagers", tone: "yellow" },
-            { t: "Proces- en Productie-engineers", tone: "yellow" }
-        ],
-        vp: [
-            { t: "Ecologisch alternatief voor plastic en piepschuim", tone: "blue" },
-            { t: "100% afbreekbaar", tone: "blue" },
-            { t: "Beschermt tegen schokken", tone: "blue" },
-            { t: "Gemaakt van afval", tone: "blue" },
-            { t: "Licht isolerend", tone: "blue" }
-        ],
-        cr: [
-            { t: "Joint Marketing & Co-Branding", tone: "blue" },
-            { t: "Technisch Transitiebeheer", tone: "blue" },
-            { t: "Het Gefinancierde Piloot-Programma (Co-creatie)", tone: "blue" }
-        ],
-        ch: [
-            { t: "Direct Sales Force", tone: "blue" },
-            { t: "Pitch, events en netwerk van investeerders en early adopters", tone: "blue" },
-            { t: "Netwerk en beurzen", tone: "blue" },
-            { t: "B2B content marketing & thoughts", tone: "yellow" },
-            { t: "Directe B2B Logistiek en Distributie", tone: "yellow" }
-        ],
-        cs: [
-            { t: "Bedrijven die producten verpakken", tone: "blue" },
-            { t: "Architecten en bouwers", tone: "blue" },
-            { t: "Designers en meubelmakers", tone: "blue" }
-        ],
-        cost: [
-            { t: "Onderzoek en ontwikkeling", tone: "blue" },
-            { t: "Energie en steriele productie", tone: "blue" },
-            { t: "Logistieke- en distributiekosten", tone: "yellow" },
-            { t: "Operationeel onderhoud en afschrijvingen van de fabriek in Vorst", tone: "blue" },
-            { t: "Salarissen voor gespecialiseerd personeel", tone: "yellow" }
-        ],
-        rev: [
-            { t: "Toenemende inkomsten uit B2B volumecontracten", tone: "blue" },
-            { t: "Verkoop van akoestische panelen, design en meubilair (op termijn)", tone: "blue" },
-            { t: "Verkoop van uren en andere symbolische projecten", tone: "blue" },
-            { t: "Eenmalige R&D- en opstartkosten (Setup Fee) voor custom maten", tone: "yellow" }
-        ]
-    };
-
-    let S = JSON.parse(JSON.stringify(DEFAULTS));
-    let focusedKey = null, focusedIndex = null;
-
-    /* ---------- 3. Sync pill ---------- */
-    const syncEl = document.getElementById('sync');
-    const syncText = document.getElementById('sync-text');
-    function setSync(state, text) {
-        syncEl.className = 'sync ' + state;
-        syncText.textContent = text;
-    }
-
-    /* ---------- 4. Load ---------- */
-    async function loadAll() {
-        const { data, error } = await sb.from('bmc_state').select('key, value');
-        if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
-
-        if (!data || data.length === 0) {
-            const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
-                key, value, updated_by: session.user.id
-            }));
-            const { error: seedErr } = await sb.from('bmc_state').insert(rows);
-            if (seedErr) setSync('error', 'Seed-fout: ' + seedErr.message);
-            else setSync('saved', 'Opgeslagen');
-        } else {
-            data.forEach(row => { S[row.key] = row.value; });
-            setSync('saved', 'Opgeslagen');
-        }
-    }
-
-    /* ---------- 5. Debounced save ---------- */
-    const saveTimers = {};
-    function queueSave(key) {
-        setSync('saving', 'Opslaan…');
-        clearTimeout(saveTimers[key]);
-        saveTimers[key] = setTimeout(async () => {
-            const { error } = await sb.from('bmc_state').upsert({
-                key, value: S[key],
-                updated_at: new Date().toISOString(),
-                updated_by: session.user.id
-            }, { onConflict: 'key' });
-            if (error) setSync('error', 'Fout: ' + error.message);
-            else setSync('saved', 'Opgeslagen');
-        }, 600);
-    }
-
-    /* ---------- 6. Render ---------- */
-    function renderBlock(blockEl) {
-        const k = blockEl.dataset.k;
-        const defaultTone = blockEl.dataset.c;
-        const body = blockEl.querySelector('.block-body');
-        body.innerHTML = '';
-
-        S[k].forEach((item, i) => {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.dataset.tone = item.tone || defaultTone;
-
-            /* --- Tone picker (left edge) --- */
-            const toneGroup = document.createElement('div');
-            toneGroup.className = 'tone-group';
-            ['blue', 'yellow', 'green'].forEach(toneName => {
-                const tb = document.createElement('button');
-                tb.className = 'tone-btn';
-                tb.dataset.tone = toneName;
-                tb.title = 'Kleur: ' + toneName;
-                tb.setAttribute('aria-label', 'Kleur ' + toneName);
-                tb.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    S[k][i].tone = toneName;
-                    queueSave(k);
-                    renderBlock(blockEl);
-                });
-                toneGroup.appendChild(tb);
+            document.getElementById('topbar').style.display = 'flex';
+            document.getElementById('user-email').textContent = session.user.email;
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await sb.auth.signOut();
+                window.location.href = 'login.html';
             });
 
-            /* --- Editable text --- */
-            const sp = document.createElement('span');
-            sp.contentEditable = 'true';
-            sp.textContent = item.t;
+            /* ---------- 2. Defaults ---------- */
+            const DEFAULTS = {
+                kp: [
+                    { t: "Apto-demo (17% aandeelhouder)", tone: "blue" },
+                    { t: "Finance&invest.brussels (16% aandeelhouder)", tone: "blue" },
+                    { t: "Leveranciers van koffiedik (o.a. Torrefa en cateraars zoals Sodexo)", tone: "blue" }
+                ],
+                ka: [
+                    { t: "Afval verzamelen en mengen met regenwater", tone: "blue" },
+                    { t: "Inoculatie: mycelium toevoegen in een steriele omgeving", tone: "blue" },
+                    { t: "Kolonisatie: mycelium laten groeien in de mal", tone: "blue" },
+                    { t: "Drogen om het materiaal inert te maken", tone: "blue" },
+                    { t: "Co-engineering & Mail-onwerp (R&D)", tone: "yellow" }
+                ],
+                kr: [
+                    { t: "Microbiologen & Kwaliteitslaboranten", tone: "yellow" },
+                    { t: "B2B Sales & Contract Management", tone: "yellow" },
+                    { t: "Fabriek in Vorst (investering van 2 miljoen euro)", tone: "blue" },
+                    { t: "Kennis en technologie rond mycelium", tone: "blue" },
+                    { t: "Steriele productieomgeving", tone: "blue" },
+                    { t: "Grondstoffen: koffiedik en stedelijk afval", tone: "blue" },
+                    { t: "Technical Sales Engineers / Key Accountmanagers", tone: "yellow" },
+                    { t: "Proces- en Productie-engineers", tone: "yellow" }
+                ],
+                vp: [
+                    { t: "Ecologisch alternatief voor plastic en piepschuim", tone: "blue" },
+                    { t: "100% afbreekbaar", tone: "blue" },
+                    { t: "Beschermt tegen schokken", tone: "blue" },
+                    { t: "Gemaakt van afval", tone: "blue" },
+                    { t: "Licht isolerend", tone: "blue" }
+                ],
+                cr: [
+                    { t: "Joint Marketing & Co-Branding", tone: "blue" },
+                    { t: "Technisch Transitiebeheer", tone: "blue" },
+                    { t: "Het Gefinancierde Piloot-Programma (Co-creatie)", tone: "blue" }
+                ],
+                ch: [
+                    { t: "Direct Sales Force", tone: "blue" },
+                    { t: "Pitch, events en netwerk van investeerders en early adopters", tone: "blue" },
+                    { t: "Netwerk en beurzen", tone: "blue" },
+                    { t: "B2B content marketing & thoughts", tone: "yellow" },
+                    { t: "Directe B2B Logistiek en Distributie", tone: "yellow" }
+                ],
+                cs: [
+                    { t: "Bedrijven die producten verpakken", tone: "blue" },
+                    { t: "Architecten en bouwers", tone: "blue" },
+                    { t: "Designers en meubelmakers", tone: "blue" }
+                ],
+                cost: [
+                    { t: "Onderzoek en ontwikkeling", tone: "blue" },
+                    { t: "Energie en steriele productie", tone: "blue" },
+                    { t: "Logistieke- en distributiekosten", tone: "yellow" },
+                    { t: "Operationeel onderhoud en afschrijvingen van de fabriek in Vorst", tone: "blue" },
+                    { t: "Salarissen voor gespecialiseerd personeel", tone: "yellow" }
+                ],
+                rev: [
+                    { t: "Toenemende inkomsten uit B2B volumecontracten", tone: "blue" },
+                    { t: "Verkoop van akoestische panelen, design en meubilair (op termijn)", tone: "blue" },
+                    { t: "Verkoop van uren en andere symbolische projecten", tone: "blue" },
+                    { t: "Eenmalige R&D- en opstartkosten (Setup Fee) voor custom maten", tone: "yellow" }
+                ]
+            };
 
-            sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = i; });
-            sp.addEventListener('blur',  () => { focusedKey = null; focusedIndex = null; });
+            let S = JSON.parse(JSON.stringify(DEFAULTS));
+            let focusedKey = null, focusedIndex = null;
 
-            sp.addEventListener('input', () => {
-                S[k][i].t = sp.textContent;
-                queueSave(k);
-            });
-            sp.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    S[k].splice(i + 1, 0, { t: '', tone: item.tone || defaultTone });
-                    queueSave(k);
-                    renderBlock(blockEl);
-                    const next = blockEl.querySelectorAll('.item span')[i + 1];
-                    if (next) next.focus();
+            /* ---------- 3. Sync pill ---------- */
+            const syncEl = document.getElementById('sync');
+            const syncText = document.getElementById('sync-text');
+            function setSync(state, text) {
+                syncEl.className = 'sync ' + state;
+                syncText.textContent = text;
+            }
+
+            /* ---------- 4. Load ---------- */
+            async function loadAll() {
+                const { data, error } = await sb.from('bmc_state').select('key, value');
+                if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
+
+                if (!data || data.length === 0) {
+                    const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
+                        key, value, updated_by: session.user.id
+                    }));
+                    const { error: seedErr } = await sb.from('bmc_state').insert(rows);
+                    if (seedErr) setSync('error', 'Seed-fout: ' + seedErr.message);
+                    else setSync('saved', 'Opgeslagen');
+                } else {
+                    data.forEach(row => { S[row.key] = row.value; });
+                    setSync('saved', 'Opgeslagen');
                 }
+            }
+
+            /* ---------- 5. Debounced save ---------- */
+            const saveTimers = {};
+            function queueSave(key) {
+                setSync('saving', 'Opslaan…');
+                clearTimeout(saveTimers[key]);
+                saveTimers[key] = setTimeout(async () => {
+                    const { error } = await sb.from('bmc_state').upsert({
+                        key, value: S[key],
+                        updated_at: new Date().toISOString(),
+                        updated_by: session.user.id
+                    }, { onConflict: 'key' });
+                    if (error) setSync('error', 'Fout: ' + error.message);
+                    else setSync('saved', 'Opgeslagen');
+                }, 600);
+            }
+
+            /* ---------- 6. Render ---------- */
+            function renderBlock(blockEl) {
+                const k = blockEl.dataset.k;
+                const defaultTone = blockEl.dataset.c;
+                const body = blockEl.querySelector('.block-body');
+                body.innerHTML = '';
+
+                S[k].forEach((item, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.dataset.tone = item.tone || defaultTone;
+
+                    /* --- Tone picker (left edge) --- */
+                    const toneGroup = document.createElement('div');
+                    toneGroup.className = 'tone-group';
+                    ['blue', 'yellow', 'green'].forEach(toneName => {
+                        const tb = document.createElement('button');
+                        tb.className = 'tone-btn';
+                        tb.dataset.tone = toneName;
+                        tb.title = 'Kleur: ' + toneName;
+                        tb.setAttribute('aria-label', 'Kleur ' + toneName);
+                        tb.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            S[k][i].tone = toneName;
+                            queueSave(k);
+                            renderBlock(blockEl);
+                        });
+                        toneGroup.appendChild(tb);
+                    });
+
+                    /* --- Editable text --- */
+                    const sp = document.createElement('span');
+                    sp.contentEditable = 'true';
+                    sp.textContent = item.t;
+
+                    sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = i; });
+                    sp.addEventListener('blur', () => { focusedKey = null; focusedIndex = null; });
+
+                    sp.addEventListener('input', () => {
+                        S[k][i].t = sp.textContent;
+                        queueSave(k);
+                    });
+                    sp.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            S[k].splice(i + 1, 0, { t: '', tone: item.tone || defaultTone });
+                            queueSave(k);
+                            renderBlock(blockEl);
+                            const next = blockEl.querySelectorAll('.item span')[i + 1];
+                            if (next) next.focus();
+                        }
+                    });
+
+                    /* --- Delete button --- */
+                    const del = document.createElement('button');
+                    del.className = 'del';
+                    del.textContent = '×';
+                    del.setAttribute('aria-label', 'Verwijder');
+                    del.addEventListener('click', () => {
+                        S[k].splice(i, 1);
+                        queueSave(k);
+                        renderBlock(blockEl);
+                    });
+
+                    div.appendChild(toneGroup);
+                    div.appendChild(sp);
+                    div.appendChild(del);
+                    body.appendChild(div);
+                });
+            }
+
+            function renderAll() {
+                document.querySelectorAll('.block').forEach(renderBlock);
+            }
+
+            /* ---------- 7. Add button ---------- */
+            document.querySelectorAll('.block').forEach(blockEl => {
+                const k = blockEl.dataset.k;
+                const tone = blockEl.dataset.c;
+
+                blockEl.querySelector('.add-btn').addEventListener('click', () => {
+                    S[k].push({ t: '', tone });
+                    queueSave(k);
+                    renderBlock(blockEl);
+                    const spans = blockEl.querySelectorAll('.item span');
+                    if (spans.length) spans[spans.length - 1].focus();
+                });
             });
 
-            /* --- Delete button --- */
-            const del = document.createElement('button');
-            del.className = 'del';
-            del.textContent = '×';
-            del.setAttribute('aria-label', 'Verwijder');
-            del.addEventListener('click', () => {
-                S[k].splice(i, 1);
-                queueSave(k);
-                renderBlock(blockEl);
-            });
+            /* ---------- 8. Realtime ---------- */
+            function subscribeRealtime() {
+                sb.channel('bmc-updates')
+                    .on('postgres_changes',
+                        { event: '*', schema: 'public', table: 'bmc_state' },
+                        (payload) => {
+                            const row = payload.new || payload.old;
+                            if (!row || !row.key) return;
 
-            div.appendChild(toneGroup);
-            div.appendChild(sp);
-            div.appendChild(del);
-            body.appendChild(div);
-        });
-    }
+                            if (row.updated_by && row.updated_by === session.user.id) {
+                                if (JSON.stringify(S[row.key]) !== JSON.stringify(row.value)) {
+                                    S[row.key] = row.value;
+                                    softRerender(row.key);
+                                }
+                                return;
+                            }
 
-    function renderAll() {
-        document.querySelectorAll('.block').forEach(renderBlock);
-    }
-
-    /* ---------- 7. Add button ---------- */
-    document.querySelectorAll('.block').forEach(blockEl => {
-        const k = blockEl.dataset.k;
-        const tone = blockEl.dataset.c;
-
-        blockEl.querySelector('.add-btn').addEventListener('click', () => {
-            S[k].push({ t: '', tone });
-            queueSave(k);
-            renderBlock(blockEl);
-            const spans = blockEl.querySelectorAll('.item span');
-            if (spans.length) spans[spans.length - 1].focus();
-        });
-    });
-
-    /* ---------- 8. Realtime ---------- */
-    function subscribeRealtime() {
-        sb.channel('bmc-updates')
-            .on('postgres_changes',
-                { event: '*', schema: 'public', table: 'bmc_state' },
-                (payload) => {
-                    const row = payload.new || payload.old;
-                    if (!row || !row.key) return;
-
-                    if (row.updated_by && row.updated_by === session.user.id) {
-                        if (JSON.stringify(S[row.key]) !== JSON.stringify(row.value)) {
                             S[row.key] = row.value;
                             softRerender(row.key);
-                        }
-                        return;
-                    }
+                        })
+                    .subscribe();
+            }
 
-                    S[row.key] = row.value;
-                    softRerender(row.key);
-                })
-            .subscribe();
-    }
+            function softRerender(key) {
+                if (focusedKey === key) return;
+                const blockEl = document.querySelector(`.block[data-k="${key}"]`);
+                if (blockEl) renderBlock(blockEl);
+                setSync('saved', 'Bijgewerkt');
+            }
 
-    function softRerender(key) {
-        if (focusedKey === key) return;
-        const blockEl = document.querySelector(`.block[data-k="${key}"]`);
-        if (blockEl) renderBlock(blockEl);
-        setSync('saved', 'Bijgewerkt');
-    }
+            /* ---------- 9. Reset ---------- */
+            document.getElementById('reset').onclick = async () => {
+                if (!confirm('Weet je zeker dat je het BMC voor het hele team wilt resetten naar de beginwaarden?')) return;
+                setSync('saving', 'Resetten…');
+                const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
+                    key, value,
+                    updated_at: new Date().toISOString(),
+                    updated_by: session.user.id
+                }));
+                const { error } = await sb.from('bmc_state').upsert(rows, { onConflict: 'key' });
+                if (error) { setSync('error', 'Resetfout: ' + error.message); return; }
+                S = JSON.parse(JSON.stringify(DEFAULTS));
+                renderAll();
+                setSync('saved', 'Gerest');
+            };
 
-    /* ---------- 9. Reset ---------- */
-    document.getElementById('reset').onclick = async () => {
-        if (!confirm('Weet je zeker dat je het BMC voor het hele team wilt resetten naar de beginwaarden?')) return;
-        setSync('saving', 'Resetten…');
-        const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
-            key, value,
-            updated_at: new Date().toISOString(),
-            updated_by: session.user.id
-        }));
-        const { error } = await sb.from('bmc_state').upsert(rows, { onConflict: 'key' });
-        if (error) { setSync('error', 'Resetfout: ' + error.message); return; }
-        S = JSON.parse(JSON.stringify(DEFAULTS));
-        renderAll();
-        setSync('saved', 'Gerest');
-    };
-
-    /* ---------- 10. Boot ---------- */
-    setSync('saving', 'Laden…');
-    await loadAll();
-    renderAll();
-    subscribeRealtime();
-})();
-</script>
+            /* ---------- 10. Boot ---------- */
+            setSync('saving', 'Laden…');
+            await loadAll();
+            renderAll();
+            subscribeRealtime();
+        })();
+    </script>
 </body>
+
 </html>

@@ -1,397 +1,627 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Value Proposition Canvas - PermaFungi</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-/* ---------- Site-wide theme (matches index/notebook) ---------- */
-*{box-sizing:border-box}
-body{
-    margin:0;
-    background:#f5f6f8;
-    color:#222;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
-    padding:24px;
-}
-h1{font-size:clamp(24px,3vw,32px);font-weight:600;margin:0 0 6px; text-align: center;}
-.hint{color:#666;font-size:14px;margin:0 0 24px;line-height:1.5; text-align: center; max-width: 720px;}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Value Proposition Canvas - PermaFungi</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* ---------- Site-wide theme (matches index/notebook) ---------- */
+        * {
+            box-sizing: border-box
+        }
 
-/* ---------- Top bar (matches other pages) ---------- */
-.topbar{
-    display:flex;justify-content:space-between;align-items:center;
-    margin-bottom:32px;flex-wrap:wrap;gap:12px;
-}
-.topbar a{
-    color:#0066ff;text-decoration:none;font-size:14px;
-}
-.topbar a:hover{text-decoration:underline}
-.topbar .right{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.user-email{font-size:14px;color:#666}
-#logout-btn{
-    padding:8px 16px;border:1px solid #ccc;background:white;
-    border-radius:6px;cursor:pointer;font-size:14px;color:#222;
-}
-#logout-btn:hover{background:#eee}
+        body {
+            margin: 0;
+            background: #f5f6f8;
+            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            padding: 24px;
+        }
 
-/* ---------- Sync pill ---------- */
-.sync{
-    font-size:12px;color:#666;display:flex;align-items:center;gap:6px;
-    background:white;padding:5px 10px;border-radius:999px;border:1px solid #e3e5e8;
-}
-.sync .dot{width:8px;height:8px;border-radius:50%;background:#bbb;transition:background .2s}
-.sync.saving .dot{background:#f0a500}
-.sync.saved  .dot{background:#19a974}
-.sync.error  .dot{background:#d33}
+        h1 {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 600;
+            margin: 0 0 6px;
+            text-align: center;
+        }
 
-/* ---------- Layout ---------- */
-.wrap{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));
-    gap:24px;
-    max-width:1360px;
-    margin: 0 auto;
-}
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 24px;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-/* ---------- Head strip ("Value Proposition" bar) ---------- */
-.head{
-    display:flex;align-items:center;gap:12px;
-    background:white;padding:14px 16px;min-height:64px;margin-bottom:16px;
-    border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.06);
-    font-size:13px;color:#666;font-weight:500;
-}
-.note,.head span{font-family:"Gochi Hand","Comic Sans MS",cursive;color:#111;text-transform:uppercase}
-.head span{
-    background:#ffb85c;border:1.5px solid #222;padding:6px 10px;font-size:14px;
-    outline:none;flex:1;max-width:280px;text-align:center;
-    box-shadow:1px 2px 0 rgba(0,0,0,.25);
-}
+        /* ---------- Top bar (matches other pages) ---------- */
+        .topbar {
+            display: flex;
+            justify-co ntent: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
 
-/* ---------- Canvas card ---------- */
-.canvas-card{
-    background:white;
-    border-radius:10px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.06);
-    padding:16px;
-}
-.board{position:relative;width:100%;max-width:640px;aspect-ratio:1;margin:0 auto}
-.board svg{position:absolute;inset:0;width:100%;height:100%}
-.sq{background:var(--panel,#fff);border:3px solid #111}
-.circ{background:var(--panel,#fff);border:3px solid #111;border-radius:50%}
-.zone{position:absolute;display:flex;flex-direction:column;overflow:hidden}
-.zone h2{font-size:13px;font-weight:500;color:#666;margin:0 0 3px;text-align:center;font-family:inherit;text-transform:none}
+        .topbar a {
+            color: #0066ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
 
-/* ---------- Sticky notes (unchanged sketch look) ---------- */
-.notes{list-style:none;margin:0;padding:2px;overflow:auto;flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
-.note{
-    position:relative;flex:1 1 74px;max-width:112px;min-height:54px;
-    background:var(--n);border:1.5px solid #222;
-    box-shadow:1px 2px 0 rgba(0,0,0,.25);
-    padding:5px 6px;font-size:11.5px;line-height:1.15;text-align:center;
-    display:flex;align-items:center;justify-content:center;
-}
-.note span{outline:none;display:block;width:100%;word-break:break-word}
-.note span:empty::before{content:"typ hier";opacity:.45}
-.note button{
-    position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
-    border:1px solid #222;background:#fff;color:#a00;font-size:12px;line-height:1;
-    cursor:pointer;padding:0;display:none;
-}
-.note:hover button,.note:focus-within button{display:block}
-.tile{
-    flex:0 0 40px;height:54px;border:1.5px dashed #999;background:none;
-    color:#999;font-size:22px;cursor:pointer;padding:0;
-}
-.tile:hover,.tile:focus-visible{color:#111;border-color:#111}
-[data-c="y"]{--n:#fde96b}[data-c="g"]{--n:#a8e88a}[data-c="p"]{--n:#f9b4bc}
+        .topbar a:hover {
+            text-decoration: underline
+        }
 
-/* ---------- Bottom bar ---------- */
-.bar{
-    margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;
-    max-width:1360px;
-    margin-left:auto;
-    margin-right:auto;
-    justify-content:center;
-}
-.bar button{
-    font:inherit;font-size:14px;padding:9px 16px;border-radius:6px;
-    cursor:pointer;border:1px solid #ccc;background:white;color:#a00;
-}
-.bar button:hover{background:#fff0f0;border-color:#a00}
+        .topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap
+        }
 
-@media (max-width:520px){
-    .note{font-size:9.5px;min-height:46px;flex-basis:60px}
-    .zone h2{font-size:11px}
-    body{padding:16px}
-}
-</style>
+        .user-email {
+            font-size: 14px;
+            color: #666
+        }
+
+        #logout-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #222;
+        }
+
+        #logout-btn:hover {
+            background: #eee
+        }
+
+        /* ---------- Sync pill ---------- */
+        .sync {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid #e3e5e8;
+        }
+
+        .sync .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #bbb;
+            transition: background .2s
+        }
+
+        .sync.saving .dot {
+            background: #f0a500
+        }
+
+        .sync.saved .dot {
+            background: #19a974
+        }
+
+        .sync.error .dot {
+            background: #d33
+        }
+
+        /* ---------- Layout ---------- */
+        .wrap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
+            gap: 24px;
+            max-width: 1360px;
+            margin: 0 auto;
+        }
+
+        /* ---------- Head strip ("Value Proposition" bar) ---------- */
+        .head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 14px 16px;
+            min-height: 64px;
+            margin-bottom: 16px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .note,
+        .head span {
+            font-family: "Gochi Hand", "Comic Sans MS", cursive;
+            color: #111;
+            text-transform: uppercase
+        }
+
+        .head span {
+            background: #ffb85c;
+            border: 1.5px solid #222;
+            padding: 6px 10px;
+            font-size: 14px;
+            outline: none;
+            flex: 1;
+            max-width: 280px;
+            text-align: center;
+            box-shadow: 1px 2px 0 rgba(0, 0, 0, .25);
+        }
+
+        /* ---------- Canvas card ---------- */
+        .canvas-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 16px;
+        }
+
+        .board {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            aspect-ratio: 1;
+            margin: 0 auto
+        }
+
+        .board svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%
+        }
+
+        .sq {
+            background: var(--panel, #fff);
+            border: 3px solid #111
+        }
+
+        .circ {
+            background: var(--panel, #fff);
+            border: 3px solid #111;
+            border-radius: 50%
+        }
+
+        .zone {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .zone h2 {
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            margin: 0 0 3px;
+            text-align: center;
+            font-family: inherit;
+            text-transform: none
+        }
+
+        /* ---------- Sticky notes (unchanged sketch look) ---------- */
+        .notes {
+            list-style: none;
+            margin: 0;
+            padding: 2px;
+            overflow: auto;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            align-content: flex-start
+        }
+
+        .note {
+            position: relative;
+            flex: 1 1 74px;
+            max-width: 112px;
+            min-height: 54px;
+            background: var(--n);
+            border: 1.5px solid #222;
+            box-shadow: 1px 2px 0 rgba(0, 0, 0, .25);
+            padding: 5px 6px;
+            font-size: 11.5px;
+            line-height: 1.15;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .note span {
+            outline: none;
+            display: block;
+            width: 100%;
+            word-break: break-word
+        }
+
+        .note span:empty::before {
+            content: "typ hier";
+            opacity: .45
+        }
+
+        .note button {
+            position: absolute;
+            top: -7px;
+            right: -7px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid #222;
+            background: #fff;
+            color: #a00;
+            font-size: 12px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            display: none;
+        }
+
+        .note:hover button,
+        .note:focus-within button {
+            display: block
+        }
+
+        .tile {
+            flex: 0 0 40px;
+            height: 54px;
+            border: 1.5px dashed #999;
+            background: none;
+            color: #999;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .tile:hover,
+        .tile:focus-visible {
+            color: #111;
+            border-color: #111
+        }
+
+        [data-c="y"] {
+            --n: #fde96b
+        }
+
+        [data-c="g"] {
+            --n: #a8e88a
+        }
+
+        [data-c="p"] {
+            --n: #f9b4bc
+        }
+
+        /* ---------- Bottom bar ---------- */
+        .bar {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            max-width: 1360px;
+            margin-left: auto;
+            margin-right: auto;
+            justify-content: center;
+        }
+
+        .bar button {
+            font: inherit;
+            font-size: 14px;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: white;
+            color: #a00;
+        }
+
+        .bar button:hover {
+            background: #fff0f0;
+            border-color: #a00
+        }
+
+        @media (max-width:520px) {
+            .note {
+                font-size: 9.5px;
+                min-height: 46px;
+                flex-basis: 60px
+            }
+
+            .zone h2 {
+                font-size: 11px
+            }
+
+            body {
+                padding: 16px
+            }
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="topbar" id="topbar" style="display:none">
-    <a href="index.html">← Home</a>
-    <div class="right">
-        <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
-        <span class="user-email" id="user-email"></span>
-        <button id="logout-btn">Log Out</button>
+    <div class="topbar" id="topbar" style="display:none">
+        <a href="index.html">← Home</a>
+        <div class="right">
+            <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
+            <span class="user-email" id="user-email"></span>
+            <button id="logout-btn">Log Out</button>
+        </div>
     </div>
-</div>
 
-<h1>Value Proposition Canvas</h1>
-<p class="hint">Klik op een sticky note om de tekst aan te passen. Druk op Enter voor een nieuwe note, of gebruik de + naast de notes. Met × (bij de muis) verwijder je een note. Wijzigingen worden direct gedeeld met je team.</p>
+    <h1>Value Proposition Canvas</h1>
+    <p class="hint">Klik op een sticky note om de tekst aan te passen. Druk op Enter voor een nieuwe note, of gebruik de
+        + naast de notes. Met × (bij de muis) verwijder je een note. Wijzigingen worden direct gedeeld met je team.</p>
 
-<div class="wrap">
-    <section>
-        <div class="head">
-            Value Proposition
-            <span contenteditable="true" data-k="vp"></span>
-        </div>
-        <div class="canvas-card">
-            <div class="board sq">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                    <g stroke="#111" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke">
-                        <line x1="0" y1="0" x2="50" y2="50"/>
-                        <line x1="0" y1="100" x2="50" y2="50"/>
-                        <line x1="56" y1="50" x2="100" y2="50"/>
-                    </g>
-                    <g stroke="#111" stroke-width="1.4" fill="#fff">
-                        <rect x="43" y="46" width="14" height="10"/>
-                        <rect x="45" y="41" width="10" height="5"/>
-                    </g>
-                </svg>
-                <div class="zone" data-c="y" data-l="ps" style="left:3%;top:30%;width:27%;height:40%"></div>
-                <div class="zone" data-c="g" data-l="gc" style="left:40%;top:4%;width:56%;height:38%"></div>
-                <div class="zone" data-c="p" data-l="pr" style="left:40%;top:58%;width:56%;height:38%"></div>
+    <div class="wrap">
+        <section>
+            <div class="head">
+                Value Proposition
+                <span contenteditable="true" data-k="vp"></span>
             </div>
-        </div>
-    </section>
-
-    <section>
-        <div class="head">
-            Customer Segment
-            <span contenteditable="true" data-k="cs"></span>
-        </div>
-        <div class="canvas-card">
-            <div class="board circ">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                    <g stroke="#111" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke">
-                        <line x1="0" y1="50" x2="43" y2="50"/>
-                        <line x1="55" y1="45" x2="90" y2="16"/>
-                        <line x1="55" y1="55" x2="90" y2="84"/>
-                    </g>
-                    <g stroke="#111" stroke-width="1.4" fill="#fff">
-                        <circle cx="49" cy="50" r="6"/>
-                    </g>
-                </svg>
-                <div class="zone" data-c="g" data-l="ga" style="left:17%;top:12%;width:38%;height:33%"></div>
-                <div class="zone" data-c="y" data-l="jo" style="left:66%;top:31%;width:29%;height:38%"></div>
-                <div class="zone" data-c="p" data-l="pa" style="left:17%;top:55%;width:38%;height:33%"></div>
+            <div class="canvas-card">
+                <div class="board sq">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                        <g stroke="#111" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke">
+                            <line x1="0" y1="0" x2="50" y2="50" />
+                            <line x1="0" y1="100" x2="50" y2="50" />
+                            <line x1="56" y1="50" x2="100" y2="50" />
+                        </g>
+                        <g stroke="#111" stroke-width="1.4" fill="#fff">
+                            <rect x="43" y="46" width="14" height="10" />
+                            <rect x="45" y="41" width="10" height="5" />
+                        </g>
+                    </svg>
+                    <div class="zone" data-c="y" data-l="ps" style="left:3%;top:30%;width:27%;height:40%"></div>
+                    <div class="zone" data-c="g" data-l="gc" style="left:40%;top:4%;width:56%;height:38%"></div>
+                    <div class="zone" data-c="p" data-l="pr" style="left:40%;top:58%;width:56%;height:38%"></div>
+                </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
 
-<div class="bar">
-    <button id="reset">Reset voor hele team</button>
-</div>
+        <section>
+            <div class="head">
+                Customer Segment
+                <span contenteditable="true" data-k="cs"></span>
+            </div>
+            <div class="canvas-card">
+                <div class="board circ">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                        <g stroke="#111" stroke-width="0.35" fill="none" vector-effect="non-scaling-stroke">
+                            <line x1="0" y1="50" x2="43" y2="50" />
+                            <line x1="55" y1="45" x2="90" y2="16" />
+                            <line x1="55" y1="55" x2="90" y2="84" />
+                        </g>
+                        <g stroke="#111" stroke-width="1.4" fill="#fff">
+                            <circle cx="49" cy="50" r="6" />
+                        </g>
+                    </svg>
+                    <div class="zone" data-c="g" data-l="ga" style="left:17%;top:12%;width:38%;height:33%"></div>
+                    <div class="zone" data-c="y" data-l="jo" style="left:66%;top:31%;width:29%;height:38%"></div>
+                    <div class="zone" data-c="p" data-l="pa" style="left:17%;top:55%;width:38%;height:33%"></div>
+                </div>
+            </div>
+        </section>
+    </div>
 
-<script src="supabaseClient.js"></script>
-<script>
-(async () => {
-    /* ---------- 1. Auth guard ---------- */
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
+    <div class="bar">
+        <button id="reset">Reset voor hele team</button>
+    </div>
 
-    document.getElementById('topbar').style.display = 'flex';
-    document.getElementById('user-email').textContent = session.user.email;
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-        await sb.auth.signOut();
-        window.location.href = 'login.html';
-    });
+    <script src="supabaseClient.js"></script>
+    <script>
+        (async () => {
+            /* ---------- 1. Auth guard ---------- */
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
 
-    /* ---------- 2. Labels & defaults ---------- */
-    const T = { ps:"Producten en diensten", gc:"Gain creators", pr:"Pain relievers",
-                ga:"Gains", jo:"Customer jobs", pa:"Pains" };
+            document.getElementById('topbar').style.display = 'flex';
+            document.getElementById('user-email').textContent = session.user.email;
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await sb.auth.signOut();
+                window.location.href = 'login.html';
+            });
 
-    const DEFAULTS = {
-        vp: "Digitaal monitoringssysteem voor de productie",
-        cs: "Personeel: productiemedewerkers in Vorst",
-        ps: ["Sensoren temperatuur en vochtigheid","Dashboard met batchoverzicht","Batchregistratie","Meldingen en rapportage"],
-        gc: ["Minder mislukte batches en afval","Overzicht op één scherm","Tijdwinst","Data om kwaliteit te bewijzen"],
-        pr: ["Automatische waarschuwingen","Minder handmatige controles","Geschiedenis per batch","Fouten meteen zien"],
-        ga: ["Meteen een melding bij afwijking","Tijdwinst","Minder mislukte batches","Overzicht op één scherm","Constante kwaliteit"],
-        jo: ["Grondstoffen mengen","Mycelium laten groeien","Kwaliteit bewaken","Batches opvolgen"],
-        pa: ["Batches mislukken door schimmel","Veel handmatig controleren","Geen overzicht van data","Fouten te laat gemerkt"]
-    };
-
-    let S = JSON.parse(JSON.stringify(DEFAULTS));
-    let focusedKey = null;
-    let focusedIndex = null;
-
-    /* ---------- 3. Sync pill ---------- */
-    const syncEl   = document.getElementById('sync');
-    const syncText = document.getElementById('sync-text');
-    function setSync(state, text) {
-        syncEl.className = 'sync ' + state;
-        syncText.textContent = text;
-    }
-
-    /* ---------- 4. Load ---------- */
-    async function loadAll() {
-        const { data, error } = await sb.from('vpc_state').select('key, value');
-        if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
-
-        if (!data || data.length === 0) {
-            const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
-                key, value, updated_by: session.user.id
-            }));
-            const { error: seedErr } = await sb.from('vpc_state').insert(rows);
-            if (seedErr) setSync('error', 'Seed-fout: ' + seedErr.message);
-            else setSync('saved', 'Opgeslagen');
-        } else {
-            data.forEach(row => { S[row.key] = row.value; });
-            setSync('saved', 'Opgeslagen');
-        }
-    }
-
-    /* ---------- 5. Debounced save ---------- */
-    const saveTimers = {};
-    function queueSave(key) {
-        setSync('saving', 'Opslaan…');
-        clearTimeout(saveTimers[key]);
-        saveTimers[key] = setTimeout(async () => {
-            const { error } = await sb.from('vpc_state').upsert({
-                key, value: S[key],
-                updated_at: new Date().toISOString(),
-                updated_by: session.user.id
-            }, { onConflict: 'key' });
-            if (error) setSync('error', 'Fout: ' + error.message);
-            else setSync('saved', 'Opgeslagen');
-        }, 600);
-    }
-
-    /* ---------- 6. Render ---------- */
-    function focusNote(el, i) {
-        const s = el.querySelectorAll(".note span")[i];
-        if (s) s.focus();
-    }
-
-    function renderZone(el) {
-        const k = el.dataset.l;
-        el.innerHTML = "";
-        const h = document.createElement("h2"); h.textContent = T[k]; el.appendChild(h);
-        const ul = document.createElement("ul"); ul.className = "notes"; el.appendChild(ul);
-
-        S[k].forEach(function (t, i) {
-            const li = document.createElement("li"), sp = document.createElement("span"), b = document.createElement("button");
-            li.className = "note"; sp.contentEditable = "true"; sp.textContent = t;
-
-            sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = i; });
-            sp.addEventListener('blur',  () => { focusedKey = null; focusedIndex = null; });
-
-            sp.oninput = function () { S[k][i] = sp.textContent; queueSave(k); };
-            sp.onkeydown = function (e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    S[k].splice(i + 1, 0, ""); queueSave(k);
-                    renderZone(el); focusNote(el, i + 1);
-                }
+            /* ---------- 2. Labels & defaults ---------- */
+            const T = {
+                ps: "Producten en diensten", gc: "Gain creators", pr: "Pain relievers",
+                ga: "Gains", jo: "Customer jobs", pa: "Pains"
             };
 
-            b.textContent = "×"; b.setAttribute("aria-label", "Verwijder note");
-            b.onclick = function () { S[k].splice(i, 1); queueSave(k); renderZone(el); };
+            const DEFAULTS = {
+                vp: "Digitaal monitoringssysteem voor de productie",
+                cs: "Personeel: productiemedewerkers in Vorst",
+                ps: ["Sensoren temperatuur en vochtigheid", "Dashboard met batchoverzicht", "Batchregistratie", "Meldingen en rapportage"],
+                gc: ["Minder mislukte batches en afval", "Overzicht op één scherm", "Tijdwinst", "Data om kwaliteit te bewijzen"],
+                pr: ["Automatische waarschuwingen", "Minder handmatige controles", "Geschiedenis per batch", "Fouten meteen zien"],
+                ga: ["Meteen een melding bij afwijking", "Tijdwinst", "Minder mislukte batches", "Overzicht op één scherm", "Constante kwaliteit"],
+                jo: ["Grondstoffen mengen", "Mycelium laten groeien", "Kwaliteit bewaken", "Batches opvolgen"],
+                pa: ["Batches mislukken door schimmel", "Veel handmatig controleren", "Geen overzicht van data", "Fouten te laat gemerkt"]
+            };
 
-            li.appendChild(sp); li.appendChild(b); ul.appendChild(li);
-        });
+            let S = JSON.parse(JSON.stringify(DEFAULTS));
+            let focusedKey = null;
+            let focusedIndex = null;
 
-        const li = document.createElement("li"), a = document.createElement("button");
-        a.className = "tile"; a.textContent = "+"; a.setAttribute("aria-label", "Nieuwe note toevoegen");
-        a.onclick = function () {
-            S[k].push(""); queueSave(k);
-            renderZone(el); focusNote(el, S[k].length - 1);
-        };
-        li.appendChild(a); ul.appendChild(li);
-    }
+            /* ---------- 3. Sync pill ---------- */
+            const syncEl = document.getElementById('sync');
+            const syncText = document.getElementById('sync-text');
+            function setSync(state, text) {
+                syncEl.className = 'sync ' + state;
+                syncText.textContent = text;
+            }
 
-    function renderHeader(sp) {
-        const k = sp.dataset.k;
-        sp.textContent = S[k];
-        sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = null; });
-        sp.addEventListener('blur',  () => { focusedKey = null; focusedIndex = null; });
-        sp.oninput   = function () { S[k] = sp.textContent; queueSave(k); };
-        sp.onkeydown = function (e) {
-            if (e.key === "Enter") { e.preventDefault(); sp.blur(); }
-        };
-    }
+            /* ---------- 4. Load ---------- */
+            async function loadAll() {
+                const { data, error } = await sb.from('vpc_state').select('key, value');
+                if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
 
-    function renderAll() {
-        document.querySelectorAll(".zone").forEach(renderZone);
-        document.querySelectorAll(".head span").forEach(renderHeader);
-    }
+                if (!data || data.length === 0) {
+                    const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
+                        key, value, updated_by: session.user.id
+                    }));
+                    const { error: seedErr } = await sb.from('vpc_state').insert(rows);
+                    if (seedErr) setSync('error', 'Seed-fout: ' + seedErr.message);
+                    else setSync('saved', 'Opgeslagen');
+                } else {
+                    data.forEach(row => { S[row.key] = row.value; });
+                    setSync('saved', 'Opgeslagen');
+                }
+            }
 
-    /* ---------- 7. Realtime ---------- */
-    function subscribeRealtime() {
-        sb.channel('vpc-updates')
-            .on('postgres_changes',
-                { event: '*', schema: 'public', table: 'vpc_state' },
-                (payload) => {
-                    const row = payload.new || payload.old;
-                    if (!row || !row.key) return;
+            /* ---------- 5. Debounced save ---------- */
+            const saveTimers = {};
+            function queueSave(key) {
+                setSync('saving', 'Opslaan…');
+                clearTimeout(saveTimers[key]);
+                saveTimers[key] = setTimeout(async () => {
+                    const { error } = await sb.from('vpc_state').upsert({
+                        key, value: S[key],
+                        updated_at: new Date().toISOString(),
+                        updated_by: session.user.id
+                    }, { onConflict: 'key' });
+                    if (error) setSync('error', 'Fout: ' + error.message);
+                    else setSync('saved', 'Opgeslagen');
+                }, 600);
+            }
 
-                    if (row.updated_by && row.updated_by === session.user.id) {
-                        if (JSON.stringify(S[row.key]) !== JSON.stringify(row.value)) {
+            /* ---------- 6. Render ---------- */
+            function focusNote(el, i) {
+                const s = el.querySelectorAll(".note span")[i];
+                if (s) s.focus();
+            }
+
+            function renderZone(el) {
+                const k = el.dataset.l;
+                el.innerHTML = "";
+                const h = document.createElement("h2"); h.textContent = T[k]; el.appendChild(h);
+                const ul = document.createElement("ul"); ul.className = "notes"; el.appendChild(ul);
+
+                S[k].forEach(function (t, i) {
+                    const li = document.createElement("li"), sp = document.createElement("span"), b = document.createElement("button");
+                    li.className = "note"; sp.contentEditable = "true"; sp.textContent = t;
+
+                    sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = i; });
+                    sp.addEventListener('blur', () => { focusedKey = null; focusedIndex = null; });
+
+                    sp.oninput = function () { S[k][i] = sp.textContent; queueSave(k); };
+                    sp.onkeydown = function (e) {
+                        if (e.key === "Enter") {
+                            e.preventDefault();
+                            S[k].splice(i + 1, 0, ""); queueSave(k);
+                            renderZone(el); focusNote(el, i + 1);
+                        }
+                    };
+
+                    b.textContent = "×"; b.setAttribute("aria-label", "Verwijder note");
+                    b.onclick = function () { S[k].splice(i, 1); queueSave(k); renderZone(el); };
+
+                    li.appendChild(sp); li.appendChild(b); ul.appendChild(li);
+                });
+
+                const li = document.createElement("li"), a = document.createElement("button");
+                a.className = "tile"; a.textContent = "+"; a.setAttribute("aria-label", "Nieuwe note toevoegen");
+                a.onclick = function () {
+                    S[k].push(""); queueSave(k);
+                    renderZone(el); focusNote(el, S[k].length - 1);
+                };
+                li.appendChild(a); ul.appendChild(li);
+            }
+
+            function renderHeader(sp) {
+                const k = sp.dataset.k;
+                sp.textContent = S[k];
+                sp.addEventListener('focus', () => { focusedKey = k; focusedIndex = null; });
+                sp.addEventListener('blur', () => { focusedKey = null; focusedIndex = null; });
+                sp.oninput = function () { S[k] = sp.textContent; queueSave(k); };
+                sp.onkeydown = function (e) {
+                    if (e.key === "Enter") { e.preventDefault(); sp.blur(); }
+                };
+            }
+
+            function renderAll() {
+                document.querySelectorAll(".zone").forEach(renderZone);
+                document.querySelectorAll(".head span").forEach(renderHeader);
+            }
+
+            /* ---------- 7. Realtime ---------- */
+            function subscribeRealtime() {
+                sb.channel('vpc-updates')
+                    .on('postgres_changes',
+                        { event: '*', schema: 'public', table: 'vpc_state' },
+                        (payload) => {
+                            const row = payload.new || payload.old;
+                            if (!row || !row.key) return;
+
+                            if (row.updated_by && row.updated_by === session.user.id) {
+                                if (JSON.stringify(S[row.key]) !== JSON.stringify(row.value)) {
+                                    S[row.key] = row.value;
+                                    softRerender(row.key);
+                                }
+                                return;
+                            }
+
                             S[row.key] = row.value;
                             softRerender(row.key);
-                        }
-                        return;
-                    }
+                        })
+                    .subscribe();
+            }
 
-                    S[row.key] = row.value;
-                    softRerender(row.key);
-                })
-            .subscribe();
-    }
+            function softRerender(key) {
+                if (focusedKey === key) return;
 
-    function softRerender(key) {
-        if (focusedKey === key) return;
+                if (key === 'vp' || key === 'cs') {
+                    const sp = document.querySelector('.head span[data-k="' + key + '"]');
+                    if (sp && document.activeElement !== sp) sp.textContent = S[key];
+                } else {
+                    const zoneEl = document.querySelector('.zone[data-l="' + key + '"]');
+                    if (zoneEl) renderZone(zoneEl);
+                }
+                setSync('saved', 'Bijgewerkt');
+            }
 
-        if (key === 'vp' || key === 'cs') {
-            const sp = document.querySelector('.head span[data-k="' + key + '"]');
-            if (sp && document.activeElement !== sp) sp.textContent = S[key];
-        } else {
-            const zoneEl = document.querySelector('.zone[data-l="' + key + '"]');
-            if (zoneEl) renderZone(zoneEl);
-        }
-        setSync('saved', 'Bijgewerkt');
-    }
+            /* ---------- 8. Reset ---------- */
+            document.getElementById("reset").onclick = async function () {
+                if (!confirm("Weet je zeker dat je de VPC voor het hele team wilt resetten naar de beginwaarden?")) return;
 
-    /* ---------- 8. Reset ---------- */
-    document.getElementById("reset").onclick = async function () {
-        if (!confirm("Weet je zeker dat je de VPC voor het hele team wilt resetten naar de beginwaarden?")) return;
+                setSync('saving', 'Resetten…');
+                const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
+                    key, value,
+                    updated_at: new Date().toISOString(),
+                    updated_by: session.user.id
+                }));
+                const { error } = await sb.from('vpc_state').upsert(rows, { onConflict: 'key' });
 
-        setSync('saving', 'Resetten…');
-        const rows = Object.entries(DEFAULTS).map(([key, value]) => ({
-            key, value,
-            updated_at: new Date().toISOString(),
-            updated_by: session.user.id
-        }));
-        const { error } = await sb.from('vpc_state').upsert(rows, { onConflict: 'key' });
+                if (error) { setSync('error', 'Resetfout: ' + error.message); return; }
 
-        if (error) { setSync('error', 'Resetfout: ' + error.message); return; }
+                S = JSON.parse(JSON.stringify(DEFAULTS));
+                renderAll();
+                setSync('saved', 'Gerest');
+            };
 
-        S = JSON.parse(JSON.stringify(DEFAULTS));
-        renderAll();
-        setSync('saved', 'Gerest');
-    };
-
-    /* ---------- 9. Boot ---------- */
-    setSync('saving', 'Laden…');
-    await loadAll();
-    renderAll();
-    subscribeRealtime();
-})();
-</script>
+            /* ---------- 9. Boot ---------- */
+            setSync('saving', 'Laden…');
+            await loadAll();
+            renderAll();
+            subscribeRealtime();
+        })();
+    </script>
 </body>
+
 </html>

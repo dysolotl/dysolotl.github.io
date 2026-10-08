@@ -1,20 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shared Files</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: -apple-system, SBlinkMacSystemFont, "Segoe UI", sans-serif;
             max-width: 1000px;
             margin: 40px auto;
             padding: 24px;
             background: #f5f6f8;
             color: #222;
         }
+
         .topbar {
             display: flex;
             justify-content: space-between;
@@ -23,9 +28,25 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
-        .topbar .right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .user-email { font-size: 14px; color: #666; }
+
+        .topbar a {
+            color: #0066ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #666;
+        }
+
         #logout-btn {
             padding: 8px 16px;
             border: 1px solid #ccc;
@@ -34,10 +55,22 @@
             cursor: pointer;
             font-size: 14px;
         }
-        #logout-btn:hover { background: #eee; }
 
-        h1 { font-size: clamp(22px, 3vw, 30px); font-weight: 600; margin: 0 0 6px; }
-        .hint { color: #666; font-size: 14px; margin: 0 0 24px; }
+        #logout-btn:hover {
+            background: #eee;
+        }
+
+        h1 {
+            font-size: clamp(22px, 3vw, 30px);
+            font-weight: 600;
+            margin: 0 0 6px;
+        }
+
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin: 0 0 24px;
+        }
 
         /* Add-file form */
         #add-file-form {
@@ -45,11 +78,25 @@
             padding: 24px;
             border-radius: 10px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
         }
-        #add-file-form h3 { margin-top: 0; }
-        label { display: block; font-size: 13px; color: #444; font-weight: 500; margin-top: 10px; }
-        input[type="text"], input[type="url"], textarea, select {
+
+        #add-file-form h3 {
+            margin-top: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #444;
+            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        textarea,
+        select {
             display: block;
             width: 100%;
             padding: 10px 12px;
@@ -60,9 +107,22 @@
             font-family: inherit;
             background: white;
         }
-        textarea { resize: vertical; }
-        .form-row { display: grid; grid-template-columns: 1fr 180px; gap: 12px; }
-        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 180px;
+            gap: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .btn-primary {
             margin-top: 14px;
@@ -75,8 +135,16 @@
             font-size: 15px;
             font-weight: 500;
         }
-        .btn-primary:hover { background: #0052cc; }
-        .btn-primary:disabled { background: #99b8ff; cursor: not-allowed; }
+
+        .btn-primary:hover {
+            background: #0052cc;
+        }
+
+        .btn-primary:disabled {
+            background: #99b8ff;
+            cursor: not-allowed;
+        }
+
         .btn-secondary {
             padding: 8px 14px;
             background: white;
@@ -86,7 +154,11 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .btn-secondary:hover { background: #eee; }
+
+        .btn-secondary:hover {
+            background: #eee;
+        }
+
         .btn-danger {
             padding: 8px 14px;
             background: white;
@@ -96,7 +168,10 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .btn-danger:hover { background: #fff0f0; }
+
+        .btn-danger:hover {
+            background: #fff0f0;
+        }
 
         /* File cards */
         .files-grid {
@@ -104,25 +179,29 @@
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 16px;
         }
+
         .file-card {
             background: white;
             border-radius: 10px;
             padding: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             gap: 8px;
             transition: transform 0.12s, box-shadow 0.12s;
         }
+
         .file-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.09);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.09);
         }
+
         .file-head {
             display: flex;
             align-items: flex-start;
             gap: 12px;
         }
+
         .file-icon {
             font-size: 28px;
             line-height: 1;
@@ -130,20 +209,30 @@
             width: 36px;
             text-align: center;
         }
+
         .file-name {
             font-weight: 600;
             font-size: 15px;
             line-height: 1.3;
             word-break: break-word;
         }
-        .file-name a { color: #0066ff; text-decoration: none; }
-        .file-name a:hover { text-decoration: underline; }
+
+        .file-name a {
+            color: #0066ff;
+            text-decoration: none;
+        }
+
+        .file-name a:hover {
+            text-decoration: underline;
+        }
+
         .file-desc {
             font-size: 13px;
             color: #555;
             line-height: 1.4;
             white-space: pre-wrap;
         }
+
         .file-meta {
             font-size: 11px;
             color: #999;
@@ -156,19 +245,25 @@
             gap: 8px;
             flex-wrap: wrap;
         }
-        .file-actions { display: flex; gap: 6px; }
+
+        .file-actions {
+            display: flex;
+            gap: 6px;
+        }
+
         .file-actions .btn-secondary,
         .file-actions .btn-danger {
             padding: 5px 10px;
             font-size: 12px;
         }
+
         .empty-state {
             background: white;
             padding: 40px;
             border-radius: 10px;
             text-align: center;
             color: #777;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
         }
 
         /* Edit form inside a card */
@@ -180,7 +275,12 @@
             display: flex;
             flex-direction: column;
         }
-        .edit-form .actions { display: flex; gap: 8px; margin-top: 10px; }
+
+        .edit-form .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
 
         /* Filter tabs */
         .filter-bar {
@@ -189,6 +289,7 @@
             margin-bottom: 16px;
             flex-wrap: wrap;
         }
+
         .filter-bar button {
             padding: 6px 14px;
             border-radius: 999px;
@@ -198,6 +299,7 @@
             font-size: 13px;
             cursor: pointer;
         }
+
         .filter-bar button.active {
             background: #0066ff;
             border-color: #0066ff;
@@ -205,6 +307,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="topbar">
         <a href="index.html">← Home</a>
@@ -215,7 +318,8 @@
     </div>
 
     <h1>Shared Files</h1>
-    <p class="hint">Links to team documents (Word, Excel, and others). Paste a share link from OneDrive, SharePoint, or Google Drive. Any team member can add a file; only the uploader can edit or delete.</p>
+    <p class="hint">Links to team documents (Word, Excel, and others). Paste a share link from OneDrive, SharePoint, or
+        Google Drive. Any team member can add a file; only the uploader can edit or delete.</p>
 
     <div id="add-file-form">
         <h3>Add a File Link</h3>
@@ -339,8 +443,8 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         ${filesCache.length === 0
-                            ? 'No files yet. Add the first one above!'
-                            : 'No files match this filter.'}
+                        ? 'No files yet. Add the first one above!'
+                        : 'No files match this filter.'}
                     </div>`;
                 return;
             }
@@ -521,4 +625,5 @@
         init();
     </script>
 </body>
+
 </html>
