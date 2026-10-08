@@ -1,661 +1,977 @@
 <!DOCTYPE html>
 <html lang="nl">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Weekverslag Generator - Permafungi</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<style>
-* { box-sizing: border-box; }
-body {
-    margin: 0;
-    background: #f5f6f8;
-    color: #222;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    padding: 24px;
-}
-h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-align: center; }
-.hint { color: #666; font-size: 14px; margin: 0 auto 24px; line-height: 1.5; text-align: center; max-width: 820px; }
-
-.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.topbar a { color: #0066ff; text-decoration: none; font-size: 14px; }
-.topbar a:hover { text-decoration: underline; }
-.topbar .right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.user-email { font-size: 14px; color: #666; }
-#logout-btn { padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; color: #222; }
-#logout-btn:hover { background: #eee; }
-
-.sync { font-size: 12px; color: #666; display: flex; align-items: center; gap: 6px; background: white; padding: 5px 10px; border-radius: 999px; border: 1px solid #e3e5e8; }
-.sync .dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; transition: background .2s; }
-.sync.saving .dot { background: #f0a500; }
-.sync.saved  .dot { background: #19a974; }
-.sync.error  .dot { background: #d33; }
-
-.layout {
-    display: grid;
-    grid-template-columns: minmax(380px, 1fr) minmax(520px, 1.4fr);
-    gap: 24px;
-    max-width: 1500px;
-    margin: 0 auto;
-}
-@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
-
-.form-panel {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    padding: 20px 24px 24px;
-    max-height: calc(100vh - 100px);
-    overflow-y: auto;
-    position: sticky;
-    top: 24px;
-    align-self: start;
-}
-.form-panel h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; color: #444; text-transform: uppercase; letter-spacing: 0.04em; }
-.form-panel section { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #f0f0f0; }
-.form-panel section:last-child { border-bottom: none; padding-bottom: 0; }
-label { display: block; font-size: 13px; color: #444; font-weight: 500; margin: 10px 0 4px; }
-input[type="text"], input[type="date"], textarea, select {
-    display: block; width: 100%; padding: 8px 10px;
-    border: 1px solid #ccc; border-radius: 6px;
-    font-size: 14px; font-family: inherit; background: white;
-}
-input:disabled, textarea:disabled {
-    background: #f3f4f6;
-    color: #555;
-    cursor: not-allowed;
-}
-textarea { resize: vertical; min-height: 60px; }
-.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-
-.team-hint {
-    font-size: 12px;
-    color: #888;
-    background: #f7f9fc;
-    padding: 8px 10px;
-    border-left: 3px solid #0066ff;
-    border-radius: 4px;
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
-.roles-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px;
-}
-.role-row {
-    display: grid;
-    grid-template-columns: 110px 1fr 1fr;
-    gap: 8px;
-    align-items: center;
-    background: #f7f9fc;
-    border: 1px solid #e3e8ef;
-    border-radius: 6px;
-    padding: 8px 10px;
-}
-.role-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-}
-.role-row select {
-    padding: 6px 8px;
-    font-size: 13px;
-    margin: 0;
-}
-@media (max-width: 700px) {
-    .role-row { grid-template-columns: 1fr; }
-}
-
-.list-editor { display: flex; flex-direction: column; gap: 6px; }
-.list-row {
-    display: grid; gap: 6px; align-items: center;
-    background: #f7f9fc; border: 1px solid #e3e8ef;
-    padding: 6px; border-radius: 6px;
-}
-.list-row input, .list-row textarea { padding: 6px 8px; font-size: 13px; }
-.list-row button {
-    background: white; border: 1px solid #ccc;
-    border-radius: 4px; cursor: pointer;
-    padding: 4px 8px; font-size: 12px;
-}
-.list-row .remove {
-    color: #c00; border-color: #c00;
-    padding: 4px 8px; justify-self: end;
-}
-.list-row .remove:hover { background: #fff0f0; }
-.add-row-btn {
-    align-self: flex-start;
-    margin-top: 6px;
-    padding: 6px 12px;
-    border: 1px dashed #0066ff;
-    color: #0066ff;
-    background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 13px;
-}
-.add-row-btn:hover { background: #f0f6ff; }
-
-.preview-panel {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.preview-toolbar {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    padding-bottom: 14px;
-    border-bottom: 1px solid #eee;
-}
-.preview-toolbar .filename {
-    font-size: 12px;
-    color: #555;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    background: #f3f4f6;
-    padding: 5px 10px;
-    border-radius: 6px;
-    flex: 1;
-    min-width: 280px;
-    word-break: break-all;
-}
-.btn-primary {
-    padding: 9px 16px;
-    background: #0066ff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-}
-.btn-primary:hover { background: #0052cc; }
-.btn-primary:disabled { background: #99b8ff; cursor: not-allowed; }
-.btn-secondary {
-    padding: 9px 16px;
-    background: white;
-    color: #222;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-}
-.btn-secondary:hover { background: #eee; }
-
-#report-doc {
-    background: white;
-    border: 1px solid #e3e5e8;
-    padding: 32px 36px;
-    border-radius: 6px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-    color: #1a1a1a;
-    font-size: 13px;
-    line-height: 1.5;
-    overflow-x: auto;
-}
-#report-doc .doc-title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-#report-doc .doc-date { font-size: 12px; color: #666; margin-bottom: 20px; }
-#report-doc h2 {
-    font-size: 14px; font-weight: 700; margin: 22px 0 8px;
-    color: #1a3a5c; border-bottom: 1px solid #e3e5e8; padding-bottom: 4px;
-}
-#report-doc table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 12px; }
-#report-doc th, #report-doc td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; vertical-align: top; }
-#report-doc th { background: #f5f7fa; font-weight: 600; }
-#report-doc p { margin: 6px 0; }
-#report-doc ul { margin: 6px 0; padding-left: 20px; }
-#report-doc li { margin: 3px 0; }
-#report-doc .info-table td:first-child { width: 150px; background: #f5f7fa; font-weight: 500; }
-</style>
-</head>
-<body>
-
-<div class="topbar" id="topbar" style="display:none">
-    <a href="index.html">← Home</a>
-    <div class="right">
-        <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
-        <span class="user-email" id="user-email"></span>
-        <button id="logout-btn">Log Out</button>
-    </div>
-</div>
-
-<h1>Weekverslag Generator</h1>
-<p class="hint">Teamgegevens worden automatisch ingevuld. Kies per rol wie de rol opneemt en wie de vervanger is. Vul de rest per week in en exporteer als PDF.</p>
-
-<div class="layout">
-
-    <div class="form-panel">
-
-        <section>
-            <h2>Basisinfo</h2>
-            <div class="team-hint">
-                Deze gegevens komen uit de vaste teamconfiguratie. Pas ze aan in de code (bovenaan het script).
-            </div>
-            <div class="row-2">
-                <div>
-                    <label>Datum les</label>
-                    <input type="date" id="f-date">
-                </div>
-                <div>
-                    <label>Weeknummer</label>
-                    <input type="text" id="f-week" placeholder="bv. week 1">
-                </div>
-            </div>
-            <div class="row-2">
-                <div>
-                    <label>Teamnummer</label>
-                    <input type="text" id="f-team" disabled>
-                </div>
-                <div>
-                    <label>Klasgroep</label>
-                    <input type="text" id="f-class" disabled>
-                </div>
-            </div>
-            <div class="row-2">
-                <div>
-                    <label>Case / bedrijf</label>
-                    <input type="text" id="f-case" disabled>
-                </div>
-                <div>
-                    <label>Week label (in titel)</label>
-                    <input type="text" id="f-weeklabel" placeholder="bv. Week 1">
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <h2>Teamleden</h2>
-            <label>Teamleden</label>
-            <input type="text" id="f-members" disabled>
-        </section>
-
-        <section>
-            <h2>Rollen &amp; vervangers</h2>
-            <div class="team-hint">
-                Kies voor elke rol wie de rol opneemt en wie de vervanger is. Kandidaten komen uit de teamledenlijst.
-            </div>
-            <div class="roles-grid" id="roles-grid"></div>
-        </section>
-
-        <section>
-            <h2>Stand van zaken</h2>
-            <label>Paragraaf</label>
-            <textarea id="f-status-paragraph" rows="3"></textarea>
-
-            <label>Bullets (één per regel)</label>
-            <textarea id="f-status-bullets" rows="6" placeholder="Onderzoek Permafungi: ...&#10;BMC: ..."></textarea>
-        </section>
-
-        <section>
-            <h2>Nog open</h2>
-            <label>Items (één per regel)</label>
-            <textarea id="f-open" rows="4"></textarea>
-        </section>
-
-        <section>
-            <h2>Taakverdeling</h2>
-            <div class="list-editor" id="f-tasks-list"></div>
-            <button class="add-row-btn" id="add-task">+ Persoon toevoegen</button>
-        </section>
-
-        <section>
-            <h2>Vergaderingen</h2>
-            <div class="list-editor" id="f-meetings-list"></div>
-            <button class="add-row-btn" id="add-meeting">+ Vergadering toevoegen</button>
-        </section>
-
-        <section>
-            <h2>Planning volgende week</h2>
-            <div class="list-editor" id="f-planning-list"></div>
-            <button class="add-row-btn" id="add-planning">+ Taak toevoegen</button>
-        </section>
-
-    </div>
-
-    <div class="preview-panel">
-
-        <div class="preview-toolbar">
-            <span class="filename" id="filename-preview">BA-Weekverslag-Team-vr-7-??????.pdf</span>
-            <button class="btn-secondary" id="copy-filename">Kopieer naam</button>
-            <button class="btn-primary" id="export-btn">Exporteer PDF</button>
-        </div>
-
-        <div id="report-doc"></div>
-
-    </div>
-
-</div>
-
-<script src="supabaseClient.js"></script>
-<script>
-(async () => {
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) { window.location.href = 'login.html'; return; }
-
-    document.getElementById('topbar').style.display = 'flex';
-    document.getElementById('user-email').textContent = session.user.email;
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-        await sb.auth.signOut();
-        window.location.href = 'login.html';
-    });
-
-    const syncEl = document.getElementById('sync');
-    const syncText = document.getElementById('sync-text');
-    function setSync(s, t) { syncEl.className = 'sync ' + s; syncText.textContent = t; }
-
-    /* ============================================================
-       TEAM CONFIGURATIE — pas hier aan als het team wijzigt
-       ============================================================ */
-    const TEAM = {
-        members: "Adam Allali, Dylan De Marie, Dingming Zhu, Daniel Allauca Orozco",
-        roles: {
-            leader:    { primary: "Dingming", replacement: "Daniel" },
-            secretary: { primary: "Dylan",    replacement: "Adam"   },
-            editor:    { primary: "Adam",     replacement: "Dingming" }
-        },
-        teamNumber: "7",
-        classGroup: "2TI-BA-Vr-7",
-        caseName: "Permafungi",
-        lessonDay: "vr"     // vaste lesdag van de groep
-    };
-
-    function parseMembers(str) {
-        return str.split(',').map(s => s.trim()).filter(Boolean);
-    }
-    const MEMBER_LIST = parseMembers(TEAM.members);
-
-    const ROLE_DEFS = [
-        { key: 'leader',    label: 'Leider' },
-        { key: 'secretary', label: 'Secretaris' },
-        { key: 'editor',    label: 'Eindredacteur' }
-    ];
-
-    /* ============================================================
-       STATE
-       ============================================================ */
-    const data = {
-        date: '',
-        week: 'week 1',
-        team: TEAM.teamNumber,
-        class: TEAM.classGroup,
-        case: TEAM.caseName,
-        weeklabel: 'Week 1',
-        members: TEAM.members,
-        roles: {
-            leader:    { ...TEAM.roles.leader },
-            secretary: { ...TEAM.roles.secretary },
-            editor:    { ...TEAM.roles.editor }
-        },
-        status: { paragraph: '', bullets: '' },
-        open: '',
-        tasks: [],
-        meetings: [],
-        planning: []
-    };
-
-    /* ============================================================
-       FILENAME / DATES
-       ============================================================ */
-    function computeFileName() {
-        if (!data.date) return `BA-Weekverslag-Team-${TEAM.lessonDay}-${TEAM.teamNumber}-??????.pdf`;
-        const d = new Date(data.date + 'T12:00:00');
-        const dd = TEAM.lessonDay || 'vr';
-        const X  = data.team || TEAM.teamNumber;
-        const yy = String(d.getFullYear()).slice(-2);
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `BA-Weekverslag-Team-${dd}-${X}-${yy}${mm}${day}.pdf`;
-    }
-
-    function formatDateNL(isoDate) {
-        if (!isoDate) return '';
-        const d = new Date(isoDate + 'T12:00:00');
-        const monthNames = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
-        return `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-    }
-
-    const $ = id => document.getElementById(id);
-    const previewEl = $('report-doc');
-    const filenameEl = $('filename-preview');
-
-    /* ============================================================
-       AUTO-FILL TEAM FIELDS
-       ============================================================ */
-    $('f-members').value = TEAM.members;
-    $('f-team').value = TEAM.teamNumber;
-    $('f-class').value = TEAM.classGroup;
-    $('f-case').value = TEAM.caseName;
-
-    /* ============================================================
-       ROLES GRID
-       ============================================================ */
-    function buildRolesGrid() {
-        const grid = $('roles-grid');
-        grid.innerHTML = '';
-
-        ROLE_DEFS.forEach(roleDef => {
-            const row = document.createElement('div');
-            row.className = 'role-row';
-
-            const label = document.createElement('div');
-            label.className = 'role-label';
-            label.textContent = roleDef.label;
-            row.appendChild(label);
-
-            const primary = makeMemberSelect(
-                data.roles[roleDef.key].primary,
-                (val) => { data.roles[roleDef.key].primary = val; refresh(); }
-            );
-            primary.title = roleDef.label;
-            row.appendChild(primary);
-
-            const replacement = makeMemberSelect(
-                data.roles[roleDef.key].replacement,
-                (val) => { data.roles[roleDef.key].replacement = val; refresh(); }
-            );
-            replacement.title = 'Vervang ' + roleDef.label.toLowerCase();
-            row.appendChild(replacement);
-
-            grid.appendChild(row);
-        });
-    }
-
-    function makeMemberSelect(currentValue, onChange) {
-        const sel = document.createElement('select');
-        const blank = document.createElement('option');
-        blank.value = '';
-        blank.textContent = '— kies —';
-        sel.appendChild(blank);
-
-        MEMBER_LIST.forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            if (name === currentValue) opt.selected = true;
-            sel.appendChild(opt);
-        });
-
-        if (currentValue && !MEMBER_LIST.includes(currentValue)) {
-            const opt = document.createElement('option');
-            opt.value = currentValue;
-            opt.textContent = currentValue;
-            opt.selected = true;
-            sel.appendChild(opt);
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Weekverslag Generator - Permafungi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
         }
 
-        sel.addEventListener('change', () => onChange(sel.value));
-        return sel;
-    }
+        body {
+            margin: 0;
+            background: #f5f6f8;
+            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            padding: 24px;
+        }
 
-    /* ============================================================
-       Editable field bindings
-       ============================================================ */
-    const fieldMap = {
-        'f-date':             v => data.date = v,
-        'f-week':             v => data.week = v,
-        'f-weeklabel':        v => data.weeklabel = v,
-        'f-status-paragraph': v => data.status.paragraph = v,
-        'f-status-bullets':   v => data.status.bullets = v,
-        'f-open':             v => data.open = v
-    };
-    Object.entries(fieldMap).forEach(([id, setter]) => {
-        const el = $(id);
-        if (!el) return;
-        el.addEventListener('input', () => { setter(el.value); refresh(); });
-    });
+        h1 {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 600;
+            margin: 0 0 6px;
+            text-align: center;
+        }
 
-    /* ============================================================
-       DYNAMIC LISTS
-       ============================================================ */
-    function escapeAttr(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin: 0 auto 24px;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 820px;
+        }
 
-    function renderTasks() {
-        const c = $('f-tasks-list');
-        c.innerHTML = '';
-        data.tasks.forEach((row, i) => {
-            const div = document.createElement('div');
-            div.className = 'list-row';
-            div.style.gridTemplateColumns = '1fr 2fr auto';
-            div.innerHTML = `
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar a {
+            color: #0066ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .topbar a:hover {
+            text-decoration: underline;
+        }
+
+        .topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #666;
+        }
+
+        #logout-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #222;
+        }
+
+        #logout-btn:hover {
+            background: #eee;
+        }
+
+        .sync {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid #e3e5e8;
+        }
+
+        .sync .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #bbb;
+            transition: background .2s;
+        }
+
+        .sync.saving .dot {
+            background: #f0a500;
+        }
+
+        .sync.saved .dot {
+            background: #19a974;
+        }
+
+        .sync.error .dot {
+            background: #d33;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(380px, 1fr) minmax(520px, 1.4fr);
+            gap: 24px;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1100px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 20px 24px 24px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            position: sticky;
+            top: 24px;
+            align-self: start;
+        }
+
+        .form-panel h2 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 6px;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-panel section {
+            margin-bottom: 22px;
+            padding-bottom: 18px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-panel section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #444;
+            font-weight: 500;
+            margin: 10px 0 4px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        textarea,
+        select {
+            display: block;
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: white;
+        }
+
+        input:disabled,
+        textarea:disabled {
+            background: #f3f4f6;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .row-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .team-hint {
+            font-size: 12px;
+            color: #888;
+            background: #f7f9fc;
+            padding: 8px 10px;
+            border-left: 3px solid #0066ff;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .roles-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .role-row {
+            display: grid;
+            grid-template-columns: 110px 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+            background: #f7f9fc;
+            border: 1px solid #e3e8ef;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        .role-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .role-row select {
+            padding: 6px 8px;
+            font-size: 13px;
+            margin: 0;
+        }
+
+        @media (max-width: 700px) {
+            .role-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .list-editor {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .list-row {
+            display: grid;
+            gap: 6px;
+            align-items: center;
+            background: #f7f9fc;
+            border: 1px solid #e3e8ef;
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .list-row input,
+        .list-row textarea {
+            padding: 6px 8px;
+            font-size: 13px;
+        }
+
+        .list-row button {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .list-row .remove {
+            color: #c00;
+            border-color: #c00;
+            padding: 4px 8px;
+            justify-self: end;
+        }
+
+        .list-row .remove:hover {
+            background: #fff0f0;
+        }
+
+        .add-row-btn {
+            align-self: flex-start;
+            margin-top: 6px;
+            padding: 6px 12px;
+            border: 1px dashed #0066ff;
+            color: #0066ff;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .add-row-btn:hover {
+            background: #f0f6ff;
+        }
+
+        .preview-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .preview-toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .preview-toolbar .filename {
+            font-size: 12px;
+            color: #555;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            background: #f3f4f6;
+            padding: 5px 10px;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 280px;
+            word-break: break-all;
+        }
+
+        .btn-primary {
+            padding: 9px 16px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #0052cc;
+        }
+
+        .btn-primary:disabled {
+            background: #99b8ff;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            padding: 9px 16px;
+            background: white;
+            color: #222;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: #eee;
+        }
+
+        .btn-email {
+            padding: 9px 16px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-email:hover {
+            background: #005a9e;
+        }
+
+        .btn-email:disabled {
+            background: #8fbce0;
+            cursor: not-allowed;
+        }
+
+        .email-preview-box {
+            background: #f7f9fc;
+            border: 1px solid #e3e8ef;
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            white-space: pre-wrap;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        #report-doc {
+            background: white;
+            border: 1px solid #e3e5e8;
+            padding: 32px 36px;
+            border-radius: 6px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            color: #1a1a1a;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+        }
+
+        #report-doc .doc-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 4px;
+        }
+
+        #report-doc .doc-date {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        #report-doc h2 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 22px 0 8px;
+            color: #1a3a5c;
+            border-bottom: 1px solid #e3e5e8;
+            padding-bottom: 4px;
+        }
+
+        #report-doc table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0 12px;
+            font-size: 12px;
+        }
+
+        #report-doc th,
+        #report-doc td {
+            border: 1px solid #d0d7de;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        #report-doc th {
+            background: #f5f7fa;
+            font-weight: 600;
+        }
+
+        #report-doc p {
+            margin: 6px 0;
+        }
+
+        #report-doc ul {
+            margin: 6px 0;
+            padding-left: 20px;
+        }
+
+        #report-doc li {
+            margin: 3px 0;
+        }
+
+        #report-doc .info-table td:first-child {
+            width: 150px;
+            background: #f5f7fa;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar" id="topbar" style="display:none">
+        <a href="index.html">← Home</a>
+        <div class="right">
+            <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
+            <span class="user-email" id="user-email"></span>
+            <button id="logout-btn">Log Out</button>
+        </div>
+    </div>
+
+    <h1>Weekverslag Generator</h1>
+    <p class="hint">Teamgegevens worden automatisch ingevuld. Kies per rol wie de rol opneemt en wie de vervanger is.
+        Vul de rest per week in en exporteer als PDF of stuur direct een voorbereide mail.</p>
+
+    <div class="layout">
+
+        <div class="form-panel">
+
+            <section>
+                <h2>Basisinfo</h2>
+                <div class="team-hint">
+                    Deze gegevens komen uit de vaste teamconfiguratie. Pas ze aan in de code (bovenaan het script).
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>Datum les</label>
+                        <input type="date" id="f-date">
+                    </div>
+                    <div>
+                        <label>Weeknummer</label>
+                        <input type="text" id="f-week" placeholder="bv. week 1">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>Teamnummer</label>
+                        <input type="text" id="f-team" disabled>
+                    </div>
+                    <div>
+                        <label>Klasgroep</label>
+                        <input type="text" id="f-class" disabled>
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div>
+                        <label>Case / bedrijf</label>
+                        <input type="text" id="f-case" disabled>
+                    </div>
+                    <div>
+                        <label>Week label (in titel)</label>
+                        <input type="text" id="f-weeklabel" placeholder="bv. Week 1">
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Teamleden</h2>
+                <label>Teamleden</label>
+                <input type="text" id="f-members" disabled>
+            </section>
+
+            <section>
+                <h2>Rollen &amp; vervangers</h2>
+                <div class="team-hint">
+                    Kies voor elke rol wie de rol opneemt en wie de vervanger is. Kandidaten komen uit de
+                    teamledenlijst.
+                </div>
+                <div class="roles-grid" id="roles-grid"></div>
+            </section>
+
+            <section>
+                <h2>Stand van zaken</h2>
+                <label>Paragraaf</label>
+                <textarea id="f-status-paragraph" rows="3"></textarea>
+
+                <label>Bullets (één per regel)</label>
+                <textarea id="f-status-bullets" rows="6"
+                    placeholder="Onderzoek Permafungi: ...&#10;BMC: ..."></textarea>
+            </section>
+
+            <section>
+                <h2>Nog open</h2>
+                <label>Items (één per regel)</label>
+                <textarea id="f-open" rows="4"></textarea>
+            </section>
+
+            <section>
+                <h2>Taakverdeling</h2>
+                <div class="list-editor" id="f-tasks-list"></div>
+                <button class="add-row-btn" id="add-task">+ Persoon toevoegen</button>
+            </section>
+
+            <section>
+                <h2>Vergaderingen</h2>
+                <div class="list-editor" id="f-meetings-list"></div>
+                <button class="add-row-btn" id="add-meeting">+ Vergadering toevoegen</button>
+            </section>
+
+            <section>
+                <h2>Planning volgende week</h2>
+                <div class="list-editor" id="f-planning-list"></div>
+                <button class="add-row-btn" id="add-planning">+ Taak toevoegen</button>
+            </section>
+
+            <section>
+                <h2>Email instellingen</h2>
+                <div class="team-hint">
+                    Deze gegevens worden gebruikt voor de voorbereide mail. Pas ze aan waar nodig.
+                </div>
+                <label>Docent (To)</label>
+                <input type="email" id="f-docent-email" placeholder="docent@school.be">
+                <label>Docent naam (in begroeting)</label>
+                <input type="text" id="f-docent-name" placeholder="meneer Vandenbogaerde">
+                <label>Klas / lokaal (in handtekening)</label>
+                <input type="text" id="f-signature-class" placeholder="2TI04">
+                <label>Extra CC (klanten, docenten, ...)</label>
+                <input type="text" id="f-cc-clients" placeholder="klant@bedrijf.be; docent@school.be">
+                <div style="font-size:11px; color:#888; margin-top:4px;">Meerdere adressen scheiden met <code>;</code>
+                    of <code>,</code></div>
+            </section>
+
+        </div>
+
+        <div class="preview-panel">
+
+            <div class="preview-toolbar">
+                <span class="filename" id="filename-preview">BA-Weekverslag-Team-vr-7-??????.pdf</span>
+                <button class="btn-secondary" id="copy-filename">Kopieer naam</button>
+                <button class="btn-primary" id="export-btn">Exporteer PDF</button>
+                <button class="btn-email" id="email-btn">Email versturen</button>
+            </div>
+
+            <details>
+                <summary style="cursor:pointer; font-size:13px; color:#555; padding:6px 0;">Voorbeeld van de mail
+                </summary>
+                <div class="email-preview-box" id="email-preview" style="margin-top:8px;"></div>
+            </details>
+
+            <div id="report-doc"></div>
+
+        </div>
+
+    </div>
+
+    <script src="supabaseClient.js"></script>
+    <script>
+        (async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
+
+            document.getElementById('topbar').style.display = 'flex';
+            document.getElementById('user-email').textContent = session.user.email;
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await sb.auth.signOut();
+                window.location.href = 'login.html';
+            });
+
+            const syncEl = document.getElementById('sync');
+            const syncText = document.getElementById('sync-text');
+            function setSync(s, t) { syncEl.className = 'sync ' + s; syncText.textContent = t; }
+
+            /* ============================================================
+               TEAM CONFIGURATIE
+               ============================================================ */
+            const TEAM = {
+                members: "Adam Allali, Dylan De Marie, Dingming Zhu, Daniel Allauca Orozco",
+                roles: {
+                    leader: { primary: "Dingming", replacement: "Daniel" },
+                    secretary: { primary: "Dylan", replacement: "Adam" },
+                    editor: { primary: "Adam", replacement: "Dingming" }
+                },
+                teamNumber: "7",
+                classGroup: "2TI-BA-Vr-7",
+                caseName: "Permafungi",
+                lessonDay: "vr"
+            };
+
+            /* ============================================================
+               EMAIL DEFAULTS — pas hier aan voor vaste waarden
+               ============================================================ */
+            const EMAIL_DEFAULTS = {
+                docentEmail: "hans.vandenbogaerde@odisee.be",
+                docentName: "meneer Vandenbogaerde",
+                signatureClass: "2TI04",
+                ccClients: "adam.allali@student.odisee.be; dingming.zhu@student.odisee.be; danielalexander.allaucaorozco@student.odisee.be; bilal.amraoui@student.odisee.be"
+            };
+
+            function parseMembers(str) {
+                return str.split(',').map(s => s.trim()).filter(Boolean);
+            }
+            const MEMBER_LIST = parseMembers(TEAM.members);
+
+            // Extract just the last name from "Dylan De Marie" → "De Marie Dylan"
+            function lastNameFirst(fullName) {
+                if (!fullName) return '';
+                const parts = fullName.trim().split(' ');
+                if (parts.length < 2) return fullName;
+                const first = parts[0];
+                const rest = parts.slice(1).join(' ');
+                return `${rest} ${first}`;
+            }
+
+            const ROLE_DEFS = [
+                { key: 'leader', label: 'Leider' },
+                { key: 'secretary', label: 'Secretaris' },
+                { key: 'editor', label: 'Eindredacteur' }
+            ];
+
+            /* ============================================================
+               STATE
+               ============================================================ */
+            const data = {
+                date: '',
+                week: 'week 1',
+                team: TEAM.teamNumber,
+                class: TEAM.classGroup,
+                case: TEAM.caseName,
+                weeklabel: 'Week 1',
+                members: TEAM.members,
+                roles: {
+                    leader: { ...TEAM.roles.leader },
+                    secretary: { ...TEAM.roles.secretary },
+                    editor: { ...TEAM.roles.editor }
+                },
+                status: { paragraph: '', bullets: '' },
+                open: '',
+                tasks: [],
+                meetings: [],
+                planning: [],
+                email: { ...EMAIL_DEFAULTS }
+            };
+
+            /* ============================================================
+               FILENAME / DATES
+               ============================================================ */
+            function computeFileName() {
+                if (!data.date) return `BA-Weekverslag-Team-${TEAM.lessonDay}-${TEAM.teamNumber}-??????.pdf`;
+                const d = new Date(data.date + 'T12:00:00');
+                const dd = TEAM.lessonDay || 'vr';
+                const X = data.team || TEAM.teamNumber;
+                const yy = String(d.getFullYear()).slice(-2);
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `BA-Weekverslag-Team-${dd}-${X}-${yy}${mm}${day}.pdf`;
+            }
+
+            function formatDateNL(isoDate) {
+                if (!isoDate) return '';
+                const d = new Date(isoDate + 'T12:00:00');
+                const monthNames = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+                return `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+            }
+
+            const $ = id => document.getElementById(id);
+            const previewEl = $('report-doc');
+            const filenameEl = $('filename-preview');
+
+            /* ============================================================
+               AUTO-FILL TEAM FIELDS
+               ============================================================ */
+            $('f-members').value = TEAM.members;
+            $('f-team').value = TEAM.teamNumber;
+            $('f-class').value = TEAM.classGroup;
+            $('f-case').value = TEAM.caseName;
+            $('f-docent-email').value = EMAIL_DEFAULTS.docentEmail;
+            $('f-docent-name').value = EMAIL_DEFAULTS.docentName;
+            $('f-signature-class').value = EMAIL_DEFAULTS.signatureClass;
+            $('f-cc-clients').value = EMAIL_DEFAULTS.ccClients || '';
+
+            /* ============================================================
+               ROLES GRID
+               ============================================================ */
+            function buildRolesGrid() {
+                const grid = $('roles-grid');
+                grid.innerHTML = '';
+
+                ROLE_DEFS.forEach(roleDef => {
+                    const row = document.createElement('div');
+                    row.className = 'role-row';
+
+                    const label = document.createElement('div');
+                    label.className = 'role-label';
+                    label.textContent = roleDef.label;
+                    row.appendChild(label);
+
+                    const primary = makeMemberSelect(
+                        data.roles[roleDef.key].primary,
+                        (val) => { data.roles[roleDef.key].primary = val; refresh(); }
+                    );
+                    primary.title = roleDef.label;
+                    row.appendChild(primary);
+
+                    const replacement = makeMemberSelect(
+                        data.roles[roleDef.key].replacement,
+                        (val) => { data.roles[roleDef.key].replacement = val; refresh(); }
+                    );
+                    replacement.title = 'Vervang ' + roleDef.label.toLowerCase();
+                    row.appendChild(replacement);
+
+                    grid.appendChild(row);
+                });
+            }
+
+            function makeMemberSelect(currentValue, onChange) {
+                const sel = document.createElement('select');
+                const blank = document.createElement('option');
+                blank.value = '';
+                blank.textContent = '— kies —';
+                sel.appendChild(blank);
+
+                MEMBER_LIST.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    if (name === currentValue) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+
+                if (currentValue && !MEMBER_LIST.includes(currentValue)) {
+                    const opt = document.createElement('option');
+                    opt.value = currentValue;
+                    opt.textContent = currentValue;
+                    opt.selected = true;
+                    sel.appendChild(opt);
+                }
+
+                sel.addEventListener('change', () => onChange(sel.value));
+                return sel;
+            }
+
+            /* ============================================================
+               Editable field bindings
+               ============================================================ */
+            const fieldMap = {
+                'f-date': v => data.date = v,
+                'f-week': v => data.week = v,
+                'f-weeklabel': v => data.weeklabel = v,
+                'f-status-paragraph': v => data.status.paragraph = v,
+                'f-status-bullets': v => data.status.bullets = v,
+                'f-open': v => data.open = v,
+                'f-docent-email': v => data.email.docentEmail = v,
+                'f-docent-name': v => data.email.docentName = v,
+                'f-signature-class': v => data.email.signatureClass = v,
+                'f-cc-clients': v => data.email.ccClients = v
+            };
+            Object.entries(fieldMap).forEach(([id, setter]) => {
+                const el = $(id);
+                if (!el) return;
+                el.addEventListener('input', () => { setter(el.value); refresh(); });
+            });
+
+            /* ============================================================
+               DYNAMIC LISTS
+               ============================================================ */
+            function escapeAttr(s) { return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+            function renderTasks() {
+                const c = $('f-tasks-list');
+                c.innerHTML = '';
+                data.tasks.forEach((row, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'list-row';
+                    div.style.gridTemplateColumns = '1fr 2fr auto';
+                    div.innerHTML = `
                 <input type="text" placeholder="Naam" value="${escapeAttr(row.name)}" data-field="name">
                 <input type="text" placeholder="Taken" value="${escapeAttr(row.tasks)}" data-field="tasks">
                 <button class="remove" data-i="${i}">×</button>
             `;
-            div.querySelectorAll('input').forEach(inp => {
-                inp.addEventListener('input', () => {
-                    data.tasks[i][inp.dataset.field] = inp.value;
-                    refresh();
+                    div.querySelectorAll('input').forEach(inp => {
+                        inp.addEventListener('input', () => {
+                            data.tasks[i][inp.dataset.field] = inp.value;
+                            refresh();
+                        });
+                    });
+                    div.querySelector('.remove').addEventListener('click', () => {
+                        data.tasks.splice(i, 1);
+                        renderTasks(); refresh();
+                    });
+                    c.appendChild(div);
                 });
-            });
-            div.querySelector('.remove').addEventListener('click', () => {
-                data.tasks.splice(i, 1);
-                renderTasks(); refresh();
-            });
-            c.appendChild(div);
-        });
-    }
+            }
 
-    function renderMeetings() {
-        const c = $('f-meetings-list');
-        c.innerHTML = '';
-        data.meetings.forEach((row, i) => {
-            const div = document.createElement('div');
-            div.className = 'list-row';
-            div.style.gridTemplateColumns = '90px 1fr 2fr auto';
-            div.innerHTML = `
+            function renderMeetings() {
+                const c = $('f-meetings-list');
+                c.innerHTML = '';
+                data.meetings.forEach((row, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'list-row';
+                    div.style.gridTemplateColumns = '90px 1fr 2fr auto';
+                    div.innerHTML = `
                 <input type="text" placeholder="Datum" value="${escapeAttr(row.date)}" data-field="date">
                 <input type="text" placeholder="Onderwerp" value="${escapeAttr(row.topic)}" data-field="topic">
                 <input type="text" placeholder="Conclusie" value="${escapeAttr(row.conclusion)}" data-field="conclusion">
                 <button class="remove" data-i="${i}">×</button>
             `;
-            div.querySelectorAll('input').forEach(inp => {
-                inp.addEventListener('input', () => {
-                    data.meetings[i][inp.dataset.field] = inp.value;
-                    refresh();
+                    div.querySelectorAll('input').forEach(inp => {
+                        inp.addEventListener('input', () => {
+                            data.meetings[i][inp.dataset.field] = inp.value;
+                            refresh();
+                        });
+                    });
+                    div.querySelector('.remove').addEventListener('click', () => {
+                        data.meetings.splice(i, 1);
+                        renderMeetings(); refresh();
+                    });
+                    c.appendChild(div);
                 });
-            });
-            div.querySelector('.remove').addEventListener('click', () => {
-                data.meetings.splice(i, 1);
-                renderMeetings(); refresh();
-            });
-            c.appendChild(div);
-        });
-    }
+            }
 
-    function renderPlanning() {
-        const c = $('f-planning-list');
-        c.innerHTML = '';
-        data.planning.forEach((row, i) => {
-            const div = document.createElement('div');
-            div.className = 'list-row';
-            div.style.gridTemplateColumns = '2fr 1fr auto';
-            div.innerHTML = `
+            function renderPlanning() {
+                const c = $('f-planning-list');
+                c.innerHTML = '';
+                data.planning.forEach((row, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'list-row';
+                    div.style.gridTemplateColumns = '2fr 1fr auto';
+                    div.innerHTML = `
                 <input type="text" placeholder="Taak" value="${escapeAttr(row.task)}" data-field="task">
                 <input type="text" placeholder="Wie" value="${escapeAttr(row.who)}" data-field="who">
                 <button class="remove" data-i="${i}">×</button>
             `;
-            div.querySelectorAll('input').forEach(inp => {
-                inp.addEventListener('input', () => {
-                    data.planning[i][inp.dataset.field] = inp.value;
-                    refresh();
+                    div.querySelectorAll('input').forEach(inp => {
+                        inp.addEventListener('input', () => {
+                            data.planning[i][inp.dataset.field] = inp.value;
+                            refresh();
+                        });
+                    });
+                    div.querySelector('.remove').addEventListener('click', () => {
+                        data.planning.splice(i, 1);
+                        renderPlanning(); refresh();
+                    });
+                    c.appendChild(div);
                 });
+            }
+
+            $('add-task').addEventListener('click', () => {
+                data.tasks.push({ name: '', tasks: '' }); renderTasks(); refresh();
             });
-            div.querySelector('.remove').addEventListener('click', () => {
-                data.planning.splice(i, 1);
-                renderPlanning(); refresh();
+            $('add-meeting').addEventListener('click', () => {
+                data.meetings.push({ date: '', topic: '', conclusion: '' }); renderMeetings(); refresh();
             });
-            c.appendChild(div);
-        });
-    }
+            $('add-planning').addEventListener('click', () => {
+                data.planning.push({ task: '', who: '' }); renderPlanning(); refresh();
+            });
 
-    $('add-task').addEventListener('click', () => {
-        data.tasks.push({ name: '', tasks: '' }); renderTasks(); refresh();
-    });
-    $('add-meeting').addEventListener('click', () => {
-        data.meetings.push({ date: '', topic: '', conclusion: '' }); renderMeetings(); refresh();
-    });
-    $('add-planning').addEventListener('click', () => {
-        data.planning.push({ task: '', who: '' }); renderPlanning(); refresh();
-    });
+            /* ============================================================
+               PREVIEW RENDER
+               ============================================================ */
+            function escapeHtml(s) {
+                const d = document.createElement('div');
+                d.textContent = s ?? '';
+                return d.innerHTML;
+            }
 
-    /* ============================================================
-       PREVIEW RENDER
-       ============================================================ */
-    function escapeHtml(s) {
-        const d = document.createElement('div');
-        d.textContent = s ?? '';
-        return d.innerHTML;
-    }
+            function rolesSummary() {
+                return ROLE_DEFS.map(r => {
+                    const p = data.roles[r.key].primary || '—';
+                    const rep = data.roles[r.key].replacement;
+                    return rep
+                        ? `<strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(p)} <em>(vervanger: ${escapeHtml(rep)})</em>`
+                        : `<strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(p)}`;
+                }).join(' &nbsp;·&nbsp; ');
+            }
 
-    function rolesSummary() {
-        return ROLE_DEFS.map(r => {
-            const p = data.roles[r.key].primary || '—';
-            const rep = data.roles[r.key].replacement;
-            return rep
-                ? `<strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(p)} <em>(vervanger: ${escapeHtml(rep)})</em>`
-                : `<strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(p)}`;
-        }).join(' &nbsp;·&nbsp; ');
-    }
+            function renderPreview() {
+                const bulletsHtml = data.status.bullets
+                    .split('\n').map(l => l.trim()).filter(Boolean)
+                    .map(l => `<li>${escapeHtml(l)}</li>`).join('');
 
-    function renderPreview() {
-        const bulletsHtml = data.status.bullets
-            .split('\n').map(l => l.trim()).filter(Boolean)
-            .map(l => `<li>${escapeHtml(l)}</li>`).join('');
+                const openHtml = data.open
+                    .split('\n').map(l => l.trim()).filter(Boolean)
+                    .map(l => `<li>${escapeHtml(l)}</li>`).join('');
 
-        const openHtml = data.open
-            .split('\n').map(l => l.trim()).filter(Boolean)
-            .map(l => `<li>${escapeHtml(l)}</li>`).join('');
-
-        const tasksRows = data.tasks.map(t => `
+                const tasksRows = data.tasks.map(t => `
             <tr>
                 <td>${escapeHtml(t.name)}</td>
                 <td>${escapeHtml(t.tasks)}</td>
             </tr>`).join('');
 
-        const meetingsRows = data.meetings.map(m => `
+                const meetingsRows = data.meetings.map(m => `
             <tr>
                 <td>${escapeHtml(m.date)}</td>
                 <td>${escapeHtml(m.topic)}</td>
                 <td>${escapeHtml(m.conclusion)}</td>
             </tr>`).join('');
 
-        const planningRows = data.planning.map(p => `
+                const planningRows = data.planning.map(p => `
             <tr>
                 <td>${escapeHtml(p.task)}</td>
                 <td>${escapeHtml(p.who)}</td>
             </tr>`).join('');
 
-        previewEl.innerHTML = `
+                previewEl.innerHTML = `
             <div class="doc-title">Weekverslag BA ${escapeHtml(data.case)} – ${escapeHtml(data.week)}</div>
             <div class="doc-date">${escapeHtml(formatDateNL(data.date))}</div>
 
@@ -694,311 +1010,381 @@ textarea { resize: vertical; min-height: 60px; }
                 </table>` : ''}
         `;
 
-        filenameEl.textContent = computeFileName();
-    }
+                filenameEl.textContent = computeFileName();
+                renderEmailPreview();
+            }
 
-    function refresh() {
-        renderPreview();
-        scheduleSave();
-    }
+            function refresh() {
+                renderPreview();
+                scheduleSave();
+            }
 
-    /* ============================================================
-       SUPABASE PERSISTENCE
-       ============================================================ */
-    function currentWeekKey() {
-        if (!data.date) return null;
-        const d = new Date(data.date + 'T12:00:00');
-        const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        const dayNum = target.getUTCDay() || 7;
-        target.setUTCDate(target.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
-        const week = Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
-        return `${target.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
-    }
+            /* ============================================================
+               EMAIL COMPOSITION
+               ============================================================ */
+            function computeEmailSubject() {
+                const weekNr = data.week.replace(/[^0-9]/g, '') || '?';
+                return `BA Team ${TEAM.lessonDay}-${data.team} - weekverslag ${weekNr}`;
+            }
 
-    let saveTimer;
-    function scheduleSave() {
-        setSync('saving', 'Opslaan…');
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(doSave, 800);
-    }
+            function computeEmailBody() {
+                const secretaryFull = data.roles.secretary.primary || '';
+                const secretarySignature = secretaryFull ? lastNameFirst(secretaryFull) : '';
+                const docent = data.email.docentName || 'meneer Vandenbogaerde';
+                const sigClass = data.email.signatureClass || '2TI04';
 
-    async function doSave() {
-        const key = currentWeekKey();
-        if (!key) { setSync('idle', ''); return; }
-        const { error } = await sb.from('weekverslagen').upsert({
-            id: key,
-            data: data,
-            updated_at: new Date().toISOString(),
-            updated_by: session.user.id
-        }, { onConflict: 'id' });
-        if (error) setSync('error', 'Fout: ' + error.message);
-        else setSync('saved', 'Opgeslagen');
-    }
+                return `Beste ${docent},
 
-    async function loadForDate() {
-        const key = currentWeekKey();
-        if (!key) return;
-        const { data: rows, error } = await sb
-            .from('weekverslagen').select('*').eq('id', key).limit(1);
-        if (error || !rows || rows.length === 0) return;
+U vindt het gevraagde weekverslag (van team ${data.team} op vrijdag) als bijlage.
 
-        Object.assign(data, rows[0].data);
-        data.team = TEAM.teamNumber;
-        data.class = TEAM.classGroup;
-        data.case = TEAM.caseName;
-        data.members = TEAM.members;
+Met vriendelijke groeten,
 
-        // Migrate old roles format
-        if (data.roles && typeof data.roles.leader === 'string') {
-            const old = data.roles;
-            data.roles = {
-                leader:      { primary: old.leader || '',      replacement: old.replacement || '' },
-                secretary:   { primary: old.secretary || '',   replacement: '' },
-                editor:      { primary: old.editor || '',      replacement: '' }
-            };
-        } else {
-            ROLE_DEFS.forEach(r => {
-                if (!data.roles[r.key]) data.roles[r.key] = { primary: '', replacement: '' };
-                if (typeof data.roles[r.key] === 'string') {
-                    data.roles[r.key] = { primary: data.roles[r.key], replacement: '' };
+${secretarySignature}
+${sigClass}`;
+            }
+
+            function computeEmailRecipients() {
+                const to = data.email.docentEmail || '';
+                // Only use the explicit email addresses
+                const cc = (data.email.ccClients || '')
+                    .split(/[;,]/).map(s => s.trim()).filter(Boolean).join('; ');
+                return { to, cc };
+            }
+
+            function renderEmailPreview() {
+                const el = $('email-preview');
+                if (!el) return;
+                const { to, cc } = computeEmailRecipients();
+                const subj = computeEmailSubject();
+                const body = computeEmailBody();
+                el.textContent =
+                    `Aan: ${to || '(niet ingevuld)'}\n` +
+                    `Cc: ${cc}\n` +
+                    `Onderwerp: ${subj}\n` +
+                    `Bijlage: ${computeFileName()}\n\n` +
+                    body;
+            }
+
+            /* ============================================================
+               EMAIL BUTTON
+               ============================================================ */
+            $('email-btn').addEventListener('click', () => {
+                const { to, cc } = computeEmailRecipients();
+                if (!to) {
+                    alert('Vul eerst het e-mailadres van de docent in onder "Email instellingen".');
+                    return;
                 }
-            });
-        }
 
-        $('f-date').value = data.date || '';
-        $('f-week').value = data.week || '';
-        $('f-weeklabel').value = data.weeklabel || '';
-        $('f-status-paragraph').value = data.status.paragraph || '';
-        $('f-status-bullets').value = data.status.bullets || '';
-        $('f-open').value = data.open || '';
-        buildRolesGrid();
-        renderTasks(); renderMeetings(); renderPlanning();
-        refresh();
-    }
+                const subject = computeEmailSubject();
+                const body = computeEmailBody();
 
-    $('f-date').addEventListener('change', loadForDate);
+                const url =
+                    'https://outlook.office.com/mail/0/deeplink/compose' +
+                    '?to=' + encodeURIComponent(to) +
+                    '&cc=' + encodeURIComponent(cc) +
+                    '&subject=' + encodeURIComponent(subject) +
+                    '&body=' + encodeURIComponent(body);
 
-    /* ============================================================
-       PDF EXPORT — built directly from data
-       ============================================================ */
-    function rolesPlainText() {
-        return ROLE_DEFS.map(r => {
-            const p = data.roles[r.key].primary || '—';
-            const rep = data.roles[r.key].replacement;
-            return rep
-                ? `${r.label}: ${p} (vervanger: ${rep})`
-                : `${r.label}: ${p}`;
-        }).join('  ·  ');
-    }
-
-    $('export-btn').addEventListener('click', () => {
-        const btn = $('export-btn');
-        btn.disabled = true;
-        btn.textContent = 'Bezig…';
-
-        try {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-
-            const PAGE_W = 210;
-            const PAGE_H = 297;
-            const MARGIN_X = 15;
-            const MARGIN_TOP = 15;
-            const MARGIN_BOTTOM = 15;
-            const CONTENT_W = PAGE_W - MARGIN_X * 2;
-            let y = MARGIN_TOP;
-
-            const LINE_H = 4.5;
-
-            function ensureSpace(needed) {
-                if (y + needed > PAGE_H - MARGIN_BOTTOM) {
-                    doc.addPage();
-                    y = MARGIN_TOP;
-                }
-            }
-
-            function heading(text) {
-                ensureSpace(10);
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(12);
-                doc.setTextColor(26, 58, 92);
-                doc.text(text, MARGIN_X, y);
-                y += 2;
-                doc.setDrawColor(220, 225, 230);
-                doc.setLineWidth(0.2);
-                doc.line(MARGIN_X, y, MARGIN_X + CONTENT_W, y);
-                y += 5;
-                doc.setTextColor(20, 20, 20);
-            }
-
-            function paragraph(text) {
-                if (!text) return;
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                const lines = doc.splitTextToSize(String(text), CONTENT_W);
-                const needed = lines.length * LINE_H + 2;
-                ensureSpace(needed);
-                doc.text(lines, MARGIN_X, y);
-                y += needed;
-            }
-
-            function bulletList(items) {
-                if (!items || items.length === 0) return;
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(10);
-                items.forEach(item => {
-                    const lines = doc.splitTextToSize(String(item), CONTENT_W - 5);
-                    const needed = lines.length * LINE_H + 1;
-                    ensureSpace(needed);
-                    doc.text('•', MARGIN_X, y);
-                    doc.text(lines, MARGIN_X + 4, y);
-                    y += needed;
-                });
-            }
-
-            function autoTable(opts) {
-                doc.autoTable({
-                    margin: { left: MARGIN_X, right: MARGIN_X, bottom: MARGIN_BOTTOM },
-                    theme: 'grid',
-                    styles: { font: 'helvetica', fontSize: 9, cellPadding: 2, lineColor: [210, 215, 220], lineWidth: 0.2, textColor: [30, 30, 30] },
-                    headStyles: { fillColor: [245, 247, 250], textColor: [26, 58, 92], fontStyle: 'bold' },
-                    ...opts,
-                    startY: y
-                });
-                y = doc.lastAutoTable.finalY + 6;
-            }
-
-            // --- Titel ---
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(18);
-            doc.setTextColor(20, 20, 20);
-            doc.text(`Weekverslag BA ${data.case} – ${data.week}`, MARGIN_X, y);
-            y += 8;
-
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            doc.setTextColor(110, 110, 110);
-            doc.text(formatDateNL(data.date), MARGIN_X, y);
-            y += 8;
-            doc.setTextColor(20, 20, 20);
-
-            // --- Info ---
-            heading('Info');
-            autoTable({
-                body: [
-                    ['Team',         data.class],
-                    ['Case',         data.case],
-                    ['Week',         data.week],
-                    ['Teamleden',    data.members],
-                    ['Rollen',       rolesPlainText()],
-                    ['Bestandsnaam', computeFileName()]
-                ],
-                columnStyles: {
-                    0: { cellWidth: 40, fontStyle: 'bold', fillColor: [245, 247, 250] },
-                    1: { cellWidth: CONTENT_W - 40 }
-                }
+                window.open(url, '_blank', 'noopener');
             });
 
-            // --- Stand van zaken ---
-            const bullets = data.status.bullets.split('\n').map(s => s.trim()).filter(Boolean);
-            if (data.status.paragraph || bullets.length > 0) {
-                heading('Stand van zaken');
-                paragraph(data.status.paragraph);
-                bulletList(bullets);
-                y += 4;
+            /* ============================================================
+               SUPABASE PERSISTENCE
+               ============================================================ */
+            function currentWeekKey() {
+                if (!data.date) return null;
+                const d = new Date(data.date + 'T12:00:00');
+                const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                const dayNum = target.getUTCDay() || 7;
+                target.setUTCDate(target.getUTCDate() + 4 - dayNum);
+                const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+                const week = Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+                return `${target.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
             }
 
-            // --- Nog open ---
-            const openItems = data.open.split('\n').map(s => s.trim()).filter(Boolean);
-            if (openItems.length > 0) {
-                heading('Nog open');
-                bulletList(openItems);
-                y += 4;
+            let saveTimer;
+            function scheduleSave() {
+                setSync('saving', 'Opslaan…');
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(doSave, 800);
             }
 
-            // --- Taakverdeling ---
-            if (data.tasks.length > 0) {
-                heading('Taakverdeling');
-                const weekNr = data.week.replace(/[^0-9]/g, '');
-                autoTable({
-                    head: [['Naam', `Taken week ${weekNr}`]],
-                    body: data.tasks.map(t => [t.name || '', t.tasks || '']),
-                    columnStyles: {
-                        0: { cellWidth: 45 },
-                        1: { cellWidth: CONTENT_W - 45 }
+            async function doSave() {
+                const key = currentWeekKey();
+                if (!key) { setSync('idle', ''); return; }
+                const { error } = await sb.from('weekverslagen').upsert({
+                    id: key,
+                    data: data,
+                    updated_at: new Date().toISOString(),
+                    updated_by: session.user.id
+                }, { onConflict: 'id' });
+                if (error) setSync('error', 'Fout: ' + error.message);
+                else setSync('saved', 'Opgeslagen');
+            }
+
+            async function loadForDate() {
+                const key = currentWeekKey();
+                if (!key) return;
+                const { data: rows, error } = await sb
+                    .from('weekverslagen').select('*').eq('id', key).limit(1);
+                if (error || !rows || rows.length === 0) return;
+
+                Object.assign(data, rows[0].data);
+                data.team = TEAM.teamNumber;
+                data.class = TEAM.classGroup;
+                data.case = TEAM.caseName;
+                data.members = TEAM.members;
+
+                if (!data.email) data.email = { ...EMAIL_DEFAULTS };
+                data.email.ccClients = data.email.ccClients || '';
+
+                if (data.roles && typeof data.roles.leader === 'string') {
+                    const old = data.roles;
+                    data.roles = {
+                        leader: { primary: old.leader || '', replacement: old.replacement || '' },
+                        secretary: { primary: old.secretary || '', replacement: '' },
+                        editor: { primary: old.editor || '', replacement: '' }
+                    };
+                } else {
+                    ROLE_DEFS.forEach(r => {
+                        if (!data.roles[r.key]) data.roles[r.key] = { primary: '', replacement: '' };
+                        if (typeof data.roles[r.key] === 'string') {
+                            data.roles[r.key] = { primary: data.roles[r.key], replacement: '' };
+                        }
+                    });
+                }
+
+                $('f-date').value = data.date || '';
+                $('f-week').value = data.week || '';
+                $('f-weeklabel').value = data.weeklabel || '';
+                $('f-status-paragraph').value = data.status.paragraph || '';
+                $('f-status-bullets').value = data.status.bullets || '';
+                $('f-open').value = data.open || '';
+                $('f-docent-email').value = data.email.docentEmail || '';
+                $('f-docent-name').value = data.email.docentName || '';
+                $('f-signature-class').value = data.email.signatureClass || '';
+                $('f-cc-clients').value = data.email.ccClients || '';
+                buildRolesGrid();
+                renderTasks(); renderMeetings(); renderPlanning();
+                refresh();
+            }
+
+            $('f-date').addEventListener('change', loadForDate);
+
+            /* ============================================================
+               PDF EXPORT
+               ============================================================ */
+            function rolesPlainText() {
+                return ROLE_DEFS.map(r => {
+                    const p = data.roles[r.key].primary || '—';
+                    const rep = data.roles[r.key].replacement;
+                    return rep
+                        ? `${r.label}: ${p} (vervanger: ${rep})`
+                        : `${r.label}: ${p}`;
+                }).join('  ·  ');
+            }
+
+            $('export-btn').addEventListener('click', () => {
+                const btn = $('export-btn');
+                btn.disabled = true;
+                btn.textContent = 'Bezig…';
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+
+                    const PAGE_W = 210;
+                    const PAGE_H = 297;
+                    const MARGIN_X = 15;
+                    const MARGIN_TOP = 15;
+                    const MARGIN_BOTTOM = 15;
+                    const CONTENT_W = PAGE_W - MARGIN_X * 2;
+                    let y = MARGIN_TOP;
+
+                    const LINE_H = 4.5;
+
+                    function ensureSpace(needed) {
+                        if (y + needed > PAGE_H - MARGIN_BOTTOM) {
+                            doc.addPage();
+                            y = MARGIN_TOP;
+                        }
                     }
-                });
-            }
 
-            // --- Vergaderingen ---
-            if (data.meetings.length > 0) {
-                heading('Vergaderingen');
-                autoTable({
-                    head: [['Datum', 'Onderwerp', 'Conclusie']],
-                    body: data.meetings.map(m => [m.date || '', m.topic || '', m.conclusion || '']),
-                    columnStyles: {
-                        0: { cellWidth: 30 },
-                        1: { cellWidth: 55 },
-                        2: { cellWidth: CONTENT_W - 85 }
+                    function heading(text) {
+                        ensureSpace(10);
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(12);
+                        doc.setTextColor(26, 58, 92);
+                        doc.text(text, MARGIN_X, y);
+                        y += 2;
+                        doc.setDrawColor(220, 225, 230);
+                        doc.setLineWidth(0.2);
+                        doc.line(MARGIN_X, y, MARGIN_X + CONTENT_W, y);
+                        y += 5;
+                        doc.setTextColor(20, 20, 20);
                     }
-                });
-            }
 
-            // --- Planning volgende week ---
-            if (data.planning.length > 0) {
-                heading('Planning volgende week');
-                autoTable({
-                    head: [['Taak', 'Wie']],
-                    body: data.planning.map(p => [p.task || '', p.who || '']),
-                    columnStyles: {
-                        0: { cellWidth: CONTENT_W - 45 },
-                        1: { cellWidth: 45 }
+                    function paragraph(text) {
+                        if (!text) return;
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(10);
+                        const lines = doc.splitTextToSize(String(text), CONTENT_W);
+                        const needed = lines.length * LINE_H + 2;
+                        ensureSpace(needed);
+                        doc.text(lines, MARGIN_X, y);
+                        y += needed;
                     }
-                });
-            }
 
-            doc.save(computeFileName());
-        } catch (err) {
-            console.error('PDF error:', err);
-            alert('Fout bij PDF export: ' + err.message);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Exporteer PDF';
-        }
-    });
+                    function bulletList(items) {
+                        if (!items || items.length === 0) return;
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(10);
+                        items.forEach(item => {
+                            const lines = doc.splitTextToSize(String(item), CONTENT_W - 5);
+                            const needed = lines.length * LINE_H + 1;
+                            ensureSpace(needed);
+                            doc.text('•', MARGIN_X, y);
+                            doc.text(lines, MARGIN_X + 4, y);
+                            y += needed;
+                        });
+                    }
 
-    /* ============================================================
-       COPY FILENAME
-       ============================================================ */
-    $('copy-filename').addEventListener('click', async () => {
-        const filename = computeFileName();
-        try {
-            await navigator.clipboard.writeText(filename);
-            const btn = $('copy-filename');
-            const old = btn.textContent;
-            btn.textContent = 'Gekopieerd!';
-            setTimeout(() => btn.textContent = old, 1500);
-        } catch (err) {
-            alert('Kon niet kopiëren: ' + err.message);
-        }
-    });
+                    function autoTable(opts) {
+                        doc.autoTable({
+                            margin: { left: MARGIN_X, right: MARGIN_X, bottom: MARGIN_BOTTOM },
+                            theme: 'grid',
+                            styles: { font: 'helvetica', fontSize: 9, cellPadding: 2, lineColor: [210, 215, 220], lineWidth: 0.2, textColor: [30, 30, 30] },
+                            headStyles: { fillColor: [245, 247, 250], textColor: [26, 58, 92], fontStyle: 'bold' },
+                            ...opts,
+                            startY: y
+                        });
+                        y = doc.lastAutoTable.finalY + 6;
+                    }
 
-    /* ============================================================
-       INIT
-       ============================================================ */
-    const today = new Date();
-    const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-    $('f-date').value = iso;
-    data.date = iso;
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(18);
+                    doc.setTextColor(20, 20, 20);
+                    doc.text(`Weekverslag BA ${data.case} – ${data.week}`, MARGIN_X, y);
+                    y += 8;
 
-    buildRolesGrid();
-    renderTasks();
-    renderMeetings();
-    renderPlanning();
-    refresh();
-    setSync('idle', '');
-})();
-</script>
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(10);
+                    doc.setTextColor(110, 110, 110);
+                    doc.text(formatDateNL(data.date), MARGIN_X, y);
+                    y += 8;
+                    doc.setTextColor(20, 20, 20);
+
+                    heading('Info');
+                    autoTable({
+                        body: [
+                            ['Team', data.class],
+                            ['Case', data.case],
+                            ['Week', data.week],
+                            ['Teamleden', data.members],
+                            ['Rollen', rolesPlainText()],
+                            ['Bestandsnaam', computeFileName()]
+                        ],
+                        columnStyles: {
+                            0: { cellWidth: 40, fontStyle: 'bold', fillColor: [245, 247, 250] },
+                            1: { cellWidth: CONTENT_W - 40 }
+                        }
+                    });
+
+                    const bullets = data.status.bullets.split('\n').map(s => s.trim()).filter(Boolean);
+                    if (data.status.paragraph || bullets.length > 0) {
+                        heading('Stand van zaken');
+                        paragraph(data.status.paragraph);
+                        bulletList(bullets);
+                        y += 4;
+                    }
+
+                    const openItems = data.open.split('\n').map(s => s.trim()).filter(Boolean);
+                    if (openItems.length > 0) {
+                        heading('Nog open');
+                        bulletList(openItems);
+                        y += 4;
+                    }
+
+                    if (data.tasks.length > 0) {
+                        heading('Taakverdeling');
+                        const weekNr = data.week.replace(/[^0-9]/g, '');
+                        autoTable({
+                            head: [['Naam', `Taken week ${weekNr}`]],
+                            body: data.tasks.map(t => [t.name || '', t.tasks || '']),
+                            columnStyles: {
+                                0: { cellWidth: 45 },
+                                1: { cellWidth: CONTENT_W - 45 }
+                            }
+                        });
+                    }
+
+                    if (data.meetings.length > 0) {
+                        heading('Vergaderingen');
+                        autoTable({
+                            head: [['Datum', 'Onderwerp', 'Conclusie']],
+                            body: data.meetings.map(m => [m.date || '', m.topic || '', m.conclusion || '']),
+                            columnStyles: {
+                                0: { cellWidth: 30 },
+                                1: { cellWidth: 55 },
+                                2: { cellWidth: CONTENT_W - 85 }
+                            }
+                        });
+                    }
+
+                    if (data.planning.length > 0) {
+                        heading('Planning volgende week');
+                        autoTable({
+                            head: [['Taak', 'Wie']],
+                            body: data.planning.map(p => [p.task || '', p.who || '']),
+                            columnStyles: {
+                                0: { cellWidth: CONTENT_W - 45 },
+                                1: { cellWidth: 45 }
+                            }
+                        });
+                    }
+
+                    doc.save(computeFileName());
+                } catch (err) {
+                    console.error('PDF error:', err);
+                    alert('Fout bij PDF export: ' + err.message);
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Exporteer PDF';
+                }
+            });
+
+            /* ============================================================
+               COPY FILENAME
+               ============================================================ */
+            $('copy-filename').addEventListener('click', async () => {
+                const filename = computeFileName();
+                try {
+                    await navigator.clipboard.writeText(filename);
+                    const btn = $('copy-filename');
+                    const old = btn.textContent;
+                    btn.textContent = 'Gekopieerd!';
+                    setTimeout(() => btn.textContent = old, 1500);
+                } catch (err) {
+                    alert('Kon niet kopiëren: ' + err.message);
+                }
+            });
+
+            /* ============================================================
+               INIT
+               ============================================================ */
+            const today = new Date();
+            const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            $('f-date').value = iso;
+            data.date = iso;
+
+            buildRolesGrid();
+            renderTasks();
+            renderMeetings();
+            renderPlanning();
+            refresh();
+            setSync('idle', '');
+        })();
+    </script>
 </body>
+
 </html>
