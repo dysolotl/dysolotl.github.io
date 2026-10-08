@@ -77,11 +77,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .diagram-title:hover { border-bottom-color: #ccc; }
 .diagram-title:focus { border-bottom-color: #0066ff; }
 
-/* ============================================================
-   TURTLE STAGE — pixel-mapped positions matching the reference
-   The stage is 1200 units wide and 640 tall. Positions use %
-   so it scales, but the aspect-ratio locks it to 1200:640.
-   ============================================================ */
 .turtle-stage {
     position: relative;
     width: 100%;
@@ -100,14 +95,14 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     overflow: visible;
 }
 .turtle-stage svg.arrows line {
-    stroke: #666;
+    stroke: #555;
     stroke-width: 1.1;
 }
 
 /* ---------- Blocks ---------- */
 .block {
     position: absolute;
-    background: #eaf24a;           /* bright yellow-green like reference */
+    background: #eaf24a;
     border: 1px solid #1a1a1a;
     color: #111;
     padding: 10px 12px;
@@ -126,20 +121,13 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .block[data-tone="teal"]   { background: #33c6c6; border-color: #0b5c5c; color: #fff; }
 .block[data-tone="green"]  { background: #7fc97f; border-color: #2e6b2e; color: #111; }
 
-/* ---------- Positions (percent of 1200×640) ---------- */
-/* Row 1 */
+/* Positions matching reference */
 .block.pos-regels  { left: 27.5%; top: 8.5%;  width: 20%; height: 16.5%; }
 .block.pos-doel    { left: 59.2%; top: 8.5%;  width: 20%; height: 16.5%; }
-
-/* Row 2 */
 .block.pos-start   { left: 7.1%;  top: 28.9%; width: 19.6%; height: 16.5%; }
 .block.pos-einde   { left: 79.6%; top: 28.9%; width: 19.6%; height: 16.5%; }
-
-/* Row 3 */
 .block.pos-input   { left: 7.1%;  top: 50.8%; width: 19.6%; height: 15.6%; }
 .block.pos-output  { left: 79.6%; top: 50.8%; width: 19.6%; height: 15.6%; }
-
-/* Row 4 (bottom) */
 .block.pos-stake   { left: 12.1%; top: 72.7%; width: 19.6%; height: 16.5%; }
 .block.pos-verant  { left: 33.8%; top: 74.2%; width: 19.6%; height: 15.6%; }
 .block.pos-res     { left: 55.8%; top: 74.2%; width: 20%;   height: 15.6%; }
@@ -187,40 +175,42 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .block .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
 .block .actions .del { color: #a00; font-weight: 700; }
 
-/* ---------- Center process chevron ---------- */
+/* ---------- Thick arrow process shape ---------- */
 .process-shape {
     position: absolute;
-    left: 35.8%;    /* 430 / 1200 */
-    top: 38.3%;     /* 245 / 640 */
-    width: 30%;     /* 360 / 1200 */
-    height: 17.2%;  /* 110 / 640 */
-    background: #eaf24a;
-    color: #111;
+    left: 33%;       /* 400 / 1200 */
+    top: 37%;        /* 240 / 640 */
+    width: 34%;      /* 410 / 1200 — wider to accommodate the arrow tip */
+    height: 20%;     /* 128 / 640 */
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 40px;
     z-index: 2;
+    padding: 0 60px 0 60px;
+
+    /* Thick arrow: flat top/bottom, triangle tip on right, chevron notch on left */
     clip-path: polygon(
-        10% 0%,
-        90% 0%,
-        100% 50%,
-        90% 100%,
-        10% 100%,
-        0% 50%
+        0% 0%,       /* top-left */
+        76% 0%,      /* top-right before arrowhead */
+        100% 50%,    /* arrow tip (right point) */
+        76% 100%,    /* bottom-right before arrowhead */
+        0% 100%,     /* bottom-left */
+        15% 50%      /* chevron notch (V-cut into the left side) */
     );
 }
-.process-shape[data-tone="yellow"] { background: #eaf24a; }
+
+.process-shape[data-tone="yellow"] { background: #eaf24a; color: #111; }
 .process-shape[data-tone="blue"]   { background: #4aa3d9; color: #fff; }
 .process-shape[data-tone="teal"]   { background: #33c6c6; color: #fff; }
 .process-shape[data-tone="green"]  { background: #7fc97f; color: #111; }
 
 .process-text {
     outline: none;
-    font-weight: 600;
-    font-size: 16px;
+    font-weight: 700;
+    font-size: 20px;
     text-align: center;
     line-height: 1.3;
+    padding-left: 20px;
 }
 .process-text:empty::before { content: "typ hier"; opacity: .6; }
 
@@ -247,25 +237,10 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .process-shape .actions .tone-btn[data-tone="teal"]   { background: #33c6c6; }
 .process-shape .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
 
-/* Extras */
-.extras {
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px dashed #ddd;
-}
-.extras-label {
-    font-size: 12px; color: #888; margin-bottom: 8px;
-    text-transform: uppercase; letter-spacing: 0.05em;
-}
-.extras-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-}
-.extras .block {
-    position: relative;
-    left: auto; top: auto; width: auto; height: auto; min-height: 80px;
-}
+.extras { margin-top: 32px; padding-top: 20px; border-top: 1px dashed #ddd; }
+.extras-label { font-size: 12px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.extras-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.extras .block { position: relative; left: auto; top: auto; width: auto; height: auto; min-height: 80px; }
 
 .add-block-btn {
     margin-top: 20px;
@@ -288,31 +263,11 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .bar button:hover { background: #fff0f0; border-color: #a00; }
 
 @media (max-width: 900px) {
-    .turtle-stage {
-        aspect-ratio: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        position: static;
-        max-width: 100%;
-    }
+    .turtle-stage { aspect-ratio: auto; display: flex; flex-direction: column; gap: 12px; position: static; max-width: 100%; }
     .turtle-stage svg.arrows { display: none; }
-    .block {
-        position: static !important;
-        width: 100% !important;
-        left: auto !important; top: auto !important;
-        height: auto !important;
-        min-height: 80px;
-    }
-    .process-shape {
-        position: static;
-        clip-path: none;
-        border-radius: 8px;
-        width: 100%;
-        height: auto;
-        min-height: 70px;
-        padding: 20px;
-    }
+    .block { position: static !important; width: 100% !important; left: auto !important; top: auto !important; height: auto !important; min-height: 80px; }
+    .process-shape { position: static; clip-path: none; border-radius: 8px; width: 100%; height: auto; min-height: 70px; padding: 20px; }
+    .process-text { padding-left: 0; }
 }
 </style>
 </head>
@@ -363,6 +318,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         page1: {
             title: "Page 1 - Produceren",
             center: "Proces",
+            processTone: "yellow",
             badge: "A",
             blocks: [
                 { id: "regels",  label: "Regels",            text: "", tone: "yellow" },
@@ -380,6 +336,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         page2: {
             title: "Page 2 - Kwaliteitscontrole",
             center: "Proces",
+            processTone: "yellow",
             badge: "B",
             blocks: [
                 { id: "regels",  label: "Regels",            text: "", tone: "yellow" },
@@ -424,6 +381,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                 state[row.id] = {
                     title: row.title,
                     center: row.center,
+                    processTone: row.process_tone || 'yellow',
                     badge: DEFAULTS[row.id]?.badge || '?',
                     blocks: row.blocks
                 };
@@ -441,6 +399,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                 id: pageId,
                 title: state[pageId].title,
                 center: state[pageId].center,
+                process_tone: state[pageId].processTone || 'yellow',
                 blocks: state[pageId].blocks,
                 updated_at: new Date().toISOString(),
                 updated_by: session.user.id
@@ -498,7 +457,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         defs.innerHTML = `
             <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
                     markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-                <polygon points="0,0 10,5 0,10" fill="#666" />
+                <polygon points="0,0 10,5 0,10" fill="#555" />
             </marker>`;
         svg.appendChild(defs);
         stage.appendChild(svg);
@@ -553,7 +512,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     function buildProcessShape(pageId, page) {
         const el = document.createElement('div');
         el.className = 'process-shape';
-        el.dataset.tone = (page.blocks[0] && page.blocks[0].tone) || 'yellow';
+        el.dataset.tone = page.processTone || 'yellow';
 
         const actions = document.createElement('div');
         actions.className = 'actions';
@@ -561,9 +520,10 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             const tb = document.createElement('button');
             tb.className = 'tone-btn';
             tb.dataset.tone = tone;
+            tb.title = 'Kleur van het proces-blok';
             tb.addEventListener('click', (e) => {
                 e.stopPropagation();
-                page.blocks.forEach(b => b.tone = tone);
+                page.processTone = tone;
                 queueSave(pageId);
                 renderDiagram();
             });
@@ -595,6 +555,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             const tb = document.createElement('button');
             tb.className = 'tone-btn';
             tb.dataset.tone = tone;
+            tb.title = 'Kleur: ' + tone;
             tb.addEventListener('click', (e) => {
                 e.stopPropagation();
                 block.tone = tone;
@@ -638,7 +599,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         return el;
     }
 
-    /* ---------- Arrows (matching the reference) ---------- */
     function drawArrows(svg, stage) {
         const stageRect = stage.getBoundingClientRect();
         const processEl = stage.querySelector('.process-shape');
@@ -659,28 +619,26 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         const pH      = p.height;
         const pMidY   = p.top - stageRect.top + pH / 2;
 
-        // Anchor points on the chevron edges (point where arrowhead touches)
+        // Anchor points considering the new thick-arrow shape:
+        //   top/bottom edges extend from 0% to 76% of pW
+        //   left point of chevron notch is at 15% of pW
+        //   arrow tip is at 100% of pW
         const anchors = {
-            regels:  { x: pLeft + pW * 0.32, y: pTop    },   // top-left of chevron
-            doel:    { x: pLeft + pW * 0.68, y: pTop    },   // top-right of chevron
-            start:   { x: pLeft,             y: pMidY - pH * 0.10 }, // left point upper
-            input:   { x: pLeft,             y: pMidY + pH * 0.10 }, // left point lower
-            stake:   { x: pLeft + pW * 0.15, y: pBottom },   // bottom-left
-            verant:  { x: pLeft + pW * 0.42, y: pBottom },   // bottom-center-left
-            res:     { x: pLeft + pW * 0.68, y: pBottom },   // bottom-right
-            output:  { x: pRight,            y: pMidY    }    // right point
+            regels:  { x: pLeft + pW * 0.30, y: pTop    },
+            doel:    { x: pLeft + pW * 0.62, y: pTop    },
+            start:   { x: pLeft + pW * 0.15, y: pMidY - pH * 0.15 }, // chevron notch
+            input:   { x: pLeft + pW * 0.15, y: pMidY + pH * 0.15 }, // chevron notch
+            stake:   { x: pLeft + pW * 0.18, y: pBottom },
+            verant:  { x: pLeft + pW * 0.40, y: pBottom },
+            res:     { x: pLeft + pW * 0.65, y: pBottom },
+            output:  { x: pRight,             y: pMidY   } // arrow tip
         };
 
-        // Which edge of the source block the line leaves from
         const sources = {
-            regels:  'bottom',
-            doel:    'bottom',
-            start:   'right',
-            input:   'right',
-            stake:   'top',
-            verant:  'top',
-            res:     'top',
-            output:  'left'
+            regels: 'bottom', doel: 'bottom',
+            start: 'right',   input: 'right',
+            stake: 'top',     verant: 'top', res: 'top',
+            output: 'left'
         };
 
         Object.keys(anchors).forEach(id => {
@@ -706,7 +664,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             svg.appendChild(line);
         });
 
-        // Output → Klanten
         const outputEl  = stage.querySelector(`.block[data-block-id="output"]`);
         const klantenEl = stage.querySelector(`.block[data-block-id="klanten"]`);
         if (outputEl && klantenEl) {
@@ -752,6 +709,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                     state[row.id] = {
                         title: row.title,
                         center: row.center,
+                        processTone: row.process_tone || 'yellow',
                         badge: DEFAULTS[row.id]?.badge || '?',
                         blocks: row.blocks
                     };
@@ -768,6 +726,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             id,
             title: DEFAULTS[id].title,
             center: DEFAULTS[id].center,
+            process_tone: 'yellow',
             blocks: DEFAULTS[id].blocks,
             updated_at: new Date().toISOString(),
             updated_by: session.user.id
