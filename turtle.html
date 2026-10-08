@@ -15,7 +15,7 @@ body {
     padding: 24px;
 }
 h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-align: center; }
-.hint { color: #666; font-size: 14px; margin: 0 auto 24px; line-height: 1.5; text-align: center; max-width: 760px; }
+.hint { color: #666; font-size: 14px; margin: 0 auto 24px; line-height: 1.5; text-align: center; max-width: 780px; }
 
 /* Topbar */
 .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
@@ -53,8 +53,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     background: white;
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    padding: 24px;
-    max-width: 1200px;
+    padding: 32px 40px 40px 40px;
+    max-width: 1300px;
     margin: 0 auto;
     position: relative;
 }
@@ -63,8 +63,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 
 .page-badge {
     position: absolute;
-    top: -3px; right: -3px;
-    width: 32px; height: 32px;
+    top: 0; right: 0;
+    width: 34px; height: 34px;
     display: flex; align-items: center; justify-content: center;
     color: white; font-weight: 700; font-size: 14px;
     border-bottom-left-radius: 8px;
@@ -73,7 +73,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .diagram-card.page-2 .page-badge { background: #7a3f9e; }
 
 .diagram-title {
-    font-size: 20px; font-weight: 600; margin: 0 0 20px;
+    font-size: 22px; font-weight: 500; margin: 0 0 8px;
     outline: none; display: inline-block; padding: 2px 6px;
     border-bottom: 1px dashed transparent;
 }
@@ -81,100 +81,104 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .diagram-title:focus { border-bottom-color: #0066ff; }
 
 /* ============================================================
-   TURTLE DIAGRAM — absolute-positioned layout matching the reference
+   TURTLE STAGE — percentage-positioned layout matching the reference
    ============================================================ */
 .turtle-stage {
     position: relative;
     width: 100%;
-    /* aspect ratio tuned so blocks keep similar proportions across widths */
-    aspect-ratio: 1200 / 640;
-    min-height: 520px;
-    margin-top: 8px;
+    aspect-ratio: 1200 / 700;
+    margin-top: 16px;
 }
 
-/* SVG arrow layer behind the blocks */
+/* SVG arrow layer */
 .turtle-stage svg.arrows {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: 1;
     pointer-events: none;
+    overflow: visible;
 }
-.turtle-stage svg.arrows line,
-.turtle-stage svg.arrows polyline {
-    stroke: #333;
+.turtle-stage svg.arrows line {
+    stroke: #7a8694;
     stroke-width: 1.2;
-    fill: none;
-}
-.turtle-stage svg.arrows polygon.arrowhead {
-    fill: #333;
-    stroke: none;
 }
 
-/* Blocks — positioned with percentages so they scale with the stage */
+/* ---------- Blocks ---------- */
 .block {
     position: absolute;
-    border: 1.5px solid #1f3b57;
-    background: #eaf24a;    /* default yellow-green like the reference */
-    color: #111;
-    padding: 10px 12px;
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    background: #4aa3d9;
+    border: 1.5px solid #2c6d9c;
+    color: #ffffff;
+    padding: 12px 16px;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.12);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
     z-index: 2;
-    min-height: 60px;
     transition: filter .12s;
+    text-align: center;
 }
-.block:hover { filter: brightness(1.04); }
+.block:hover { filter: brightness(1.05); }
 
-.block[data-tone="yellow"] { background: #eaf24a; border-color: #6a7200; }
-.block[data-tone="blue"]   { background: #4aa3d9; border-color: #1f3b57; color: #fff; }
-.block[data-tone="teal"]   { background: #33c6c6; border-color: #0b5c5c; }
-.block[data-tone="green"]  { background: #7fc97f; border-color: #2e6b2e; }
+.block[data-tone="blue"]   { background: #4aa3d9; border-color: #2c6d9c; color: #fff; }
+.block[data-tone="teal"]   { background: #33c6c6; border-color: #0b5c5c; color: #fff; }
+.block[data-tone="yellow"] { background: #eaf24a; border-color: #8a9100; color: #111; }
+.block[data-tone="green"]  { background: #7fc97f; border-color: #2e6b2e; color: #111; }
 
-/* Specific block positions (percentages of the stage) */
-.block.pos-regels   { left: 22%; top: 4%;  width: 20%; min-height: 60px; }
-.block.pos-doel     { left: 58%; top: 4%;  width: 20%; min-height: 60px; }
-.block.pos-start    { left: 6%;  top: 26%; width: 20%; min-height: 60px; }
-.block.pos-einde    { left: 74%; top: 26%; width: 20%; min-height: 60px; }
-.block.pos-input    { left: 6%;  top: 48%; width: 20%; min-height: 60px; }
-.block.pos-output   { left: 74%; top: 48%; width: 20%; min-height: 60px; }
-.block.pos-stake    { left: 6%;  top: 72%; width: 20%; min-height: 60px; }
-.block.pos-verant   { left: 33%; top: 72%; width: 20%; min-height: 60px; }
-.block.pos-res      { left: 58%; top: 72%; width: 20%; min-height: 60px; }
-.block.pos-klanten  { left: 74%; top: 72%; width: 20%; min-height: 60px; }
+/* ---------- Positions (percent of stage) ---------- */
+/* Row 1: Regels (left-center), Doel (right-center) */
+.block.pos-regels  { left: 18%; top: 5%;  width: 20%; min-height: 18%; }
+.block.pos-doel    { left: 58%; top: 5%;  width: 20%; min-height: 18%; }
+
+/* Row 2: Start (far left), Einde (far right) */
+.block.pos-start   { left: 4%;  top: 34%; width: 20%; min-height: 15%; }
+.block.pos-einde   { left: 76%; top: 34%; width: 20%; min-height: 15%; }
+
+/* Row 3: Input (far left), Output (far right) */
+.block.pos-input   { left: 4%;  top: 58%; width: 20%; min-height: 15%; }
+.block.pos-output  { left: 76%; top: 58%; width: 20%; min-height: 15%; }
+
+/* Row 4 (bottom): Stakeholders, Verantwoordelijke, Resources, Klanten */
+.block.pos-stake   { left: 4%;  top: 84%; width: 20%; min-height: 14%; }
+.block.pos-verant  { left: 31%; top: 84%; width: 20%; min-height: 14%; }
+.block.pos-res     { left: 58%; top: 84%; width: 20%; min-height: 14%; }
+.block.pos-klanten { left: 76%; top: 84%; width: 20%; min-height: 14%; }
 
 .block-label {
     font-weight: 700;
-    font-size: 13px;
-    text-transform: none;
-    letter-spacing: 0.01em;
+    font-size: 14px;
     outline: none;
     text-align: center;
+    letter-spacing: 0.01em;
 }
 .block-text {
-    font-size: 11.5px;
+    font-size: 12px;
     line-height: 1.35;
     outline: none;
     white-space: pre-wrap;
-    flex: 1;
     text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
 }
 .block-text:empty::before,
-.block-label:empty::before { content: "typ hier"; opacity: .5; }
+.block-label:empty::before { content: "typ hier"; opacity: .55; }
 
 /* Block actions */
 .block .actions {
     position: absolute;
-    top: -9px; right: -9px;
+    top: -10px; right: -10px;
     display: none; gap: 4px;
+    z-index: 3;
 }
 .block:hover .actions,
 .block:focus-within .actions { display: flex; }
 .block .actions button {
-    width: 20px; height: 20px;
+    width: 22px; height: 22px;
     border-radius: 50%;
     border: 1px solid #111;
     background: white;
@@ -183,62 +187,61 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     font-size: 12px;
     line-height: 1;
 }
-.block .actions .tone-btn[data-tone="yellow"] { background: #eaf24a; }
 .block .actions .tone-btn[data-tone="blue"]   { background: #4aa3d9; }
 .block .actions .tone-btn[data-tone="teal"]   { background: #33c6c6; }
+.block .actions .tone-btn[data-tone="yellow"] { background: #eaf24a; }
 .block .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
-.block .actions .del { color: #a00; }
+.block .actions .del { color: #a00; font-weight: 700; }
 
-/* CENTER PROCESS SHAPE — pointed on both sides (hexagon arrow) */
+/* ---------- Center process chevron ---------- */
 .process-shape {
     position: absolute;
-    left: 30%;
-    top: 39%;
-    width: 40%;
+    left: 26%;
+    top: 41%;
+    width: 48%;
     height: 20%;
-    z-index: 1;
-    background: #eaf24a;
-    border: 1.5px solid #6a7200;
-    /* chevron/hexagon arrow: 6-point polygon */
-    clip-path: polygon(
-        6% 0%,
-        94% 0%,
-        100% 50%,
-        94% 100%,
-        6% 100%,
-        0% 50%
-    );
+    background: #4aa3d9;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    padding: 0 60px;
+    z-index: 2;
+    clip-path: polygon(
+        5% 0%,
+        95% 0%,
+        100% 50%,
+        95% 100%,
+        5% 100%,
+        0% 50%
+    );
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.12);
 }
-.process-shape[data-tone="blue"]   { background: #4aa3d9; border-color: #1f3b57; }
-.process-shape[data-tone="teal"]   { background: #33c6c6; border-color: #0b5c5c; }
-.process-shape[data-tone="green"]  { background: #7fc97f; border-color: #2e6b2e; }
+.process-shape[data-tone="blue"]   { background: #4aa3d9; }
+.process-shape[data-tone="teal"]   { background: #33c6c6; }
+.process-shape[data-tone="yellow"] { background: #eaf24a; color: #111; }
+.process-shape[data-tone="green"]  { background: #7fc97f; color: #111; }
 
 .process-text {
     outline: none;
-    font-weight: 700;
-    font-size: 16px;
+    font-weight: 600;
+    font-size: 17px;
     text-align: center;
-    padding: 0 20px;
-    color: #111;
+    line-height: 1.3;
 }
-.process-text:empty::before { content: "typ hier"; opacity: .5; }
-.process-shape[data-tone="blue"] .process-text { color: #fff; }
+.process-text:empty::before { content: "typ hier"; opacity: .6; }
 
-/* Process shape actions */
+/* Process actions */
 .process-shape .actions {
     position: absolute;
-    top: -9px; right: -9px;
+    top: 0; right: 0;
     display: none; gap: 4px;
     z-index: 3;
+    transform: translate(0, -110%);
 }
-.process-shape:hover .actions,
-.process-shape:focus-within .actions { display: flex; }
+.process-shape:hover .actions { display: flex; }
 .process-shape .actions button {
-    width: 20px; height: 20px;
+    width: 22px; height: 22px;
     border-radius: 50%;
     border: 1px solid #111;
     background: white;
@@ -247,15 +250,15 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     font-size: 12px;
     line-height: 1;
 }
-.process-shape .actions .tone-btn[data-tone="yellow"] { background: #eaf24a; }
 .process-shape .actions .tone-btn[data-tone="blue"]   { background: #4aa3d9; }
 .process-shape .actions .tone-btn[data-tone="teal"]   { background: #33c6c6; }
+.process-shape .actions .tone-btn[data-tone="yellow"] { background: #eaf24a; }
 .process-shape .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
 
 /* Extras section */
 .extras {
-    margin-top: 24px;
-    padding-top: 14px;
+    margin-top: 32px;
+    padding-top: 20px;
     border-top: 1px dashed #ddd;
 }
 .extras-label {
@@ -264,16 +267,16 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 }
 .extras-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 12px;
 }
 .extras .block {
     position: relative;
-    left: auto; top: auto; width: auto;
+    left: auto; top: auto; width: auto; min-height: 80px;
 }
 
 .add-block-btn {
-    margin-top: 16px;
+    margin-top: 20px;
     padding: 8px 14px;
     background: white;
     color: #0066ff;
@@ -284,7 +287,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 }
 .add-block-btn:hover { background: #f0f6ff; }
 
-.bar { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 1200px; margin-left: auto; margin-right: auto; }
+.bar { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 1300px; margin-left: auto; margin-right: auto; }
 .bar button {
     font: inherit; font-size: 14px; padding: 9px 16px;
     border-radius: 6px; cursor: pointer; border: 1px solid #ccc;
@@ -292,11 +295,10 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 }
 .bar button:hover { background: #fff0f0; border-color: #a00; }
 
-/* Responsive: on narrow screens, fall back to a simple stacked layout */
+/* Responsive */
 @media (max-width: 900px) {
     .turtle-stage {
         aspect-ratio: auto;
-        min-height: auto;
         display: flex;
         flex-direction: column;
         gap: 12px;
@@ -307,6 +309,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         position: static !important;
         width: 100% !important;
         left: auto !important; top: auto !important;
+        min-height: 80px !important;
     }
     .process-shape {
         position: static;
@@ -314,7 +317,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         border-radius: 8px;
         width: 100%;
         height: auto;
-        padding: 16px;
+        min-height: 70px;
+        padding: 20px;
     }
 }
 </style>
@@ -331,7 +335,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 </div>
 
 <h1>Turtle Diagrams</h1>
-<p class="hint">Klik op een blok om de tekst aan te passen. Beweeg over een blok om de kleur te wijzigen of te verwijderen. Gebruik de pijltjes om tussen diagrammen te wisselen. Wijzigingen worden direct gedeeld met je team.</p>
+<p class="hint">Klik op een blok om de tekst aan te passen. Beweeg over een blok om de kleur te wijzigen of te verwijderen. Gebruik de pijltjes om tussen diagrammen te wisselen.</p>
 
 <div class="nav-bar" id="nav-bar" style="display:none">
     <button class="nav-btn" id="prev-btn" aria-label="Vorige">‹</button>
@@ -367,36 +371,36 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     const DEFAULTS = {
         page1: {
             title: "Page 1 - Produceren",
-            center: "Proces",
+            center: "Een batch mallen inoculeren",
             badge: "A",
             blocks: [
-                { id: "regels",  label: "Regels",              text: "Werken in een steriele productieomgeving, veiligheidsregels respecteren, productie volgens standaard werkinstructies", tone: "yellow" },
-                { id: "doel",    label: "Doel",                text: "Mycelium verpakkingen produceren volgens de vereiste hoeveelheid en kwaliteit", tone: "yellow" },
-                { id: "start",   label: "Start",               text: "Grondstoffen zijn beschikbaar en voorbereid, omgeving is klaar voor productieactiviteiten", tone: "yellow" },
-                { id: "einde",   label: "Einde",               text: "Productiebatch is gegenereerd en klaar voor kwaliteitscontrole", tone: "yellow" },
-                { id: "input",   label: "Input",               text: "Koffiedik en afval / grondstoffen, productieplanning", tone: "yellow" },
-                { id: "output",  label: "Output",              text: "Geproduceerde mycelium verpakking / productiebatch", tone: "yellow" },
-                { id: "stake",   label: "Stakeholders",        text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten, Proces- en productie-ingenieurs", tone: "yellow" },
-                { id: "verant",  label: "Verantwoordelijke",   text: "Productiemedewerkers in Vorst", tone: "yellow" },
-                { id: "res",     label: "Resources",           text: "Fabriek in Vorst, productieomgeving, microbiologische kennis, productiemedewerkers", tone: "yellow" },
-                { id: "klanten", label: "Klanten",             text: "Kwaliteitscontrole / volgende stap in het productieproces", tone: "yellow" }
+                { id: "regels",  label: "Regels",            text: "Werken in een steriele productieomgeving, veiligheidsregels respecteren. Productie volgens de standaard werkinstructies", tone: "blue" },
+                { id: "doel",    label: "DOEL",              text: "Mallen vullen met substraat en mycelium, zodat het mycelium kan uitgroeien tot de gewenste verpakkingsvorm", tone: "blue" },
+                { id: "start",   label: "Start",             text: "Steriel substraat is afgekoeld en mallen zijn klaar", tone: "blue" },
+                { id: "einde",   label: "EINDE",             text: "Productiebatch is gegenereerd en klaar voor kwaliteitscontrole", tone: "blue" },
+                { id: "input",   label: "Input",             text: "Koffiedik en afval / grondstoffen, productieplanning", tone: "blue" },
+                { id: "output",  label: "OUTPUT",            text: "Geproduceerde mycelium verpakking / productiebatch", tone: "blue" },
+                { id: "stake",   label: "Stakeholders",      text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten, Proces- en productie-ingenieurs", tone: "blue" },
+                { id: "verant",  label: "VERANTWOORDELIJKE", text: "Productiemedewerkers in Vorst", tone: "blue" },
+                { id: "res",     label: "RESOURCES",         text: "Fabriek in Vorst, productieomgeving, microbiologische kennis, productiemedewerkers", tone: "blue" },
+                { id: "klanten", label: "KLANTEN",           text: "Kwaliteitscontrole / volgende stap in het productieproces", tone: "blue" }
             ]
         },
         page2: {
             title: "Page 2 - Kwaliteitscontrole",
-            center: "Proces",
+            center: "Een kwaliteitscontrole uitvoeren",
             badge: "B",
             blocks: [
-                { id: "regels",  label: "Regels",              text: "Controle volgens het kwaliteitshandboek en de vastgelegde criteria, veiligheidsregels respecteren. Afwijkingen verplicht registreren", tone: "teal" },
-                { id: "doel",    label: "Doel",                text: "Kwaliteit van de productiebatch controleren en afwijkingen detecteren", tone: "teal" },
-                { id: "start",   label: "Start",               text: "Productiebatch is gegenereerd", tone: "teal" },
-                { id: "einde",   label: "Einde",               text: "Batch is goedgekeurd en resultaat is vastgelegd", tone: "teal" },
-                { id: "input",   label: "Input",               text: "Geproduceerde productiebatch + productiegegevens, kwaliteitscriteria", tone: "teal" },
-                { id: "output",  label: "Output",              text: "Kwaliteitsresultaat / geregistreerde afwijking", tone: "teal" },
-                { id: "stake",   label: "Stakeholders",        text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten", tone: "teal" },
-                { id: "verant",  label: "Verantwoordelijke",   text: "Microbiologen & kwaliteitslaboranten", tone: "teal" },
-                { id: "res",     label: "Resources",           text: "Kwaliteitscontrole, proces-ingenieurs, productiedashboard, batchregistratie, Controle-harnais, Weegschaal en meetinstrumenten", tone: "teal" },
-                { id: "klanten", label: "Klanten",             text: "Productiemedewerkers / verdere productie- of leveringsstap", tone: "teal" }
+                { id: "regels",  label: "Regels",            text: "Controle volgens het kwaliteitshandboek en de vastgelegde criteria, veiligheidsregels respecteren. Afwijkingen verplicht registreren", tone: "teal" },
+                { id: "doel",    label: "DOEL",              text: "Kwaliteit van de productiebatch controleren en afwijkingen detecteren", tone: "teal" },
+                { id: "start",   label: "Start",             text: "Productiebatch is gegenereerd", tone: "teal" },
+                { id: "einde",   label: "EINDE",             text: "Batch is goedgekeurd en resultaat is vastgelegd", tone: "teal" },
+                { id: "input",   label: "Input",             text: "Geproduceerde productiebatch + productiegegevens, kwaliteitscriteria", tone: "teal" },
+                { id: "output",  label: "OUTPUT",            text: "Kwaliteitsresultaat / geregistreerde afwijking", tone: "teal" },
+                { id: "stake",   label: "Stakeholders",      text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten", tone: "teal" },
+                { id: "verant",  label: "VERANTWOORDELIJKE", text: "Microbiologen & kwaliteitslaboranten", tone: "teal" },
+                { id: "res",     label: "RESOURCES",         text: "Kwaliteitscontrole, proces-ingenieurs, productiedashboard, batchregistratie, Controle-harnais, Weegschaal en meetinstrumenten", tone: "teal" },
+                { id: "klanten", label: "KLANTEN",           text: "Productiemedewerkers / verdere productie- of leveringsstap", tone: "teal" }
             ]
         }
     };
@@ -458,8 +462,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         }, 600);
     }
 
-    /* ---------- 6. Fixed positions ---------- */
-    // Each default block id gets a CSS class with absolute position.
+    /* ---------- 6. Positions ---------- */
     const POSITIONS = {
         regels:  'pos-regels',
         doel:    'pos-doel',
@@ -491,7 +494,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         badge.textContent = page.badge || '?';
         card.appendChild(badge);
 
-        // Title
         const title = document.createElement('div');
         title.className = 'diagram-title';
         title.contentEditable = 'true';
@@ -501,19 +503,17 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         title.addEventListener('input', () => { page.title = title.textContent; queueSave(pageId); });
         card.appendChild(title);
 
-        // Turtle stage (absolute positioning + SVG arrows)
         const stage = document.createElement('div');
         stage.className = 'turtle-stage';
 
-        // SVG layer
+        // SVG arrow layer
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.setAttribute('class', 'arrows');
-        // Arrowhead marker
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
         defs.innerHTML = `
             <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
-                    markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <polygon class="arrowhead" points="0,0 10,5 0,10" />
+                    markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                <polygon points="0,0 10,5 0,10" fill="#7a8694" />
             </marker>`;
         svg.appendChild(defs);
         stage.appendChild(svg);
@@ -522,7 +522,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         const processEl = buildProcessShape(pageId, page);
         stage.appendChild(processEl);
 
-        // Default blocks (each absolutely positioned via CSS class)
+        // Default blocks
         KNOWN.forEach(id => {
             const b = page.blocks.find(x => x.id === id);
             if (!b) return;
@@ -531,7 +531,9 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             stage.appendChild(el);
         });
 
-        // Custom (extra) blocks go into an extras section below
+        card.appendChild(stage);
+
+        // Extras
         const customs = page.blocks.filter(b => !KNOWN.includes(b.id));
         if (customs.length > 0) {
             const extras = document.createElement('div');
@@ -544,15 +546,13 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             card.appendChild(extras);
         }
 
-        card.appendChild(stage);
-
-        // Add-block button
+        // Add block button
         const addBtn = document.createElement('button');
         addBtn.className = 'add-block-btn';
         addBtn.textContent = '+ Blok toevoegen';
         addBtn.addEventListener('click', () => {
             const id = 'custom_' + Date.now();
-            const tone = (page.blocks[0] && page.blocks[0].tone) || 'yellow';
+            const tone = (page.blocks[0] && page.blocks[0].tone) || 'blue';
             page.blocks.push({ id, label: 'Nieuw blok', text: '', tone });
             queueSave(pageId);
             renderDiagram();
@@ -561,32 +561,28 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 
         container.appendChild(card);
 
-        // Nav
         document.getElementById('page-indicator').textContent =
             `Pagina ${currentPage + 1} / ${PAGES.length}`;
         document.getElementById('prev-btn').disabled = currentPage === 0;
         document.getElementById('next-btn').disabled = currentPage === PAGES.length - 1;
 
-        // Draw arrows once the layout has settled
         requestAnimationFrame(() => drawArrows(svg, stage));
     }
 
     function buildProcessShape(pageId, page) {
         const el = document.createElement('div');
         el.className = 'process-shape';
-        el.dataset.tone = (page.blocks[0] && page.blocks[0].tone) || 'yellow';
+        el.dataset.tone = (page.blocks[0] && page.blocks[0].tone) || 'blue';
 
-        // Actions
         const actions = document.createElement('div');
         actions.className = 'actions';
-        ['yellow', 'blue', 'teal', 'green'].forEach(tone => {
+        ['blue', 'teal', 'yellow', 'green'].forEach(tone => {
             const tb = document.createElement('button');
             tb.className = 'tone-btn';
             tb.dataset.tone = tone;
             tb.title = 'Kleur: ' + tone;
             tb.addEventListener('click', (e) => {
                 e.stopPropagation();
-                // Change all blocks to match the process for consistency
                 page.blocks.forEach(b => b.tone = tone);
                 queueSave(pageId);
                 renderDiagram();
@@ -610,11 +606,12 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     function buildBlock(pageId, block) {
         const el = document.createElement('div');
         el.className = 'block';
-        el.dataset.tone = block.tone || 'yellow';
+        el.dataset.tone = block.tone || 'blue';
+        el.dataset.blockId = block.id;
 
         const actions = document.createElement('div');
         actions.className = 'actions';
-        ['yellow', 'blue', 'teal', 'green'].forEach(tone => {
+        ['blue', 'teal', 'yellow', 'green'].forEach(tone => {
             const tb = document.createElement('button');
             tb.className = 'tone-btn';
             tb.dataset.tone = tone;
@@ -663,7 +660,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         return el;
     }
 
-    /* ---------- 8. Arrows (from block edges to the process shape edges) ---------- */
+    /* ---------- 8. Arrows ---------- */
     function drawArrows(svg, stage) {
         const stageRect = stage.getBoundingClientRect();
         const processEl = stage.querySelector('.process-shape');
@@ -673,54 +670,66 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         svg.setAttribute('width',  stageRect.width);
         svg.setAttribute('height', stageRect.height);
 
-        const pRect = processEl.getBoundingClientRect();
-        // Anchor points on the process shape (relative to stage)
-        const pLeft   = { x: pRect.left - stageRect.left,                 y: pRect.top - stageRect.top + pRect.height / 2 };
-        const pRight  = { x: pRect.right - stageRect.left,                y: pRect.top - stageRect.top + pRect.height / 2 };
-        const pTopL   = { x: pRect.left - stageRect.left + pRect.width * 0.3,  y: pRect.top - stageRect.top };
-        const pTopR   = { x: pRect.left - stageRect.left + pRect.width * 0.7,  y: pRect.top - stageRect.top };
-        const pBotL   = { x: pRect.left - stageRect.left + pRect.width * 0.35, y: pRect.bottom - stageRect.top };
-        const pBotM   = { x: pRect.left - stageRect.left + pRect.width * 0.5,  y: pRect.bottom - stageRect.top };
-        const pBotR   = { x: pRect.left - stageRect.left + pRect.width * 0.65, y: pRect.bottom - stageRect.top };
+        // Clear previous lines but keep defs
+        svg.querySelectorAll('line').forEach(l => l.remove());
 
-        // Which edge of the process each block connects to
-        const CONNECTIONS = {
-            regels:  { anchor: pTopL, side: 'bottom' },
-            doel:    { anchor: pTopR, side: 'bottom' },
-            start:   { anchor: pLeft, side: 'right'  },
-            input:   { anchor: pLeft, side: 'right'  },
-            stake:   { anchor: pBotL, side: 'top'    },
-            verant:  { anchor: pBotM, side: 'top'    },
-            res:     { anchor: pBotR, side: 'top'    },
-            output:  { anchor: pRight, side: 'left'  }
-            // einde and klanten have NO arrow
+        const pRect = processEl.getBoundingClientRect();
+        const pTop    = pRect.top    - stageRect.top;
+        const pBottom = pRect.bottom - stageRect.top;
+        const pLeft   = pRect.left   - stageRect.left;
+        const pRight  = pRect.right  - stageRect.left;
+        const pWidth  = pRect.width;
+        const pHeight = pRect.height;
+        const pCY     = pRect.top - stageRect.top + pHeight / 2;
+
+        // Specific anchor points on the chevron edges
+        const anchors = {
+            regels:  { x: pLeft + pWidth * 0.35, y: pTop },
+            doel:    { x: pLeft + pWidth * 0.65, y: pTop },
+            start:   { x: pLeft,                  y: pCY + pHeight * 0.15 },
+            input:   { x: pLeft,                  y: pCY - pHeight * 0.15 },
+            stake:   { x: pLeft + pWidth * 0.20, y: pBottom },
+            verant:  { x: pLeft + pWidth * 0.42, y: pBottom },
+            res:     { x: pLeft + pWidth * 0.62, y: pBottom },
+            output:  { x: pRight,                 y: pCY }
         };
 
-        Object.entries(CONNECTIONS).forEach(([id, cfg]) => {
+        // Which edge of each block the line starts from
+        const sources = {
+            regels:  'bottom',
+            doel:    'bottom',
+            start:   'right',
+            input:   'right',
+            stake:   'top',
+            verant:  'top',
+            res:     'top',
+            output:  'left'
+        };
+
+        Object.keys(anchors).forEach(id => {
             const blockEl = stage.querySelector(`.block[data-block-id="${id}"]`);
             if (!blockEl) return;
             const r = blockEl.getBoundingClientRect();
-
-            // Source point on the block edge
             let sx, sy;
-            switch (cfg.side) {
-                case 'right':  sx = r.right - stageRect.left; sy = r.top - stageRect.top + r.height / 2; break;
-                case 'left':   sx = r.left  - stageRect.left; sy = r.top - stageRect.top + r.height / 2; break;
-                case 'top':    sx = r.left  - stageRect.left + r.width / 2; sy = r.top - stageRect.top; break;
+            const cX = r.left - stageRect.left + r.width / 2;
+            const cY = r.top  - stageRect.top + r.height / 2;
+            switch (sources[id]) {
+                case 'right':  sx = r.right - stageRect.left; sy = cY; break;
+                case 'left':   sx = r.left  - stageRect.left; sy = cY; break;
+                case 'top':    sx = cX; sy = r.top    - stageRect.top; break;
                 case 'bottom':
-                default:       sx = r.left  - stageRect.left + r.width / 2; sy = r.bottom - stageRect.top; break;
+                default:       sx = cX; sy = r.bottom - stageRect.top; break;
             }
-
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', sx);
             line.setAttribute('y1', sy);
-            line.setAttribute('x2', cfg.anchor.x);
-            line.setAttribute('y2', cfg.anchor.y);
+            line.setAttribute('x2', anchors[id].x);
+            line.setAttribute('y2', anchors[id].y);
             line.setAttribute('marker-end', 'url(#arrowhead)');
             svg.appendChild(line);
         });
 
-        // Arrow from Output down to Klanten
+        // Output → Klanten (vertical arrow on the right)
         const outputEl  = stage.querySelector(`.block[data-block-id="output"]`);
         const klantenEl = stage.querySelector(`.block[data-block-id="klanten"]`);
         if (outputEl && klantenEl) {
