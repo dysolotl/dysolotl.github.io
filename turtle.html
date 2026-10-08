@@ -15,7 +15,7 @@ body {
     padding: 24px;
 }
 h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-align: center; }
-.hint { color: #666; font-size: 14px; margin: 0 auto 24px; line-height: 1.5; text-align: center; max-width: 720px; }
+.hint { color: #666; font-size: 14px; margin: 0 auto 24px; line-height: 1.5; text-align: center; max-width: 760px; }
 
 /* Topbar */
 .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
@@ -26,142 +26,171 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 #logout-btn { padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 6px; cursor: pointer; font-size: 14px; color: #222; }
 #logout-btn:hover { background: #eee; }
 
-/* Sync pill */
 .sync { font-size: 12px; color: #666; display: flex; align-items: center; gap: 6px; background: white; padding: 5px 10px; border-radius: 999px; border: 1px solid #e3e5e8; }
 .sync .dot { width: 8px; height: 8px; border-radius: 50%; background: #bbb; transition: background .2s; }
 .sync.saving .dot { background: #f0a500; }
 .sync.saved  .dot { background: #19a974; }
 .sync.error  .dot { background: #d33; }
 
-/* Page navigation bar */
-.nav-bar {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-}
+/* Nav */
+.nav-bar { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 20px; }
 .nav-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid #ccc;
-    background: white;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #222;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid #ccc; background: white;
+    font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #222;
 }
 .nav-btn:hover:not(:disabled) { background: #0066ff; color: white; border-color: #0066ff; }
 .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .page-indicator {
-    font-size: 14px;
-    color: #444;
-    min-width: 120px;
-    text-align: center;
-    background: white;
-    padding: 10px 20px;
-    border-radius: 999px;
-    border: 1px solid #e3e5e8;
-    font-weight: 500;
+    font-size: 14px; color: #444; min-width: 120px; text-align: center;
+    background: white; padding: 10px 20px; border-radius: 999px;
+    border: 1px solid #e3e5e8; font-weight: 500;
 }
 
-/* Diagram card */
+/* Card */
 .diagram-card {
     background: white;
     border-radius: 10px;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     padding: 20px;
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
+    position: relative;
 }
+
+/* Page border — like the screenshot (blue = page1, purple = page2) */
+.diagram-card.page-1 { border: 3px solid #4a90c2; }
+.diagram-card.page-2 { border: 3px solid #7a3f9e; }
+
+/* Letter badge top-right */
+.page-badge {
+    position: absolute;
+    top: -3px; right: -3px;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+    border-bottom-left-radius: 8px;
+}
+.diagram-card.page-1 .page-badge { background: #4a90c2; }
+.diagram-card.page-2 .page-badge { background: #7a3f9e; }
+
 .diagram-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 20px;
-    outline: none;
+    font-size: 20px; font-weight: 600; margin: 0 0 20px;
+    outline: none; display: inline-block; padding: 2px 6px;
     border-bottom: 1px dashed transparent;
-    display: inline-block;
-    padding: 2px 6px;
 }
 .diagram-title:hover { border-bottom-color: #ccc; }
 .diagram-title:focus { border-bottom-color: #0066ff; }
 
-/* Turtle diagram: 3-column layout with the center arrow */
-.turtle {
-    display: grid;
-    grid-template-columns: 1fr 1.1fr 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 14px;
-    align-items: stretch;
+/* ============================================================
+   TURTLE GRID — fixed layout matching the reference image
+   ============================================================ */
+.turtle-wrapper {
+    position: relative;
+    padding: 10px 0;
 }
 
-/* Left column: Start, Input, Stakeholders */
-.col-left    { display: flex; flex-direction: column; gap: 14px; }
-/* Center column: Regels, arrow, Verantwoordelijke */
-.col-center  { display: flex; flex-direction: column; gap: 14px; }
-/* Right column: DOEL, EINDE, OUTPUT, Klanten */
-.col-right   { display: flex; flex-direction: column; gap: 14px; }
+/* SVG connector layer sits behind the blocks */
+.connectors {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+}
+.connectors line {
+    stroke: #b0b0b0;
+    stroke-width: 1;
+}
+
+/* Three-column + bottom row grid */
+.turtle-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1.15fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 16px 20px;
+    align-items: center;
+}
+
+/* Left column order: Start, Input, (empty) */
+.turtle-grid > .slot-left-top    { grid-column: 1; grid-row: 1; }
+.turtle-grid > .slot-left-mid    { grid-column: 1; grid-row: 2; }
+.turtle-grid > .slot-left-bottom { grid-column: 1; grid-row: 3; }
+
+/* Center column */
+.turtle-grid > .slot-center-top    { grid-column: 2; grid-row: 1; }
+.turtle-grid > .slot-center-arrow  { grid-column: 2; grid-row: 2; display: flex; align-items: center; justify-content: center; }
+.turtle-grid > .slot-center-bottom { grid-column: 2; grid-row: 3; }
+
+/* Right column order: DOEL, EINDE, OUTPUT */
+.turtle-grid > .slot-right-top    { grid-column: 3; grid-row: 1; }
+.turtle-grid > .slot-right-mid    { grid-column: 3; grid-row: 2; }
+.turtle-grid > .slot-right-bottom { grid-column: 3; grid-row: 3; }
 
 /* Bottom row spans all three columns */
-.bottom-row {
+.turtle-grid > .slot-bottom {
     grid-column: 1 / -1;
+    grid-row: 4;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-top: 14px;
+    gap: 16px 20px;
 }
 
 /* Block */
 .block {
     position: relative;
-    border: 1px solid #1f3b57;
-    background: #cfe2f3;         /* default: light blue */
+    border: 1.5px solid #1f3b57;
+    background: #4aa3d9;         /* default blue matching screenshot */
+    color: white;
     padding: 12px 14px;
-    min-height: 70px;
-    box-shadow: 1px 1px 0 rgba(0,0,0,0.12);
+    min-height: 82px;
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
     display: flex;
     flex-direction: column;
     gap: 4px;
+    transition: filter .12s;
 }
-.block[data-tone="teal"]   { background: #a9e0e0; border-color: #0c5a5a; }
-.block[data-tone="yellow"] { background: #ffe599; border-color: #7f6000; }
-.block[data-tone="green"]  { background: #b6d7a8; border-color: #38761d; }
+.block:hover { filter: brightness(1.03); }
+
+.block[data-tone="teal"]   { background: #33c6c6; border-color: #0b5c5c; }
+.block[data-tone="blue"]   { background: #4aa3d9; border-color: #1f3b57; }
+.block[data-tone="yellow"] { background: #f5c842; border-color: #7f6000; color: #3a2d00; }
+.block[data-tone="green"]  { background: #7fc97f; border-color: #2e6b2e; color: #143b14; }
 
 .block-label {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
-    color: #1a1a1a;
-    outline: none;
     letter-spacing: 0.02em;
+    outline: none;
+    text-align: center;
 }
 .block-text {
-    font-size: 12.5px;
+    font-size: 11.5px;
     line-height: 1.35;
-    color: #222;
     outline: none;
     white-space: pre-wrap;
     flex: 1;
+    text-align: center;
 }
 .block-text:empty::before,
-.block-label:empty::before { content: "typ hier"; opacity: .45; }
+.block-label:empty::before { content: "typ hier"; opacity: .55; }
 
-/* Block action buttons */
+/* Block actions (visible on hover) */
 .block .actions {
     position: absolute;
-    top: -9px;
-    right: -9px;
-    display: none;
-    gap: 4px;
+    top: -9px; right: -9px;
+    display: none; gap: 4px;
 }
 .block:hover .actions,
 .block:focus-within .actions { display: flex; }
 .block .actions button {
-    width: 20px;
-    height: 20px;
+    width: 20px; height: 20px;
     border-radius: 50%;
     border: 1px solid #111;
     background: white;
@@ -170,52 +199,53 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     font-size: 12px;
     line-height: 1;
 }
-.block .actions .tone-btn { border: 1px solid #111; }
-.block .actions .tone-btn[data-tone="blue"]   { background: #cfe2f3; }
-.block .actions .tone-btn[data-tone="teal"]   { background: #a9e0e0; }
-.block .actions .tone-btn[data-tone="yellow"] { background: #ffe599; }
-.block .actions .tone-btn[data-tone="green"]  { background: #b6d7a8; }
+.block .actions .tone-btn[data-tone="blue"]   { background: #4aa3d9; }
+.block .actions .tone-btn[data-tone="teal"]   { background: #33c6c6; }
+.block .actions .tone-btn[data-tone="yellow"] { background: #f5c842; }
+.block .actions .tone-btn[data-tone="green"]  { background: #7fc97f; }
 .block .actions .del { color: #a00; }
 
-/* Center red arrow */
+/* Center red chevron arrow */
 .center-arrow {
     position: relative;
-    background: #ea4335;
+    background: #ff5252;
     color: white;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 24px 40px;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 18px 46px;
     min-height: 70px;
-    outline: none;
-}
-.center-arrow::before,
-.center-arrow::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 30px;
-    background: #ea4335;
-}
-.center-arrow::before {
-    left: -28px;
-    clip-path: polygon(100% 50%, 0 0, 0 100%);
-}
-.center-arrow::after {
-    right: -28px;
-    clip-path: polygon(0 50%, 100% 0, 100% 100%);
+    box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    clip-path: polygon(
+        6% 0%, 94% 0%, 100% 50%,
+        94% 100%, 6% 100%, 0% 50%
+    );
+    width: 100%;
 }
 .center-arrow span {
-    outline: none;
-    width: 100%;
+    outline: none; width: 100%; padding: 0 8px;
 }
 .center-arrow span:empty::before { content: "typ hier"; opacity: .7; }
 
-/* Add-block button */
+/* Extras (custom-added blocks) */
+.extras {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px dashed #ddd;
+}
+.extras-label {
+    font-size: 12px; color: #888; margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+}
+.extras-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
 .add-block-btn {
     margin-top: 16px;
     padding: 8px 14px;
@@ -228,26 +258,21 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 }
 .add-block-btn:hover { background: #f0f6ff; }
 
-/* Bottom bar */
-.bar { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 1200px; margin-left: auto; margin-right: auto; }
+.bar { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 1100px; margin-left: auto; margin-right: auto; }
 .bar button {
-    font: inherit;
-    font-size: 14px;
-    padding: 9px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    background: white;
-    color: #a00;
+    font: inherit; font-size: 14px; padding: 9px 16px;
+    border-radius: 6px; cursor: pointer; border: 1px solid #ccc;
+    background: white; color: #a00;
 }
 .bar button:hover { background: #fff0f0; border-color: #a00; }
 
 /* Responsive */
-@media (max-width: 900px) {
-    .turtle { grid-template-columns: 1fr; }
-    .bottom-row { grid-template-columns: 1fr 1fr; }
-    .center-arrow::before, .center-arrow::after { display: none; }
-    .center-arrow { border-radius: 8px; }
+@media (max-width: 800px) {
+    .turtle-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+    .turtle-grid > * { grid-column: 1 !important; grid-row: auto !important; }
+    .turtle-grid > .slot-bottom { grid-template-columns: 1fr 1fr; }
+    .connectors { display: none; }
+    .center-arrow { clip-path: none; border-radius: 8px; }
 }
 </style>
 </head>
@@ -280,7 +305,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 <script src="supabaseClient.js"></script>
 <script>
 (async () => {
-    /* ---------- 1. Auth guard ---------- */
+    /* ---------- 1. Auth ---------- */
     const { data: { session } } = await sb.auth.getSession();
     if (!session) { window.location.href = 'login.html'; return; }
 
@@ -300,54 +325,54 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         page1: {
             title: "Page 1 - Produceren",
             center: "Een batch produceren",
+            badge: "A",
             blocks: [
-                { id: "regels",   label: "Regels",            text: "Werken in een steriele productieomgeving, veiligheidsregels respecteren, Productie volgens de standaard werkinstructies", tone: "blue" },
-                { id: "doel",     label: "DOEL",              text: "Mycelium verpakkingen produceren volgens de vereiste hoeveelheid en kwaliteit", tone: "blue" },
-                { id: "start",    label: "Start",             text: "Grondstoffen zijn beschikbaar en voorbereid, omgeving is klaar voor productieactiviteiten", tone: "blue" },
-                { id: "einde",    label: "EINDE",             text: "Productiebatch is gegenereerd en klaar voor kwaliteitscontrole", tone: "blue" },
-                { id: "input",    label: "Input",             text: "Koffiedik en afval / grondstoffen, productieplanning", tone: "blue" },
-                { id: "output",   label: "OUTPUT",            text: "Geproduceerde mycelium verpakking / productiebatch", tone: "blue" },
-                { id: "stake",    label: "Stakeholders",      text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten, Proces- en productie-ingenieurs", tone: "blue" },
-                { id: "verant",   label: "VERANTWOORDELIJKE", text: "Productiemedewerkers in Vorst", tone: "blue" },
-                { id: "res",      label: "RESOURCES",         text: "Fabriek in Vorst, productieomgeving, microbiologische kennis, productiemedewerkers", tone: "blue" },
-                { id: "klanten",  label: "KLANTEN",           text: "Kwaliteitscontrole / volgende stap in het productieproces", tone: "blue" }
+                { id: "regels",  label: "Regels",              text: "Werken in een steriele productieomgeving, veiligheidsregels respecteren, Productie volgens de standaard werkinstructies", tone: "blue" },
+                { id: "doel",    label: "DOEL",                text: "Mycelium verpakkingen produceren volgens de vereiste hoeveelheid en kwaliteit", tone: "blue" },
+                { id: "start",   label: "Start",               text: "Grondstoffen zijn beschikbaar en voorbereid, omgeving is klaar voor productieactiviteiten", tone: "blue" },
+                { id: "einde",   label: "EINDE",               text: "Productiebatch is gegenereerd en klaar voor kwaliteitscontrole", tone: "blue" },
+                { id: "input",   label: "Input",               text: "Koffiedik en afval / grondstoffen, productieplanning", tone: "blue" },
+                { id: "output",  label: "OUTPUT",              text: "Geproduceerde mycelium verpakking / productiebatch", tone: "blue" },
+                { id: "stake",   label: "Stakeholders",        text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten, Proces- en productie-ingenieurs", tone: "blue" },
+                { id: "verant",  label: "VERANTWOORDELIJKE",   text: "Productiemedewerkers in Vorst", tone: "blue" },
+                { id: "res",     label: "RESOURCES",           text: "Fabriek in Vorst, productieomgeving, microbiologische kennis, productiemedewerkers", tone: "blue" },
+                { id: "klanten", label: "KLANTEN",             text: "Kwaliteitscontrole / volgende stap in het productieproces", tone: "blue" }
             ]
         },
         page2: {
             title: "Page 2 - Kwaliteitscontrole",
             center: "Een kwaliteitscontrole uitvoeren",
+            badge: "B",
             blocks: [
-                { id: "regels",   label: "Regels",            text: "Controle volgens het kwaliteitshandboek en de vastgelegde criteria, veiligheidsregels respecteren. Afwijkingen verplicht registreren", tone: "teal" },
-                { id: "doel",     label: "DOEL",              text: "Kwaliteit van de productiebatch controleren en afwijkingen detecteren", tone: "teal" },
-                { id: "start",    label: "Start",             text: "Productiebatch is gegenereerd", tone: "teal" },
-                { id: "einde",    label: "EINDE",             text: "Batch is goedgekeurd en resultaat is vastgelegd", tone: "teal" },
-                { id: "input",    label: "Input",             text: "Geproduceerde productiebatch + productiegegevens, kwaliteitscriteria", tone: "teal" },
-                { id: "output",   label: "OUTPUT",            text: "Kwaliteitsresultaat / geregistreerde afwijking", tone: "teal" },
-                { id: "stake",    label: "Stakeholders",      text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten", tone: "teal" },
-                { id: "verant",   label: "VERANTWOORDELIJKE", text: "Microbiologen & kwaliteitslaboranten", tone: "teal" },
-                { id: "res",      label: "RESOURCES",         text: "Kwaliteitscontrole, proces-ingenieurs, productiedashboard, batchregistratie, Controle-harnais, Weegschaal en meetinstrumenten", tone: "teal" },
-                { id: "klanten",  label: "KLANTEN",           text: "Productiemedewerkers / verdere productie- of leveringsstap", tone: "teal" }
+                { id: "regels",  label: "Regels",              text: "Controle volgens het kwaliteitshandboek en de vastgelegde criteria, veiligheidsregels respecteren. Afwijkingen verplicht registreren", tone: "teal" },
+                { id: "doel",    label: "DOEL",                text: "Kwaliteit van de productiebatch controleren en afwijkingen detecteren", tone: "teal" },
+                { id: "start",   label: "Start",               text: "Productiebatch is gegenereerd", tone: "teal" },
+                { id: "einde",   label: "EINDE",               text: "Batch is goedgekeurd en resultaat is vastgelegd", tone: "teal" },
+                { id: "input",   label: "Input",               text: "Geproduceerde productiebatch + productiegegevens, kwaliteitscriteria", tone: "teal" },
+                { id: "output",  label: "OUTPUT",              text: "Kwaliteitsresultaat / geregistreerde afwijking", tone: "teal" },
+                { id: "stake",   label: "Stakeholders",        text: "Productiemedewerkers in Vorst, Microbiologen & kwaliteitslaboranten", tone: "teal" },
+                { id: "verant",  label: "VERANTWOORDELIJKE",   text: "Microbiologen & kwaliteitslaboranten", tone: "teal" },
+                { id: "res",     label: "RESOURCES",           text: "Kwaliteitscontrole, proces-ingenieurs, productiedashboard, batchregistratie, Controle-harnais, Weegschaal en meetinstrumenten", tone: "teal" },
+                { id: "klanten", label: "KLANTEN",             text: "Productiemedewerkers / verdere productie- of leveringsstap", tone: "teal" }
             ]
         }
     };
 
     /* ---------- 3. State ---------- */
-    let state = JSON.parse(JSON.stringify(DEFAULTS)); // { page1: {...}, page2: {...} }
-    let currentPage = 0;                                // index into PAGES
-    let focused = null;                                 // { page, blockId, field } for skipping remote echoes
+    let state = JSON.parse(JSON.stringify(DEFAULTS));
+    let currentPage = 0;
+    let focused = null;
 
-    /* ---------- 4. Sync pill ---------- */
     const syncEl = document.getElementById('sync');
     const syncText = document.getElementById('sync-text');
     function setSync(s, t) { syncEl.className = 'sync ' + s; syncText.textContent = t; }
 
-    /* ---------- 5. Load ---------- */
+    /* ---------- 4. Load ---------- */
     async function loadAll() {
         const { data, error } = await sb.from('turtle_state').select('*');
         if (error) { setSync('error', 'Laadfout: ' + error.message); return; }
 
         if (!data || data.length === 0) {
-            // seed
             const rows = PAGES.map(id => ({
                 id,
                 title: DEFAULTS[id].title,
@@ -363,6 +388,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                 state[row.id] = {
                     title: row.title,
                     center: row.center,
+                    badge: DEFAULTS[row.id]?.badge || '?',
                     blocks: row.blocks
                 };
             });
@@ -370,7 +396,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         }
     }
 
-    /* ---------- 6. Debounced save ---------- */
+    /* ---------- 5. Save ---------- */
     const saveTimers = {};
     function queueSave(pageId) {
         setSync('saving', 'Opslaan…');
@@ -389,46 +415,45 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         }, 600);
     }
 
+    /* ---------- 6. Layout map (fixed positions) ---------- */
+    // Each slot tells which block id goes where.
+    const LAYOUT = {
+        leftTop:    'start',
+        leftMid:    'input',
+        centerTop:  'regels',
+        centerBottom: 'verant',
+        rightTop:   'doel',
+        rightMid:   'einde',
+        rightBottom:'output',
+        bottom:     ['stake', 'res', 'klanten'] // note: order tweaked later
+    };
+    // The bottom row of the screenshot is: Stakeholders | VERANTWOORDELIJKE | RESOURCES | KLANTEN
+    // But VERANTWOORDELIJKE is also below the arrow. Looking at the image again:
+    //   Row 4 (bottom) has 4 blocks: Stakeholders, VERANTWOORDELIJKE, RESOURCES, KLANTEN
+    //   The arrow column does NOT have a block below it in row 4.
+    // So we put VERANTWOORDELIJKE in the bottom row (spanning) not under the arrow.
+    // Adjust:
+    const BOTTOM_ROW = ['stake', 'verant', 'res', 'klanten'];
+
     /* ---------- 7. Render ---------- */
-    function findBlock(pageId, blockId) {
-        return state[pageId].blocks.find(b => b.id === blockId);
-    }
-
-    // Layout mapping: which block id goes where
-    const POSITIONS = {
-        leftTop:    'start',      // Start
-        leftMid:    'input',      // Input
-        leftBottom: 'stake',      // Stakeholders
-        centerTop:  'regels',     // Regels
-        centerBottom:'verant',    // Verantwoordelijke
-        rightTop:   'doel',       // DOEL
-        rightMid:   'einde',      // EINDE
-        rightBottom:'output',     // OUTPUT
-        bottom1:    'stake',      // (we only use bottom for extra blocks)
-        // Bottom row uses named extra slots:
-        bottomFar:  'klanten'     // KLANTEN
-    };
-
-    // Simple: build the diagram using explicit ids in fixed slots.
-    // Any blocks added by the user beyond the 10 defaults are placed in the bottom row too.
-    const DEFAULT_LAYOUT = {
-        left:    ['start', 'input'],
-        center:  ['regels'],
-        right:   ['doel', 'einde', 'output'],
-        bottom:  ['stake', 'verant', 'res', 'klanten']
-    };
-
     function renderDiagram() {
         const container = document.getElementById('diagram-container');
         container.innerHTML = '';
 
         const pageId = PAGES[currentPage];
         const page = state[pageId];
+        const pageNum = currentPage + 1;
 
         const card = document.createElement('div');
-        card.className = 'diagram-card';
+        card.className = 'diagram-card page-' + pageNum;
 
-        // Title (editable)
+        // Badge (A / B)
+        const badge = document.createElement('div');
+        badge.className = 'page-badge';
+        badge.textContent = page.badge || '?';
+        card.appendChild(badge);
+
+        // Title
         const title = document.createElement('div');
         title.className = 'diagram-title';
         title.contentEditable = 'true';
@@ -438,23 +463,28 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         title.addEventListener('input', () => { page.title = title.textContent; queueSave(pageId); });
         card.appendChild(title);
 
-        // Turtle grid
-        const turtle = document.createElement('div');
-        turtle.className = 'turtle';
+        // Turtle wrapper (contains SVG connectors + grid)
+        const wrapper = document.createElement('div');
+        wrapper.className = 'turtle-wrapper';
 
-        /* Left column */
-        const left = document.createElement('div');
-        left.className = 'col-left';
-        DEFAULT_LAYOUT.left.forEach(id => left.appendChild(buildBlock(pageId, id)));
-        turtle.appendChild(left);
+        // SVG connector layer — we draw it after layout so we can measure positions.
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('class', 'connectors');
+        wrapper.appendChild(svg);
 
-        /* Center column: Regels + red arrow + Verantwoordelijke */
-        const center = document.createElement('div');
-        center.className = 'col-center';
+        // Grid
+        const grid = document.createElement('div');
+        grid.className = 'turtle-grid';
 
-        const regelsEl = findBlock(pageId, 'regels');
-        if (regelsEl) center.appendChild(buildBlock(pageId, 'regels'));
+        // Place left column blocks
+        grid.appendChild(buildBlockInSlot(pageId, LAYOUT.leftTop,    'slot-left-top'));
+        grid.appendChild(buildBlockInSlot(pageId, LAYOUT.leftMid,    'slot-left-mid'));
 
+        // Center column
+        grid.appendChild(buildBlockInSlot(pageId, LAYOUT.centerTop,  'slot-center-top'));
+
+        const arrowSlot = document.createElement('div');
+        arrowSlot.className = 'slot-center-arrow';
         const arrow = document.createElement('div');
         arrow.className = 'center-arrow';
         const arrowSpan = document.createElement('span');
@@ -464,39 +494,54 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         arrowSpan.addEventListener('blur',  () => { focused = null; });
         arrowSpan.addEventListener('input', () => { page.center = arrowSpan.textContent; queueSave(pageId); });
         arrow.appendChild(arrowSpan);
-        center.appendChild(arrow);
+        arrowSlot.appendChild(arrow);
+        grid.appendChild(arrowSlot);
 
-        const verantEl = findBlock(pageId, 'verant');
-        if (verantEl) center.appendChild(buildBlock(pageId, 'verant'));
+        // Right column
+        grid.appendChild(buildBlockInSlot(pageId, LAYOUT.rightTop,   'slot-right-top'));
+        grid.appendChild(buildBlockInSlot(pageId, LAYOUT.rightMid,   'slot-right-mid'));
+        grid.appendChild(buildBlockInSlot(pageId, LAYOUT.rightBottom,'slot-right-bottom'));
 
-        turtle.appendChild(center);
-
-        /* Right column */
-        const right = document.createElement('div');
-        right.className = 'col-right';
-        DEFAULT_LAYOUT.right.forEach(id => right.appendChild(buildBlock(pageId, id)));
-        turtle.appendChild(right);
-
-        /* Bottom row (spanning all columns) */
-        const bottom = document.createElement('div');
-        bottom.className = 'bottom-row';
-        // Always include defaults, plus any custom blocks
-        const bottomIds = ['stake', 'res', 'klanten'];
-        bottomIds.forEach(id => {
-            const b = findBlock(pageId, id);
-            if (b) bottom.appendChild(buildBlock(pageId, id));
+        // Bottom row (spanning all columns)
+        const bottomSlot = document.createElement('div');
+        bottomSlot.className = 'slot-bottom';
+        BOTTOM_ROW.forEach(id => {
+            if (id === 'verant') {
+                // Skip here — placed under the arrow
+                return;
+            }
+            const b = page.blocks.find(x => x.id === id);
+            if (b) bottomSlot.appendChild(buildBlock(pageId, b));
         });
-
-        // Any remaining custom blocks (added by user) get appended to bottom row too
-        page.blocks.forEach(b => {
-            const isKnown = ['start','input','regels','verant','doel','einde','output','stake','res','klanten'].includes(b.id);
-            if (!isKnown) bottom.appendChild(buildBlock(pageId, b.id));
+        // Add VERANTWOORDELIJKE after RESOURCES slot? No — screenshot order is:
+        //   Stakeholders | VERANTWOORDELIJKE | RESOURCES | KLANTEN
+        // We already built the first item; build the rest in order.
+        // Simpler: rebuild bottomSlot fully with all four in order.
+        bottomSlot.innerHTML = '';
+        ['stake', 'verant', 'res', 'klanten'].forEach(id => {
+            const b = page.blocks.find(x => x.id === id);
+            if (b) bottomSlot.appendChild(buildBlock(pageId, b));
         });
+        grid.appendChild(bottomSlot);
 
-        turtle.appendChild(bottom);
-        card.appendChild(turtle);
+        wrapper.appendChild(grid);
+        card.appendChild(wrapper);
 
-        // "+ Add block" button
+        // Any custom blocks (not in the default set) → extras section
+        const known = ['start','input','regels','verant','doel','einde','output','stake','res','klanten'];
+        const custom = page.blocks.filter(b => !known.includes(b.id));
+        if (custom.length > 0) {
+            const extras = document.createElement('div');
+            extras.className = 'extras';
+            extras.innerHTML = '<div class="extras-label">Extra blokken</div>';
+            const eg = document.createElement('div');
+            eg.className = 'extras-grid';
+            custom.forEach(b => eg.appendChild(buildBlock(pageId, b)));
+            extras.appendChild(eg);
+            card.appendChild(extras);
+        }
+
+        // Add-block button
         const addBtn = document.createElement('button');
         addBtn.className = 'add-block-btn';
         addBtn.textContent = '+ Blok toevoegen';
@@ -516,21 +561,29 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             `Pagina ${currentPage + 1} / ${PAGES.length}`;
         document.getElementById('prev-btn').disabled = currentPage === 0;
         document.getElementById('next-btn').disabled = currentPage === PAGES.length - 1;
+
+        // Draw connectors after layout settles
+        requestAnimationFrame(() => drawConnectors(svg, wrapper));
     }
 
-    function buildBlock(pageId, blockId) {
+    function buildBlockInSlot(pageId, blockId, slotClass) {
+        const el = document.createElement('div');
+        el.className = slotClass;
         const page = state[pageId];
-        const block = findBlock(pageId, blockId);
-        if (!block) return document.createElement('div');
+        const block = page.blocks.find(b => b.id === blockId);
+        if (block) el.appendChild(buildBlock(pageId, block));
+        return el;
+    }
 
+    function buildBlock(pageId, block) {
         const el = document.createElement('div');
         el.className = 'block';
         el.dataset.tone = block.tone || 'blue';
+        el.dataset.blockId = block.id;
 
-        /* Actions: color + delete */
+        // Actions
         const actions = document.createElement('div');
         actions.className = 'actions';
-
         ['blue', 'teal', 'yellow', 'green'].forEach(tone => {
             const tb = document.createElement('button');
             tb.className = 'tone-btn';
@@ -544,7 +597,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
             });
             actions.appendChild(tb);
         });
-
         const del = document.createElement('button');
         del.className = 'del';
         del.textContent = '×';
@@ -552,29 +604,30 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         del.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!confirm('Dit blok verwijderen?')) return;
-            page.blocks = page.blocks.filter(b => b.id !== blockId);
+            const page = state[pageId];
+            page.blocks = page.blocks.filter(b => b.id !== block.id);
             queueSave(pageId);
             renderDiagram();
         });
         actions.appendChild(del);
         el.appendChild(actions);
 
-        /* Label */
+        // Label
         const labelEl = document.createElement('div');
         labelEl.className = 'block-label';
         labelEl.contentEditable = 'true';
         labelEl.textContent = block.label;
-        labelEl.addEventListener('focus', () => { focused = { page: pageId, blockId, field: 'label' }; });
+        labelEl.addEventListener('focus', () => { focused = { page: pageId, blockId: block.id, field: 'label' }; });
         labelEl.addEventListener('blur',  () => { focused = null; });
         labelEl.addEventListener('input', () => { block.label = labelEl.textContent; queueSave(pageId); });
         el.appendChild(labelEl);
 
-        /* Text */
+        // Text
         const textEl = document.createElement('div');
         textEl.className = 'block-text';
         textEl.contentEditable = 'true';
         textEl.textContent = block.text;
-        textEl.addEventListener('focus', () => { focused = { page: pageId, blockId, field: 'text' }; });
+        textEl.addEventListener('focus', () => { focused = { page: pageId, blockId: block.id, field: 'text' }; });
         textEl.addEventListener('blur',  () => { focused = null; });
         textEl.addEventListener('input', () => { block.text = textEl.textContent; queueSave(pageId); });
         el.appendChild(textEl);
@@ -582,7 +635,39 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         return el;
     }
 
-    /* ---------- 8. Navigation ---------- */
+    /* ---------- 8. Connectors (lines from each block to center arrow) ---------- */
+    function drawConnectors(svg, wrapper) {
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const arrow = wrapper.querySelector('.center-arrow');
+        if (!arrow) return;
+
+        const arrowRect = arrow.getBoundingClientRect();
+        const cx = arrowRect.left + arrowRect.width / 2 - wrapperRect.left;
+        const cy = arrowRect.top  + arrowRect.height / 2 - wrapperRect.top;
+
+        svg.setAttribute('viewBox', `0 0 ${wrapperRect.width} ${wrapperRect.height}`);
+        svg.setAttribute('width',  wrapperRect.width);
+        svg.setAttribute('height', wrapperRect.height);
+        svg.innerHTML = '';
+
+        wrapper.querySelectorAll('.block').forEach(block => {
+            // Skip blocks in the extras section
+            if (block.closest('.extras')) return;
+
+            const r = block.getBoundingClientRect();
+            const bx = r.left + r.width / 2 - wrapperRect.left;
+            const by = r.top  + r.height / 2 - wrapperRect.top;
+
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', bx);
+            line.setAttribute('y1', by);
+            line.setAttribute('x2', cx);
+            line.setAttribute('y2', cy);
+            svg.appendChild(line);
+        });
+    }
+
+    /* ---------- 9. Navigation ---------- */
     document.getElementById('prev-btn').addEventListener('click', () => {
         if (currentPage > 0) { currentPage--; renderDiagram(); }
     });
@@ -590,13 +675,19 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         if (currentPage < PAGES.length - 1) { currentPage++; renderDiagram(); }
     });
     document.addEventListener('keydown', (e) => {
-        // Only when not editing text
         if (document.activeElement && document.activeElement.isContentEditable) return;
         if (e.key === 'ArrowLeft'  && currentPage > 0) { currentPage--; renderDiagram(); }
         if (e.key === 'ArrowRight' && currentPage < PAGES.length - 1) { currentPage++; renderDiagram(); }
     });
 
-    /* ---------- 9. Realtime ---------- */
+    // Redraw connectors on window resize
+    window.addEventListener('resize', () => {
+        const svg = document.querySelector('.connectors');
+        const wrapper = document.querySelector('.turtle-wrapper');
+        if (svg && wrapper) drawConnectors(svg, wrapper);
+    });
+
+    /* ---------- 10. Realtime ---------- */
     function subscribeRealtime() {
         sb.channel('turtle-updates')
             .on('postgres_changes',
@@ -604,35 +695,25 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
                 (payload) => {
                     const row = payload.new || payload.old;
                     if (!row || !row.id) return;
-
-                    // Skip echo of our own recent save for the field we're editing
                     if (row.updated_by && row.updated_by === session.user.id
                         && focused && focused.page === row.id) {
                         return;
                     }
-
                     state[row.id] = {
                         title: row.title,
                         center: row.center,
+                        badge: DEFAULTS[row.id]?.badge || '?',
                         blocks: row.blocks
                     };
-
                     if (PAGES[currentPage] === row.id) {
-                        // Save which block/field is focused so we can restore focus
-                        const active = document.activeElement;
-                        const focusInfo = active && active.isContentEditable
-                            ? { label: active.textContent }
-                            : null;
                         renderDiagram();
-                        // Focus restoration is complex; for now we skip it — realtime
-                        // rerenders won't fire for our own edits thanks to the guard above.
                     }
                     setSync('saved', 'Bijgewerkt');
                 })
             .subscribe();
     }
 
-    /* ---------- 10. Reset ---------- */
+    /* ---------- 11. Reset ---------- */
     document.getElementById('reset').onclick = async () => {
         if (!confirm('Alle turtle diagrams resetten naar de beginwaarden voor het hele team?')) return;
         setSync('saving', 'Resetten…');
@@ -651,7 +732,7 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
         setSync('saved', 'Gerest');
     };
 
-    /* ---------- 11. Boot ---------- */
+    /* ---------- 12. Boot ---------- */
     setSync('saving', 'Laden…');
     await loadAll();
     renderDiagram();
