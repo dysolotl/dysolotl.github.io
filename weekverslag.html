@@ -32,7 +32,6 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .sync.saved  .dot { background: #19a974; }
 .sync.error  .dot { background: #d33; }
 
-/* Layout: form left, preview right */
 .layout {
     display: grid;
     grid-template-columns: minmax(380px, 1fr) minmax(520px, 1.4fr);
@@ -40,11 +39,8 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
     max-width: 1500px;
     margin: 0 auto;
 }
-@media (max-width: 1100px) {
-    .layout { grid-template-columns: 1fr; }
-}
+@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
 
-/* ---------- Form panel ---------- */
 .form-panel {
     background: white;
     border-radius: 10px;
@@ -60,16 +56,61 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 .form-panel section { margin-bottom: 22px; padding-bottom: 18px; border-bottom: 1px solid #f0f0f0; }
 .form-panel section:last-child { border-bottom: none; padding-bottom: 0; }
 label { display: block; font-size: 13px; color: #444; font-weight: 500; margin: 10px 0 4px; }
-input[type="text"], input[type="date"], input[type="week"], textarea, select {
+input[type="text"], input[type="date"], textarea, select {
     display: block; width: 100%; padding: 8px 10px;
     border: 1px solid #ccc; border-radius: 6px;
     font-size: 14px; font-family: inherit; background: white;
+}
+input:disabled, textarea:disabled {
+    background: #f3f4f6;
+    color: #555;
+    cursor: not-allowed;
 }
 textarea { resize: vertical; min-height: 60px; }
 .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
-/* Dynamic list editors */
+.team-hint {
+    font-size: 12px;
+    color: #888;
+    background: #f7f9fc;
+    padding: 8px 10px;
+    border-left: 3px solid #0066ff;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+/* Roles grid */
+.roles-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+.role-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+    background: #f7f9fc;
+    border: 1px solid #e3e8ef;
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+.role-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+.role-row select {
+    padding: 6px 8px;
+    font-size: 13px;
+    margin: 0;
+}
+@media (max-width: 700px) {
+    .role-row { grid-template-columns: 1fr; }
+}
+
 .list-editor { display: flex; flex-direction: column; gap: 6px; }
 .list-row {
     display: grid; gap: 6px; align-items: center;
@@ -100,7 +141,6 @@ textarea { resize: vertical; min-height: 60px; }
 }
 .add-row-btn:hover { background: #f0f6ff; }
 
-/* ---------- Preview panel ---------- */
 .preview-panel {
     background: white;
     border-radius: 10px;
@@ -152,7 +192,6 @@ textarea { resize: vertical; min-height: 60px; }
 }
 .btn-secondary:hover { background: #eee; }
 
-/* The actual PDF-target document */
 #report-doc {
     background: white;
     border: 1px solid #e3e5e8;
@@ -164,48 +203,19 @@ textarea { resize: vertical; min-height: 60px; }
     line-height: 1.5;
     overflow-x: auto;
 }
-#report-doc .doc-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0 0 4px;
-}
-#report-doc .doc-date {
-    font-size: 12px;
-    color: #666;
-    margin-bottom: 20px;
-}
+#report-doc .doc-title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+#report-doc .doc-date { font-size: 12px; color: #666; margin-bottom: 20px; }
 #report-doc h2 {
-    font-size: 14px;
-    font-weight: 700;
-    margin: 22px 0 8px;
-    color: #1a3a5c;
-    border-bottom: 1px solid #e3e5e8;
-    padding-bottom: 4px;
+    font-size: 14px; font-weight: 700; margin: 22px 0 8px;
+    color: #1a3a5c; border-bottom: 1px solid #e3e5e8; padding-bottom: 4px;
 }
-#report-doc table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 8px 0 12px;
-    font-size: 12px;
-}
-#report-doc th, #report-doc td {
-    border: 1px solid #d0d7de;
-    padding: 6px 8px;
-    text-align: left;
-    vertical-align: top;
-}
-#report-doc th {
-    background: #f5f7fa;
-    font-weight: 600;
-}
+#report-doc table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; font-size: 12px; }
+#report-doc th, #report-doc td { border: 1px solid #d0d7de; padding: 6px 8px; text-align: left; vertical-align: top; }
+#report-doc th { background: #f5f7fa; font-weight: 600; }
 #report-doc p { margin: 6px 0; }
 #report-doc ul { margin: 6px 0; padding-left: 20px; }
 #report-doc li { margin: 3px 0; }
-#report-doc .info-table td:first-child {
-    width: 130px;
-    background: #f5f7fa;
-    font-weight: 500;
-}
+#report-doc .info-table td:first-child { width: 150px; background: #f5f7fa; font-weight: 500; }
 
 @media print {
     body * { visibility: hidden; }
@@ -226,17 +236,17 @@ textarea { resize: vertical; min-height: 60px; }
 </div>
 
 <h1>Weekverslag Generator</h1>
-<p class="hint">Vul de gegevens in — het verslag wordt live opgebouwd. Exporteer als PDF met de juiste naamconventie.</p>
+<p class="hint">Teamgegevens worden automatisch ingevuld. Kies per rol wie de rol opneemt en wie de vervanger is. Vul de rest per week in en exporteer als PDF.</p>
 
 <div class="layout">
 
-    <!-- ============================================================ -->
-    <!-- FORM                                                          -->
-    <!-- ============================================================ -->
     <div class="form-panel">
 
         <section>
             <h2>Basisinfo</h2>
+            <div class="team-hint">
+                Deze gegevens komen uit de vaste teamconfiguratie. Pas ze aan in de code (bovenaan het script).
+            </div>
             <div class="row-2">
                 <div>
                     <label>Datum les (bepaalt dd en YYMMDD)</label>
@@ -249,18 +259,18 @@ textarea { resize: vertical; min-height: 60px; }
             </div>
             <div class="row-2">
                 <div>
-                    <label>Teamnummer (1-8)</label>
-                    <input type="text" id="f-team" placeholder="bv. 7">
+                    <label>Teamnummer</label>
+                    <input type="text" id="f-team" disabled>
                 </div>
                 <div>
                     <label>Klasgroep</label>
-                    <input type="text" id="f-class" placeholder="bv. 2TI-BA-Vr-7">
+                    <input type="text" id="f-class" disabled>
                 </div>
             </div>
             <div class="row-2">
                 <div>
                     <label>Case / bedrijf</label>
-                    <input type="text" id="f-case" placeholder="bv. PermaFungi">
+                    <input type="text" id="f-case" disabled>
                 </div>
                 <div>
                     <label>Week label (in titel)</label>
@@ -270,29 +280,18 @@ textarea { resize: vertical; min-height: 60px; }
         </section>
 
         <section>
-            <h2>Teamleden & rollen</h2>
-            <label>Teamleden (komma-gescheiden)</label>
-            <input type="text" id="f-members" placeholder="bv. Adam Allali, Dylan De Marie, ...">
+            <h2>Teamleden</h2>
+            <label>Teamleden</label>
+            <input type="text" id="f-members" disabled>
+        </section>
 
-            <div class="row-2">
-                <div>
-                    <label>Teamleider</label>
-                    <input type="text" id="f-role-leader">
-                </div>
-                <div>
-                    <label>Secretaris</label>
-                    <input type="text" id="f-role-secretary">
-                </div>
+        <section>
+            <h2>Rollen &amp; vervangers</h2>
+            <div class="team-hint">
+                Kies voor elke rol wie de rol opneemt en wie de vervanger is. Kandidaten komen uit de teamledenlijst.
             </div>
-            <div class="row-2">
-                <div>
-                    <label>Eindredacteur</label>
-                    <input type="text" id="f-role-editor">
-                </div>
-                <div>
-                    <label>Vervanger</label>
-                    <input type="text" id="f-role-replacement">
-                </div>
+            <div class="roles-grid" id="roles-grid">
+                <!-- filled by JS -->
             </div>
         </section>
 
@@ -331,9 +330,6 @@ textarea { resize: vertical; min-height: 60px; }
 
     </div>
 
-    <!-- ============================================================ -->
-    <!-- PREVIEW                                                       -->
-    <!-- ============================================================ -->
     <div class="preview-panel">
 
         <div class="preview-toolbar">
@@ -342,7 +338,6 @@ textarea { resize: vertical; min-height: 60px; }
             <button class="btn-primary" id="export-btn">Exporteer PDF</button>
         </div>
 
-        <!-- The document that gets exported -->
         <div id="report-doc"></div>
 
     </div>
@@ -367,31 +362,63 @@ textarea { resize: vertical; min-height: 60px; }
     function setSync(s, t) { syncEl.className = 'sync ' + s; syncText.textContent = t; }
 
     /* ============================================================
+       TEAM CONFIGURATIE — pas hier aan als het team wijzigt
+       ============================================================ */
+    const TEAM = {
+        members: "Adam Allali, Dylan De Marie, Dingming Zhu, Daniel Allauca Orozco",
+        roles: {
+            leader:      { primary: "Dingming", replacement: "Daniel" },
+            secretary:   { primary: "Dylan",    replacement: "Adam"   },
+            editor:      { primary: "Adam",     replacement: "Dingming" },
+        },
+        teamNumber: "7",
+        classGroup: "2TI-BA-Vr-7",
+        caseName: "PermaFungi"
+    };
+
+    // Parse member names for the dropdowns
+    function parseMembers(str) {
+        return str.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    const MEMBER_LIST = parseMembers(TEAM.members);
+
+    // Role definitions (key, Dutch label)
+    const ROLE_DEFS = [
+        { key: 'leader',    label: 'Leider' },
+        { key: 'secretary', label: 'Secretaris' },
+        { key: 'editor',    label: 'Eindredacteur' }
+    ];
+
+    /* ============================================================
        STATE
        ============================================================ */
-    // The form data lives here. Everything else derives from it.
     const data = {
         date: '',
         week: 'week 1',
-        team: '7',
-        class: '2TI-BA-Vr-7',
-        case: 'PermaFungi',
+        team: TEAM.teamNumber,
+        class: TEAM.classGroup,
+        case: TEAM.caseName,
         weeklabel: 'Week 1',
-        members: '',
-        roles: { leader: '', secretary: '', editor: '', replacement: '' },
-        status: { paragraph: '', bullets: '' },   // bullets stored as newline-separated string
+        members: TEAM.members,
+        // Each role: { primary, replacement }
+        roles: {
+            leader:      { ...TEAM.roles.leader },
+            secretary:   { ...TEAM.roles.secretary },
+            editor:      { ...TEAM.roles.editor }
+        },
+        status: { paragraph: '', bullets: '' },
         open: '',
-        tasks: [],        // [{ name, tasks }]
-        meetings: [],     // [{ date, topic, conclusion }]
-        planning: []      // [{ task, who }]
+        tasks: [],
+        meetings: [],
+        planning: []
     };
 
     /* ============================================================
-       FILENAME COMPUTATION (per docent's convention)
+       FILENAME / DATES
        ============================================================ */
     function computeFileName() {
         if (!data.date) return 'BA-Weekverslag-Team-??-?-??????.pdf';
-        const d = new Date(data.date + 'T12:00:00'); // avoid timezone surprises
+        const d = new Date(data.date + 'T12:00:00');
         const dayMap = { 1: 'ma', 2: 'di', 3: 'wo', 4: 'do', 5: 'vr', 6: 'za', 0: 'zo' };
         const dd = dayMap[d.getDay()] || '??';
         const X = data.team || '?';
@@ -408,31 +435,91 @@ textarea { resize: vertical; min-height: 60px; }
         return `${monthNames[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
     }
 
-    /* ============================================================
-       DOM REFS
-       ============================================================ */
     const $ = id => document.getElementById(id);
     const previewEl = $('report-doc');
     const filenameEl = $('filename-preview');
 
     /* ============================================================
-       FORM ↔ DATA binding
+       AUTO-FILL TEAM FIELDS
+       ============================================================ */
+    $('f-members').value = TEAM.members;
+    $('f-team').value = TEAM.teamNumber;
+    $('f-class').value = TEAM.classGroup;
+    $('f-case').value = TEAM.caseName;
+
+    /* ============================================================
+       ROLES GRID — each role has primary + replacement dropdown
+       ============================================================ */
+    function buildRolesGrid() {
+        const grid = $('roles-grid');
+        grid.innerHTML = '';
+
+        ROLE_DEFS.forEach(roleDef => {
+            const row = document.createElement('div');
+            row.className = 'role-row';
+
+            const label = document.createElement('div');
+            label.className = 'role-label';
+            label.textContent = roleDef.label;
+            row.appendChild(label);
+
+            const primary = makeMemberSelect(
+                data.roles[roleDef.key].primary,
+                (val) => { data.roles[roleDef.key].primary = val; refresh(); }
+            );
+            primary.title = roleDef.label;
+            row.appendChild(primary);
+
+            const replacement = makeMemberSelect(
+                data.roles[roleDef.key].replacement,
+                (val) => { data.roles[roleDef.key].replacement = val; refresh(); }
+            );
+            replacement.title = 'Vervang ' + roleDef.label.toLowerCase();
+            row.appendChild(replacement);
+
+            grid.appendChild(row);
+        });
+    }
+
+    function makeMemberSelect(currentValue, onChange) {
+        const sel = document.createElement('select');
+        const blank = document.createElement('option');
+        blank.value = '';
+        blank.textContent = '— kies —';
+        sel.appendChild(blank);
+
+        MEMBER_LIST.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            if (name === currentValue) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        // If currentValue isn't in the list (e.g. "Dingming" vs full name "Dingming Zhu"),
+        // add it as an extra option so it isn't lost.
+        if (currentValue && !MEMBER_LIST.includes(currentValue)) {
+            const opt = document.createElement('option');
+            opt.value = currentValue;
+            opt.textContent = currentValue;
+            opt.selected = true;
+            sel.appendChild(opt);
+        }
+
+        sel.addEventListener('change', () => onChange(sel.value));
+        return sel;
+    }
+
+    /* ============================================================
+       Editable field bindings
        ============================================================ */
     const fieldMap = {
-        'f-date':            v => data.date = v,
-        'f-week':            v => data.week = v,
-        'f-team':            v => data.team = v,
-        'f-class':           v => data.class = v,
-        'f-case':            v => data.case = v,
-        'f-weeklabel':       v => data.weeklabel = v,
-        'f-members':         v => data.members = v,
-        'f-role-leader':     v => data.roles.leader = v,
-        'f-role-secretary':  v => data.roles.secretary = v,
-        'f-role-editor':     v => data.roles.editor = v,
-        'f-role-replacement':v => data.roles.replacement = v,
-        'f-status-paragraph':v => data.status.paragraph = v,
-        'f-status-bullets':  v => data.status.bullets = v,
-        'f-open':            v => data.open = v
+        'f-date':             v => data.date = v,
+        'f-week':             v => data.week = v,
+        'f-weeklabel':        v => data.weeklabel = v,
+        'f-status-paragraph': v => data.status.paragraph = v,
+        'f-status-bullets':   v => data.status.bullets = v,
+        'f-open':             v => data.open = v
     };
     Object.entries(fieldMap).forEach(([id, setter]) => {
         const el = $(id);
@@ -441,7 +528,7 @@ textarea { resize: vertical; min-height: 60px; }
     });
 
     /* ============================================================
-       DYNAMIC LISTS (tasks, meetings, planning)
+       DYNAMIC LISTS
        ============================================================ */
     function renderTasks() {
         const c = $('f-tasks-list');
@@ -542,6 +629,18 @@ textarea { resize: vertical; min-height: 60px; }
     }
     function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
 
+    function rolesSummary() {
+        // Build a readable summary that shows primary + replacement per role.
+        // Example: "Leider: Dingming (vervanger: Daniel) · Secretaris: Dylan (vervanger: Adam) · Eindredacteur: Adam (vervanger: Dingming)"
+        return ROLE_DEFS.map(r => {
+            const p = data.roles[r.key].primary || '—';
+            const rep = data.roles[r.key].replacement;
+            return rep
+                ? `<strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(p)} <em>(vervanger: ${escapeHtml(rep)})</em>`
+                : `<strong>${escapeHtml(r.label)}:</strong> ${escapeHtml(p)}`;
+        }).join(' &nbsp;·&nbsp; ');
+    }
+
     function renderPreview() {
         const bulletsHtml = data.status.bullets
             .split('\n').map(l => l.trim()).filter(Boolean)
@@ -580,12 +679,7 @@ textarea { resize: vertical; min-height: 60px; }
                 <tr><td>Case</td><td>${escapeHtml(data.case)}</td></tr>
                 <tr><td>Week</td><td>${escapeHtml(data.week)}</td></tr>
                 <tr><td>Teamleden</td><td>${escapeHtml(data.members)}</td></tr>
-                <tr><td>Rollen</td><td>
-                    Teamleider: ${escapeHtml(data.roles.leader)} ·
-                    Secretaris: ${escapeHtml(data.roles.secretary)} ·
-                    Eindredacteur: ${escapeHtml(data.roles.editor)} ·
-                    Vervanger: ${escapeHtml(data.roles.replacement)}
-                </td></tr>
+                <tr><td>Rollen</td><td>${rolesSummary()}</td></tr>
                 <tr><td>Bestandsnaam</td><td>${escapeHtml(computeFileName())}</td></tr>
             </table>
 
@@ -623,12 +717,11 @@ textarea { resize: vertical; min-height: 60px; }
     }
 
     /* ============================================================
-       SUPABASE PERSISTENCE (per week)
+       SUPABASE PERSISTENCE
        ============================================================ */
     function currentWeekKey() {
         if (!data.date) return null;
         const d = new Date(data.date + 'T12:00:00');
-        // ISO week number
         const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         const dayNum = target.getUTCDay() || 7;
         target.setUTCDate(target.getUTCDate() + 4 - dayNum);
@@ -663,27 +756,44 @@ textarea { resize: vertical; min-height: 60px; }
         const { data: rows, error } = await sb
             .from('weekverslagen').select('*').eq('id', key).limit(1);
         if (error || !rows || rows.length === 0) return;
+
+        // Merge loaded data, but keep TEAM values authoritative for team-level fields
         Object.assign(data, rows[0].data);
-        // Repopulate form fields from data
+        data.team = TEAM.teamNumber;
+        data.class = TEAM.classGroup;
+        data.case = TEAM.caseName;
+        data.members = TEAM.members;
+
+        // Migrate old roles format if needed
+        if (data.roles && typeof data.roles.leader === 'string') {
+            // old format: { leader: 'Dingming', secretary: 'Dylan', editor: 'Adam', replacement: 'Daniel' }
+            const old = data.roles;
+            data.roles = {
+                leader:      { primary: old.leader || '',      replacement: old.replacement || '' },
+                secretary:   { primary: old.secretary || '',   replacement: '' },
+                editor:      { primary: old.editor || '',      replacement: '' }
+            };
+        } else {
+            // Ensure each role has both fields
+            ROLE_DEFS.forEach(r => {
+                if (!data.roles[r.key]) data.roles[r.key] = { primary: '', replacement: '' };
+                if (typeof data.roles[r.key] === 'string') {
+                    data.roles[r.key] = { primary: data.roles[r.key], replacement: '' };
+                }
+            });
+        }
+
         $('f-date').value = data.date || '';
         $('f-week').value = data.week || '';
-        $('f-team').value = data.team || '';
-        $('f-class').value = data.class || '';
-        $('f-case').value = data.case || '';
         $('f-weeklabel').value = data.weeklabel || '';
-        $('f-members').value = data.members || '';
-        $('f-role-leader').value = data.roles.leader || '';
-        $('f-role-secretary').value = data.roles.secretary || '';
-        $('f-role-editor').value = data.roles.editor || '';
-        $('f-role-replacement').value = data.roles.replacement || '';
         $('f-status-paragraph').value = data.status.paragraph || '';
         $('f-status-bullets').value = data.status.bullets || '';
         $('f-open').value = data.open || '';
+        buildRolesGrid();
         renderTasks(); renderMeetings(); renderPlanning();
         refresh();
     }
 
-    // Reload when the user changes the date
     $('f-date').addEventListener('change', loadForDate);
 
     /* ============================================================
@@ -732,14 +842,14 @@ textarea { resize: vertical; min-height: 60px; }
     });
 
     /* ============================================================
-       INITIAL PREVIEW
+       INIT
        ============================================================ */
-    // Default the date to today's date for convenience
     const today = new Date();
     const iso = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     $('f-date').value = iso;
     data.date = iso;
 
+    buildRolesGrid();
     renderTasks();
     renderMeetings();
     renderPlanning();
