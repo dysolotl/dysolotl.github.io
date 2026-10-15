@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Notebooks · Widgets + Drag</title>
+    <title>Team Notebooks · Widgets + Drag + Zoom</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -70,7 +70,7 @@
             letter-spacing: -0.01em;
         }
 
-        /* ----- create form (compact) ----- */
+        /* ----- create form ----- */
         .create-card {
             background: white;
             padding: 20px 24px;
@@ -194,13 +194,11 @@
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
             border: 1px solid #eaeef3;
             transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
-            cursor: pointer;
             display: flex;
             flex-direction: column;
             height: 100%;
             min-height: 120px;
             position: relative;
-            /* drag styles */
             cursor: grab;
             user-select: none;
             -webkit-user-drag: element;
@@ -216,7 +214,6 @@
             border-color: #cbd5e1;
         }
 
-        /* drag handle visual indicator */
         .notebook-widget::before {
             content: "⋮⋮";
             position: absolute;
@@ -235,7 +232,6 @@
             opacity: 1;
         }
 
-        /* only show image wrapper if there's an image */
         .widget-image {
             width: 100%;
             height: 150px;
@@ -317,16 +313,7 @@
             background: #f7faff;
         }
 
-        /* placeholder while dragging */
-        .notebook-widget.placeholder {
-            opacity: 0.3;
-            border: 2px dashed #aaa;
-            background: #f8f8f8;
-            transform: scale(0.98);
-            box-shadow: none;
-        }
-
-        /* ----- modal (instagram style) ----- */
+        /* ----- modal ----- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -378,6 +365,7 @@
             min-width: 0;
             position: relative;
             overflow: hidden;
+            cursor: zoom-in;
         }
 
         .modal-media img {
@@ -387,6 +375,11 @@
             display: block;
             max-height: 90vh;
             background: #f0f2f5;
+            transition: transform 0.2s;
+        }
+
+        .modal-media:hover img {
+            transform: scale(1.02);
         }
 
         .modal-content {
@@ -601,6 +594,128 @@
             margin-top: 6px;
         }
 
+        /* ----- no-image modal layout: side-by-side ----- */
+        .modal-container.no-image {
+            max-width: 900px;
+        }
+
+        .modal-container.no-image .modal-main {
+            display: flex;
+            flex-direction: row;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .modal-container.no-image .modal-text-side {
+            flex: 1.3;
+            padding: 22px 24px;
+            overflow-y: auto;
+            border-right: 1px solid #eef2f6;
+            min-width: 0;
+        }
+
+        .modal-container.no-image .modal-comments-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 24px;
+            overflow: hidden;
+            min-width: 300px;
+            background: #fbfcfe;
+        }
+
+        .modal-container.no-image .modal-comments-side .comments-list {
+            flex: 1;
+            max-height: none;
+            overflow-y: auto;
+        }
+
+        .modal-container.no-image .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .modal-container.no-image .modal-owner-actions {
+            padding: 14px 24px 18px;
+        }
+
+        /* ----- zoom overlay ----- */
+        .zoom-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            cursor: zoom-out;
+            padding: 40px;
+        }
+
+        .zoom-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .zoom-overlay img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.25s;
+            cursor: default;
+        }
+
+        .zoom-overlay.open img {
+            transform: scale(1);
+        }
+
+        .zoom-close {
+            position: absolute;
+            top: 20px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            font-size: 32px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: 50%;
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            backdrop-filter: blur(4px);
+        }
+
+        .zoom-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .zoom-hint {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+            pointer-events: none;
+            letter-spacing: 0.03em;
+        }
+
+        /* responsive */
         @media (max-width: 800px) {
             .modal-container {
                 flex-direction: column;
@@ -623,6 +738,29 @@
             .modal-scroll {
                 max-height: 45vh;
             }
+
+            /* no-image modal on mobile: stack vertically */
+            .modal-container.no-image .modal-main {
+                flex-direction: column;
+            }
+
+            .modal-container.no-image .modal-text-side {
+                border-right: none;
+                border-bottom: 1px solid #eef2f6;
+                max-height: 40vh;
+            }
+
+            .modal-container.no-image .modal-comments-side {
+                min-width: 0;
+            }
+
+            .zoom-close {
+                top: 12px;
+                right: 12px;
+                font-size: 26px;
+                width: 44px;
+                height: 44px;
+            }
         }
 
         .empty-message {
@@ -641,7 +779,6 @@
             text-align: center;
         }
 
-        /* drag hint */
         .drag-hint {
             font-size: 12px;
             color: #94a3b8;
@@ -680,15 +817,23 @@
     </div>
 
     <div class="drag-hint">
-        <span>↕</span> Sleep widgets om ze te herordenen
+        <span>↕</span> Sleep widgets om ze te herordenen · klik op een foto om in te zoomen
     </div>
 
     <div id="notebooks-list" class="notebooks-grid">
         <p class="loading">Loading…</p>
     </div>
 
+    <!-- modal -->
     <div id="modal-overlay" class="modal-overlay">
         <div class="modal-container" id="modal-container"></div>
+    </div>
+
+    <!-- zoom overlay -->
+    <div id="zoom-overlay" class="zoom-overlay">
+        <button class="zoom-close" id="zoom-close-btn">&times;</button>
+        <img id="zoom-image" src="" alt="Zoomed image">
+        <div class="zoom-hint">Klik buiten de afbeelding of op ✕ om te sluiten</div>
     </div>
 
     <script src="supabaseClient.js"></script>
@@ -702,12 +847,14 @@
         const listDiv = document.getElementById('notebooks-list');
         const modalOverlay = document.getElementById('modal-overlay');
         const modalContainer = document.getElementById('modal-container');
+        const zoomOverlay = document.getElementById('zoom-overlay');
+        const zoomImage = document.getElementById('zoom-image');
+        const zoomCloseBtn = document.getElementById('zoom-close-btn');
 
         let currentUser = null;
         let notebooksCache = [];
         let commentsCache = {};
 
-        // drag state
         let draggedId = null;
         let dragOverElement = null;
 
@@ -776,7 +923,40 @@
                 .replace(/>/g, '&gt;');
         }
 
-        /* ---------- render grid with drag & drop ---------- */
+        /* ---------- zoom ---------- */
+        function openZoom(imageUrl) {
+            zoomImage.src = imageUrl;
+            zoomOverlay.classList.add('open');
+        }
+
+        function closeZoom() {
+            zoomOverlay.classList.remove('open');
+            setTimeout(() => {
+                if (!zoomOverlay.classList.contains('open')) {
+                    zoomImage.src = '';
+                }
+            }, 250);
+        }
+
+        zoomOverlay.addEventListener('click', (e) => {
+            if (e.target === zoomOverlay || e.target === zoomCloseBtn || e.target.classList.contains('zoom-hint')) {
+                closeZoom();
+            }
+        });
+
+        zoomCloseBtn.addEventListener('click', closeZoom);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (zoomOverlay.classList.contains('open')) {
+                    closeZoom();
+                } else if (modalOverlay.classList.contains('open')) {
+                    closeModal();
+                }
+            }
+        });
+
+        /* ---------- render grid ---------- */
         function renderGrid() {
             listDiv.innerHTML = '';
             if (notebooksCache.length === 0) {
@@ -807,7 +987,7 @@
                     </div>
                 `;
 
-                /* ----- drag events ----- */
+                /* drag events */
                 widget.addEventListener('dragstart', (e) => {
                     draggedId = nb.id;
                     e.dataTransfer.effectAllowed = 'move';
@@ -818,7 +998,7 @@
                 widget.addEventListener('dragend', () => {
                     widget.classList.remove('dragging');
                     document.querySelectorAll('.notebook-widget').forEach(el => {
-                        el.classList.remove('drag-over', 'placeholder');
+                        el.classList.remove('drag-over');
                     });
                     draggedId = null;
                 });
@@ -832,9 +1012,8 @@
                     const target = e.currentTarget;
                     if (dragOverElement === target) return;
 
-                    // remove previous drag-over classes
                     document.querySelectorAll('.notebook-widget').forEach(el => {
-                        el.classList.remove('drag-over', 'placeholder');
+                        el.classList.remove('drag-over');
                     });
 
                     target.classList.add('drag-over');
@@ -855,39 +1034,62 @@
 
                     if (!draggedId || draggedId === nb.id) {
                         document.querySelectorAll('.notebook-widget').forEach(el => {
-                            el.classList.remove('drag-over', 'placeholder');
+                            el.classList.remove('drag-over');
                         });
                         draggedId = null;
                         return;
                     }
 
-                    // Reorder array
                     const fromIndex = notebooksCache.findIndex(n => n.id === draggedId);
                     const toIndex = notebooksCache.findIndex(n => n.id === nb.id);
 
                     if (fromIndex === -1 || toIndex === -1) return;
 
-                    // Remove and insert
                     const [moved] = notebooksCache.splice(fromIndex, 1);
                     notebooksCache.splice(toIndex, 0, moved);
 
-                    // Re-render grid (order is local only – not saved to DB)
                     renderGrid();
-
-                    // Reset drag state
                     draggedId = null;
                     dragOverElement = null;
                 });
 
-                /* ----- click to open (but not while dragging) ----- */
                 widget.addEventListener('click', (e) => {
-                    // If a drag just happened, ignore click
                     if (e.defaultPrevented) return;
                     openModal(nb.id);
                 });
 
                 listDiv.appendChild(widget);
             });
+        }
+
+        /* ---------- build comments html ---------- */
+        function buildCommentsHtml(comments, notebookId) {
+            if (comments.length === 0) {
+                return `<div class="no-comments">No comments yet. Be the first!</div>`;
+            }
+            return `<div class="comments-list">` + comments.map(c => {
+                const isCommentAuthor = c.user_id === currentUser.id;
+                return `
+                    <div class="comment" data-comment-id="${c.id}">
+                        <div class="comment-head">
+                            <span class="comment-author">${escapeHtml(c.user_email)}</span>
+                            <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
+                            ${isCommentAuthor ? `<button class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
+                        </div>
+                        <div class="comment-body">${escapeHtml(c.content)}</div>
+                    </div>
+                `;
+            }).join('') + `</div>`;
+        }
+
+        /* ---------- build comment form html ---------- */
+        function buildCommentFormHtml() {
+            return `
+                <div class="comment-form">
+                    <textarea class="comment-input" placeholder="Add a comment…" rows="2"></textarea>
+                    <button class="btn-primary comment-submit">Post Comment</button>
+                </div>
+            `;
         }
 
         /* ---------- modal ---------- */
@@ -897,77 +1099,118 @@
 
             const isOwner = nb.user_id === currentUser.id;
             const comments = commentsCache[nb.id] || [];
+            const hasImage = !!nb.image_url;
 
-            const commentsHtml = comments.length === 0
-                ? `<div class="no-comments">No comments yet. Be the first!</div>`
-                : `<div class="comments-list">` + comments.map(c => {
-                    const isCommentAuthor = c.user_id === currentUser.id;
-                    return `
-                        <div class="comment" data-comment-id="${c.id}">
-                            <div class="comment-head">
-                                <span class="comment-author">${escapeHtml(c.user_email)}</span>
-                                <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
-                                ${isCommentAuthor ? `<button class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
-                            </div>
-                            <div class="comment-body">${escapeHtml(c.content)}</div>
-                        </div>
-                    `;
-                }).join('') + `</div>`;
+            const commentsHtml = buildCommentsHtml(comments, nb.id);
+            const commentFormHtml = buildCommentFormHtml();
 
-            const mediaBlock = nb.image_url
-                ? `<div class="modal-media"><img src="${nb.image_url}" alt="${escapeAttr(nb.title)}"></div>`
-                : '';
+            let innerHtml;
 
-            modalContainer.innerHTML = `
-                ${mediaBlock}
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>${escapeHtml(nb.title)}</h2>
-                        <button class="modal-close" id="modal-close-btn">&times;</button>
+            if (hasImage) {
+                /* ---------- WITH IMAGE: original layout ---------- */
+                innerHtml = `
+                    <div class="modal-media" id="modal-media-clickable">
+                        <img src="${nb.image_url}" alt="${escapeAttr(nb.title)}">
                     </div>
-                    <div class="modal-scroll">
-                        <div class="modal-text">${escapeHtml(nb.content || '')}</div>
-                        <div class="modal-meta">${new Date(nb.created_at).toLocaleString()}</div>
-
-                        <div class="comments-section">
-                            <div class="comments-title">Comments (${comments.length})</div>
-                            ${commentsHtml}
-                            <div class="comment-form">
-                                <textarea class="comment-input" placeholder="Add a comment…" rows="2"></textarea>
-                                <button class="btn-primary comment-submit">Post Comment</button>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>${escapeHtml(nb.title)}</h2>
+                            <button class="modal-close" id="modal-close-btn">&times;</button>
+                        </div>
+                        <div class="modal-scroll">
+                            <div class="modal-text">${escapeHtml(nb.content || '')}</div>
+                            <div class="modal-meta">${new Date(nb.created_at).toLocaleString()}</div>
+                            <div class="comments-section">
+                                <div class="comments-title">Comments (${comments.length})</div>
+                                ${commentsHtml}
+                                ${commentFormHtml}
                             </div>
                         </div>
-                    </div>
-                    ${isOwner ? `
-                    <div class="modal-owner-actions">
-                        <button class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
-                        <button class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
-                    </div>
-                    <div class="edit-form-modal" id="modal-edit-form">
-                        <label>Title</label>
-                        <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
-                        <label>Content</label>
-                        <textarea class="edit-content" rows="3">${escapeHtml(nb.content || '')}</textarea>
-                        <label>Replace image (optional)</label>
-                        <input type="file" class="edit-image" accept="image/*">
-                        <div class="actions">
-                            <button class="btn-primary" id="modal-save-edit">Save Changes</button>
-                            <button class="btn-secondary" id="modal-cancel-edit">Cancel</button>
+                        ${isOwner ? `
+                        <div class="modal-owner-actions">
+                            <button class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
+                            <button class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
                         </div>
+                        <div class="edit-form-modal" id="modal-edit-form">
+                            <label>Title</label>
+                            <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
+                            <label>Content</label>
+                            <textarea class="edit-content" rows="3">${escapeHtml(nb.content || '')}</textarea>
+                            <label>Replace image (optional)</label>
+                            <input type="file" class="edit-image" accept="image/*">
+                            <div class="actions">
+                                <button class="btn-primary" id="modal-save-edit">Save Changes</button>
+                                <button class="btn-secondary" id="modal-cancel-edit">Cancel</button>
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
-                    ` : ''}
-                </div>
-            `;
+                `;
+                modalContainer.classList.remove('no-image');
+            } else {
+                /* ---------- NO IMAGE: title/description on left, comments on right ---------- */
+                innerHtml = `
+                    <div class="modal-content" style="max-width:100%; min-width:0; border-left:none; flex-direction:column; flex:1; overflow:hidden;">
+                        <div class="modal-header">
+                            <h2>${escapeHtml(nb.title)}</h2>
+                            <button class="modal-close" id="modal-close-btn">&times;</button>
+                        </div>
+                        <div class="modal-main">
+                            <div class="modal-text-side">
+                                <div class="modal-text">${escapeHtml(nb.content || '')}</div>
+                                <div class="modal-meta">${new Date(nb.created_at).toLocaleString()}</div>
+                            </div>
+                            <div class="modal-comments-side">
+                                <div class="comments-title">Comments (${comments.length})</div>
+                                ${commentsHtml}
+                                ${commentFormHtml}
+                            </div>
+                        </div>
+                        ${isOwner ? `
+                        <div class="modal-owner-actions">
+                            <button class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
+                            <button class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
+                        </div>
+                        <div class="edit-form-modal" id="modal-edit-form">
+                            <label>Title</label>
+                            <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
+                            <label>Content</label>
+                            <textarea class="edit-content" rows="3">${escapeHtml(nb.content || '')}</textarea>
+                            <label>Replace image (optional)</label>
+                            <input type="file" class="edit-image" accept="image/*">
+                            <div class="actions">
+                                <button class="btn-primary" id="modal-save-edit">Save Changes</button>
+                                <button class="btn-secondary" id="modal-cancel-edit">Cancel</button>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                modalContainer.classList.add('no-image');
+            }
 
+            modalContainer.innerHTML = innerHtml;
+
+            /* ---------- wire up events ---------- */
             const closeBtn = modalContainer.querySelector('#modal-close-btn');
             if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
+            // image zoom
+            const mediaClickable = modalContainer.querySelector('#modal-media-clickable');
+            if (mediaClickable && nb.image_url) {
+                mediaClickable.addEventListener('click', () => {
+                    openZoom(nb.image_url);
+                });
+            }
+
+            // comment submit
             const commentSubmit = modalContainer.querySelector('.comment-submit');
             const commentInput = modalContainer.querySelector('.comment-input');
             if (commentSubmit && commentInput) {
                 commentSubmit.addEventListener('click', () => postComment(nb.id, commentInput, commentSubmit));
             }
 
+            // comment delete
             modalContainer.querySelectorAll('.comment-delete').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -975,6 +1218,7 @@
                 });
             });
 
+            // owner actions
             const editBtn = modalContainer.querySelector('#modal-edit-btn');
             const deleteBtn = modalContainer.querySelector('#modal-delete-btn');
             const editForm = modalContainer.querySelector('#modal-edit-form');
@@ -1007,18 +1251,13 @@
             setTimeout(() => {
                 if (!modalOverlay.classList.contains('open')) {
                     modalContainer.innerHTML = '';
+                    modalContainer.classList.remove('no-image');
                 }
             }, 200);
         }
 
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
-                closeModal();
-            }
         });
 
         async function saveEditFromModal(nb) {
