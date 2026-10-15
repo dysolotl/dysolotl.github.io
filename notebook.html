@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Notebooks · Widgets</title>
+    <title>Team Notebooks · Widgets + Drag</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -193,12 +193,21 @@
             overflow: hidden;
             box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
             border: 1px solid #eaeef3;
-            transition: transform 0.15s, box-shadow 0.2s;
+            transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 220px;
+            min-height: 120px;
+            position: relative;
+            /* drag styles */
+            cursor: grab;
+            user-select: none;
+            -webkit-user-drag: element;
+        }
+
+        .notebook-widget:active {
+            cursor: grabbing;
         }
 
         .notebook-widget:hover {
@@ -207,6 +216,26 @@
             border-color: #cbd5e1;
         }
 
+        /* drag handle visual indicator */
+        .notebook-widget::before {
+            content: "⋮⋮";
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 14px;
+            color: #cbd5e1;
+            letter-spacing: -2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .notebook-widget:hover::before {
+            opacity: 1;
+        }
+
+        /* only show image wrapper if there's an image */
         .widget-image {
             width: 100%;
             height: 150px;
@@ -216,8 +245,6 @@
             justify-content: center;
             overflow: hidden;
             flex-shrink: 0;
-            color: #aaa;
-            font-size: 14px;
         }
 
         .widget-image img {
@@ -225,6 +252,7 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
         }
 
         .widget-body {
@@ -232,6 +260,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            pointer-events: none;
         }
 
         .widget-title {
@@ -249,7 +278,7 @@
             font-size: 0.9em;
             line-height: 1.4;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin-bottom: 10px;
@@ -274,6 +303,27 @@
             padding: 2px 8px;
             border-radius: 40px;
             font-size: 0.75rem;
+        }
+
+        /* ----- drag & drop states ----- */
+        .notebook-widget.dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .notebook-widget.drag-over {
+            border: 2px dashed #0066ff;
+            background: #f7faff;
+        }
+
+        /* placeholder while dragging */
+        .notebook-widget.placeholder {
+            opacity: 0.3;
+            border: 2px dashed #aaa;
+            background: #f8f8f8;
+            transform: scale(0.98);
+            box-shadow: none;
         }
 
         /* ----- modal (instagram style) ----- */
@@ -303,7 +353,7 @@
         .modal-container {
             background: white;
             border-radius: 28px;
-            max-width: 1000px;
+            max-width: 1150px;
             width: 100%;
             max-height: 90vh;
             display: flex;
@@ -319,7 +369,6 @@
             transform: scale(1);
         }
 
-        /* left media side */
         .modal-media {
             flex: 1.2;
             background: #fafafa;
@@ -340,26 +389,13 @@
             background: #f0f2f5;
         }
 
-        .modal-media .no-image {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #bbb;
-            font-size: 16px;
-            background: #f7f8fa;
-            width: 100%;
-            height: 100%;
-            min-height: 300px;
-        }
-
-        /* right content side */
         .modal-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             background: white;
-            min-width: 320px;
-            max-width: 400px;
+            min-width: 360px;
+            max-width: 440px;
             border-left: 1px solid #eef2f6;
         }
 
@@ -367,13 +403,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
+            padding: 18px 22px;
             border-bottom: 1px solid #eef2f6;
             flex-shrink: 0;
         }
 
         .modal-header h2 {
-            font-size: 1.2em;
+            font-size: 1.25em;
             font-weight: 600;
             white-space: nowrap;
             overflow: hidden;
@@ -384,14 +420,14 @@
         .modal-close {
             background: none;
             border: none;
-            font-size: 26px;
+            font-size: 28px;
             line-height: 1;
             cursor: pointer;
             color: #666;
             padding: 0 4px;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -404,7 +440,7 @@
 
         .modal-scroll {
             overflow-y: auto;
-            padding: 18px 20px 20px;
+            padding: 20px 22px 22px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -415,17 +451,16 @@
             white-space: pre-wrap;
             line-height: 1.6;
             color: #1f2937;
-            font-size: 0.95em;
+            font-size: 0.98em;
         }
 
         .modal-meta {
-            font-size: 0.75rem;
+            font-size: 0.78rem;
             color: #9ca3af;
             border-top: 1px solid #f0f2f5;
             padding-top: 12px;
         }
 
-        /* comments inside modal */
         .comments-section {
             border-top: 1px solid #f0f2f5;
             padding-top: 16px;
@@ -445,7 +480,7 @@
             flex-direction: column;
             gap: 10px;
             margin-bottom: 16px;
-            max-height: 260px;
+            max-height: 280px;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -522,20 +557,17 @@
             font-size: 0.9rem;
         }
 
-        /* modal actions (owner only) */
         .modal-owner-actions {
             display: flex;
             gap: 10px;
-            padding: 12px 20px 18px;
+            padding: 14px 22px 20px;
             border-top: 1px solid #eef2f6;
             background: white;
             flex-shrink: 0;
         }
 
-        /* inline edit inside modal? we keep edit via widget for simplicity, but can open edit */
-        /* edit form (hidden by default) */
         .edit-form-modal {
-            padding: 16px 20px;
+            padding: 16px 22px;
             border-top: 1px solid #eef2f6;
             background: #fafcff;
             display: none;
@@ -569,20 +601,21 @@
             margin-top: 6px;
         }
 
-        /* responsive modal */
         @media (max-width: 800px) {
             .modal-container {
                 flex-direction: column;
                 max-height: 95vh;
+                max-width: 95vw;
             }
 
             .modal-media {
-                max-height: 220px;
+                max-height: 240px;
                 min-height: 180px;
             }
 
             .modal-content {
                 max-width: 100%;
+                min-width: 0;
                 border-left: none;
                 border-top: 1px solid #eef2f6;
             }
@@ -592,7 +625,6 @@
             }
         }
 
-        /* empty state */
         .empty-message {
             text-align: center;
             padding: 60px 20px;
@@ -603,11 +635,24 @@
             border: 1px solid #eef2f6;
         }
 
-        /* loading */
         .loading {
             color: #94a3b8;
             padding: 40px;
             text-align: center;
+        }
+
+        /* drag hint */
+        .drag-hint {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .drag-hint span {
+            font-size: 16px;
         }
     </style>
 </head>
@@ -622,7 +667,6 @@
 
     <h1>Team Notebooks</h1>
 
-    <!-- Create form -->
     <div class="create-card">
         <h3>Create a New Entry</h3>
         <div class="create-fields">
@@ -635,21 +679,20 @@
         </div>
     </div>
 
-    <!-- Grid list -->
+    <div class="drag-hint">
+        <span>↕</span> Sleep widgets om ze te herordenen
+    </div>
+
     <div id="notebooks-list" class="notebooks-grid">
         <p class="loading">Loading…</p>
     </div>
 
-    <!-- Modal overlay -->
     <div id="modal-overlay" class="modal-overlay">
-        <div class="modal-container" id="modal-container">
-            <!-- populated dynamically -->
-        </div>
+        <div class="modal-container" id="modal-container"></div>
     </div>
 
     <script src="supabaseClient.js"></script>
     <script>
-        // --- global references ---
         const userEmailSpan = document.getElementById('user-email');
         const logoutBtn = document.getElementById('logout-btn');
         const saveBtn = document.getElementById('save-notebook-btn');
@@ -662,10 +705,12 @@
 
         let currentUser = null;
         let notebooksCache = [];
-        let commentsCache = {};      // { notebook_id: [comments] }
-        let editingId = null;        // not used for modal edit, but kept for inline fallback (not used)
+        let commentsCache = {};
 
-        // --- auth ---
+        // drag state
+        let draggedId = null;
+        let dragOverElement = null;
+
         async function init() {
             const { data: { session } } = await sb.auth.getSession();
             if (!session) { window.location.href = 'login.html'; return; }
@@ -681,7 +726,6 @@
             window.location.href = 'login.html';
         });
 
-        // --- load ---
         async function loadEverything() {
             await Promise.all([loadNotebooks(), loadComments()]);
             renderGrid();
@@ -718,7 +762,6 @@
             });
         }
 
-        // --- helpers ---
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text ?? '';
@@ -733,7 +776,7 @@
                 .replace(/>/g, '&gt;');
         }
 
-        // --- render grid widgets ---
+        /* ---------- render grid with drag & drop ---------- */
         function renderGrid() {
             listDiv.innerHTML = '';
             if (notebooksCache.length === 0) {
@@ -746,14 +789,14 @@
                 const widget = document.createElement('div');
                 widget.className = 'notebook-widget';
                 widget.dataset.id = nb.id;
+                widget.draggable = true;
 
-                // image / placeholder
-                const imgHtml = nb.image_url
-                    ? `<img src="${nb.image_url}" alt="${escapeAttr(nb.title)}" loading="lazy">`
-                    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:0.9rem;">📓 no image</div>`;
+                const imageBlock = nb.image_url
+                    ? `<div class="widget-image"><img src="${nb.image_url}" alt="${escapeAttr(nb.title)}" loading="lazy"></div>`
+                    : '';
 
                 widget.innerHTML = `
-                    <div class="widget-image">${imgHtml}</div>
+                    ${imageBlock}
                     <div class="widget-body">
                         <div class="widget-title">${escapeHtml(nb.title)}</div>
                         <div class="widget-preview">${escapeHtml(nb.content || '')}</div>
@@ -764,8 +807,82 @@
                     </div>
                 `;
 
+                /* ----- drag events ----- */
+                widget.addEventListener('dragstart', (e) => {
+                    draggedId = nb.id;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', nb.id);
+                    widget.classList.add('dragging');
+                });
+
+                widget.addEventListener('dragend', () => {
+                    widget.classList.remove('dragging');
+                    document.querySelectorAll('.notebook-widget').forEach(el => {
+                        el.classList.remove('drag-over', 'placeholder');
+                    });
+                    draggedId = null;
+                });
+
+                widget.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+
+                    if (!draggedId || draggedId === nb.id) return;
+
+                    const target = e.currentTarget;
+                    if (dragOverElement === target) return;
+
+                    // remove previous drag-over classes
+                    document.querySelectorAll('.notebook-widget').forEach(el => {
+                        el.classList.remove('drag-over', 'placeholder');
+                    });
+
+                    target.classList.add('drag-over');
+                    dragOverElement = target;
+                });
+
+                widget.addEventListener('dragleave', (e) => {
+                    const target = e.currentTarget;
+                    if (!target.contains(e.relatedTarget)) {
+                        target.classList.remove('drag-over');
+                        if (dragOverElement === target) dragOverElement = null;
+                    }
+                });
+
+                widget.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (!draggedId || draggedId === nb.id) {
+                        document.querySelectorAll('.notebook-widget').forEach(el => {
+                            el.classList.remove('drag-over', 'placeholder');
+                        });
+                        draggedId = null;
+                        return;
+                    }
+
+                    // Reorder array
+                    const fromIndex = notebooksCache.findIndex(n => n.id === draggedId);
+                    const toIndex = notebooksCache.findIndex(n => n.id === nb.id);
+
+                    if (fromIndex === -1 || toIndex === -1) return;
+
+                    // Remove and insert
+                    const [moved] = notebooksCache.splice(fromIndex, 1);
+                    notebooksCache.splice(toIndex, 0, moved);
+
+                    // Re-render grid (order is local only – not saved to DB)
+                    renderGrid();
+
+                    // Reset drag state
+                    draggedId = null;
+                    dragOverElement = null;
+                });
+
+                /* ----- click to open (but not while dragging) ----- */
                 widget.addEventListener('click', (e) => {
-                    // prevent if clicking inside (no internal buttons anyway)
+                    // If a drag just happened, ignore click
+                    if (e.defaultPrevented) return;
                     openModal(nb.id);
                 });
 
@@ -773,7 +890,7 @@
             });
         }
 
-        // --- modal logic (Instagram style) ---
+        /* ---------- modal ---------- */
         function openModal(notebookId) {
             const nb = notebooksCache.find(n => n.id === notebookId);
             if (!nb) return;
@@ -781,7 +898,6 @@
             const isOwner = nb.user_id === currentUser.id;
             const comments = commentsCache[nb.id] || [];
 
-            // Build modal HTML
             const commentsHtml = comments.length === 0
                 ? `<div class="no-comments">No comments yet. Be the first!</div>`
                 : `<div class="comments-list">` + comments.map(c => {
@@ -798,15 +914,12 @@
                     `;
                 }).join('') + `</div>`;
 
-            const imageBlock = nb.image_url
-                ? `<img src="${nb.image_url}" alt="${escapeAttr(nb.title)}">`
-                : `<div class="no-image">📓 No image attached</div>`;
+            const mediaBlock = nb.image_url
+                ? `<div class="modal-media"><img src="${nb.image_url}" alt="${escapeAttr(nb.title)}"></div>`
+                : '';
 
-            // Build full modal
             modalContainer.innerHTML = `
-                <div class="modal-media">
-                    ${imageBlock}
-                </div>
+                ${mediaBlock}
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>${escapeHtml(nb.title)}</h2>
@@ -846,18 +959,15 @@
                 </div>
             `;
 
-            // --- wire up modal events ---
             const closeBtn = modalContainer.querySelector('#modal-close-btn');
             if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
-            // comment submit
             const commentSubmit = modalContainer.querySelector('.comment-submit');
             const commentInput = modalContainer.querySelector('.comment-input');
             if (commentSubmit && commentInput) {
                 commentSubmit.addEventListener('click', () => postComment(nb.id, commentInput, commentSubmit));
             }
 
-            // comment delete
             modalContainer.querySelectorAll('.comment-delete').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -865,7 +975,6 @@
                 });
             });
 
-            // owner actions
             const editBtn = modalContainer.querySelector('#modal-edit-btn');
             const deleteBtn = modalContainer.querySelector('#modal-delete-btn');
             const editForm = modalContainer.querySelector('#modal-edit-form');
@@ -890,13 +999,11 @@
                 deleteBtn.addEventListener('click', () => deleteNotebook(nb));
             }
 
-            // open overlay
             modalOverlay.classList.add('open');
         }
 
         function closeModal() {
             modalOverlay.classList.remove('open');
-            // small delay to clear content, avoid flicker
             setTimeout(() => {
                 if (!modalOverlay.classList.contains('open')) {
                     modalContainer.innerHTML = '';
@@ -904,19 +1011,16 @@
             }, 200);
         }
 
-        // close on overlay click (outside container)
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
         });
 
-        // escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
                 closeModal();
             }
         });
 
-        // --- save edit from modal ---
         async function saveEditFromModal(nb) {
             const titleInputModal = modalContainer.querySelector('.edit-title');
             const contentInputModal = modalContainer.querySelector('.edit-content');
@@ -945,11 +1049,9 @@
                 await loadNotebooks();
                 renderGrid();
 
-                // update modal view with new data
                 const updatedNb = notebooksCache.find(n => n.id === nb.id);
                 if (updatedNb) {
-                    // refresh modal content
-                    openModal(nb.id); // reopen cleanly
+                    openModal(nb.id);
                 }
             } catch (err) {
                 console.error('Failed to update notebook:', err);
@@ -959,7 +1061,6 @@
             }
         }
 
-        // --- create notebook (same as before) ---
         saveBtn.addEventListener('click', async () => {
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
@@ -992,7 +1093,6 @@
             }
         });
 
-        // --- delete notebook ---
         async function deleteNotebook(nb) {
             if (!confirm(`Delete "${nb.title}"? Its comments will also be removed. This cannot be undone.`)) return;
 
@@ -1010,10 +1110,9 @@
 
             await loadNotebooks();
             renderGrid();
-            closeModal(); // close modal if open
+            closeModal();
         }
 
-        // --- comments ---
         async function postComment(notebookId, textarea, submitBtn) {
             const content = textarea.value.trim();
             if (!content) return;
@@ -1040,11 +1139,7 @@
             await loadComments();
             renderGrid();
 
-            // refresh modal if open for this notebook
             if (modalOverlay.classList.contains('open')) {
-                const openId = modalContainer.dataset.openNotebookId;
-                // we can re-open modal if the same notebook
-                // but easier: just re-open with notebookId
                 openModal(notebookId);
             }
         }
@@ -1061,13 +1156,11 @@
             await loadComments();
             renderGrid();
 
-            // refresh modal
             if (modalOverlay.classList.contains('open')) {
                 openModal(notebookId);
             }
         }
 
-        // --- helpers ---
         async function uploadImage(file) {
             const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
             const filePath = `${currentUser.id}/${Date.now()}_${safeName}`;
@@ -1090,7 +1183,6 @@
             return publicUrl.substring(idx + marker.length);
         }
 
-        // --- realtime ---
         function subscribeToChanges() {
             sb.channel('notebook-updates')
                 .on('postgres_changes',
@@ -1102,7 +1194,6 @@
                 .subscribe();
         }
 
-        // start
         init();
     </script>
 </body>
