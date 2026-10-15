@@ -1,30 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Notebooks</title>
+    <title>Team Notebooks · Widgets</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 24px;
             background: #f5f6f8;
             color: #222;
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
+        /* ----- top bar ----- */
         .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
             gap: 12px;
         }
@@ -33,6 +35,7 @@
             color: #0066ff;
             text-decoration: none;
             font-size: 14px;
+            font-weight: 500;
         }
 
         .topbar .right {
@@ -60,48 +63,81 @@
             background: #eee;
         }
 
-        #create-notebook-form {
+        h1 {
+            font-size: 1.9em;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: -0.01em;
+        }
+
+        /* ----- create form (compact) ----- */
+        .create-card {
             background: white;
-            padding: 24px;
-            border-radius: 10px;
+            padding: 20px 24px;
+            border-radius: 18px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+            border: 1px solid #eaeef3;
         }
 
-        #create-notebook-form h3 {
-            margin-top: 0;
+        .create-card h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1e24;
         }
 
-        input[type="text"],
-        textarea {
-            display: block;
-            width: 100%;
-            padding: 10px 12px;
-            margin: 10px 0;
+        .create-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .create-fields input[type="text"] {
+            flex: 1 1 200px;
+            padding: 10px 14px;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 15px;
             font-family: inherit;
         }
 
-        textarea {
+        .create-fields textarea {
+            flex: 2 1 300px;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
             resize: vertical;
+            min-height: 80px;
         }
 
-        input[type="file"] {
-            margin: 10px 0;
-            font-size: 14px;
+        .create-fields input[type="file"] {
+            flex: 1 1 180px;
+            font-size: 13px;
+            padding: 6px 0;
+        }
+
+        .create-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
         }
 
         .btn-primary {
-            padding: 10px 20px;
+            padding: 10px 26px;
             background: #0066ff;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 40px;
             cursor: pointer;
             font-size: 15px;
             font-weight: 500;
+            transition: background 0.15s;
         }
 
         .btn-primary:hover {
@@ -114,13 +150,14 @@
         }
 
         .btn-secondary {
-            padding: 8px 14px;
+            padding: 8px 18px;
             background: white;
             color: #222;
             border: 1px solid #ccc;
-            border-radius: 6px;
+            border-radius: 40px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
         }
 
         .btn-secondary:hover {
@@ -128,132 +165,295 @@
         }
 
         .btn-danger {
-            padding: 8px 14px;
+            padding: 8px 18px;
             background: white;
             color: #c00;
             border: 1px solid #c00;
-            border-radius: 6px;
+            border-radius: 40px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
         }
 
         .btn-danger:hover {
             background: #fff0f0;
         }
 
-        .notebook {
+        /* ----- notebook grid / widgets ----- */
+        .notebooks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 22px;
+            margin-top: 8px;
+        }
+
+        .notebook-widget {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        .notebook-header {
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eaeef3;
+            transition: transform 0.15s, box-shadow 0.2s;
+            cursor: pointer;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            height: 100%;
+            min-height: 220px;
         }
 
-        .notebook-title {
-            font-weight: 600;
-            font-size: 1.15em;
-            margin-bottom: 6px;
-            flex: 1;
-            min-width: 200px;
+        .notebook-widget:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
         }
 
-        .notebook-actions {
+        .widget-image {
+            width: 100%;
+            height: 150px;
+            background: #f0f2f5;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+            color: #aaa;
+            font-size: 14px;
         }
 
-        .notebook-content {
-            white-space: pre-wrap;
-            line-height: 1.5;
-            color: #333;
-            margin-top: 4px;
-        }
-
-        .notebook img {
-            max-width: 100%;
-            border-radius: 6px;
-            margin-top: 14px;
-            border: 1px solid #eee;
+        .widget-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
         }
 
-        .notebook-meta {
-            font-size: 0.8em;
-            color: #999;
-            margin-top: 14px;
-            border-top: 1px solid #f0f0f0;
+        .widget-body {
+            padding: 16px 18px 18px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .widget-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 6px;
+            color: #121826;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .widget-preview {
+            color: #4b5563;
+            font-size: 0.9em;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 10px;
+            flex: 1;
+        }
+
+        .widget-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7em;
+            color: #9ca3af;
+            margin-top: auto;
+            border-top: 1px solid #f0f2f5;
             padding-top: 10px;
         }
 
-        #notebooks-list>p {
-            color: #777;
+        .comment-badge {
+            background: #eef2ff;
+            color: #0066ff;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 40px;
+            font-size: 0.75rem;
         }
 
-        /* Inline edit form */
-        .edit-form {
-            border: 1px dashed #0066ff;
-            border-radius: 8px;
-            padding: 16px;
-            background: #f7faff;
-            margin-top: 8px;
-        }
-
-        .edit-form label {
-            font-size: 13px;
-            color: #444;
-            font-weight: 500;
-        }
-
-        .edit-form .actions {
+        /* ----- modal (instagram style) ----- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
             display: flex;
-            gap: 10px;
-            margin-top: 8px;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
         }
 
-        .edit-note {
-            font-size: 12px;
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 28px;
+            max-width: 1000px;
+            width: 100%;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            transform: scale(0.96);
+            transition: transform 0.2s;
+        }
+
+        .modal-overlay.open .modal-container {
+            transform: scale(1);
+        }
+
+        /* left media side */
+        .modal-media {
+            flex: 1.2;
+            background: #fafafa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            max-height: 90vh;
+            background: #f0f2f5;
+        }
+
+        .modal-media .no-image {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bbb;
+            font-size: 16px;
+            background: #f7f8fa;
+            width: 100%;
+            height: 100%;
+            min-height: 300px;
+        }
+
+        /* right content side */
+        .modal-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            min-width: 320px;
+            max-width: 400px;
+            border-left: 1px solid #eef2f6;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eef2f6;
+            flex-shrink: 0;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2em;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 26px;
+            line-height: 1;
+            cursor: pointer;
             color: #666;
-            margin-top: 6px;
+            padding: 0 4px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* ---------- Comments ---------- */
+        .modal-close:hover {
+            background: #f0f2f5;
+            color: #000;
+        }
+
+        .modal-scroll {
+            overflow-y: auto;
+            padding: 18px 20px 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .modal-text {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #1f2937;
+            font-size: 0.95em;
+        }
+
+        .modal-meta {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            border-top: 1px solid #f0f2f5;
+            padding-top: 12px;
+        }
+
+        /* comments inside modal */
         .comments-section {
-            margin-top: 20px;
+            border-top: 1px solid #f0f2f5;
             padding-top: 16px;
-            border-top: 1px solid #f0f0f0;
         }
 
         .comments-title {
-            font-size: 13px;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: #555;
-            margin-bottom: 12px;
+            color: #4b5563;
             text-transform: uppercase;
             letter-spacing: 0.03em;
+            margin-bottom: 12px;
         }
 
         .comments-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         .comment {
-            background: #f7f8fa;
-            border-radius: 8px;
-            padding: 10px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 10px 14px;
         }
 
         .comment-head {
@@ -262,22 +462,23 @@
             align-items: baseline;
             gap: 8px;
             flex-wrap: wrap;
+            margin-bottom: 4px;
         }
 
         .comment-author {
-            font-size: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
-            color: #333;
+            color: #1e293b;
         }
 
         .comment-time {
-            font-size: 11px;
-            color: #999;
+            font-size: 0.65rem;
+            color: #94a3b8;
         }
 
         .comment-body {
-            font-size: 14px;
-            color: #333;
+            font-size: 0.9rem;
+            color: #1e293b;
             white-space: pre-wrap;
             line-height: 1.4;
         }
@@ -287,10 +488,10 @@
             border: none;
             color: #c00;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 0.65rem;
             padding: 0;
-            margin-left: auto;
             text-decoration: underline;
+            margin-left: 8px;
         }
 
         .comment-delete:hover {
@@ -298,25 +499,118 @@
         }
 
         .no-comments {
-            font-size: 13px;
-            color: #999;
+            font-size: 0.85rem;
+            color: #94a3b8;
             font-style: italic;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .comment-form textarea {
-            margin: 0 0 8px 0;
-            font-size: 14px;
-            min-height: 60px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d9e6;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 70px;
+            margin-bottom: 10px;
         }
 
         .comment-form .comment-submit {
-            padding: 8px 16px;
-            font-size: 14px;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+        }
+
+        /* modal actions (owner only) */
+        .modal-owner-actions {
+            display: flex;
+            gap: 10px;
+            padding: 12px 20px 18px;
+            border-top: 1px solid #eef2f6;
+            background: white;
+            flex-shrink: 0;
+        }
+
+        /* inline edit inside modal? we keep edit via widget for simplicity, but can open edit */
+        /* edit form (hidden by default) */
+        .edit-form-modal {
+            padding: 16px 20px;
+            border-top: 1px solid #eef2f6;
+            background: #fafcff;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .edit-form-modal.active {
+            display: flex;
+        }
+
+        .edit-form-modal label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .edit-form-modal input[type="text"],
+        .edit-form-modal textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d9e6;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        .edit-form-modal .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        /* responsive modal */
+        @media (max-width: 800px) {
+            .modal-container {
+                flex-direction: column;
+                max-height: 95vh;
+            }
+
+            .modal-media {
+                max-height: 220px;
+                min-height: 180px;
+            }
+
+            .modal-content {
+                max-width: 100%;
+                border-left: none;
+                border-top: 1px solid #eef2f6;
+            }
+
+            .modal-scroll {
+                max-height: 45vh;
+            }
+        }
+
+        /* empty state */
+        .empty-message {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 24px;
+            color: #64748b;
+            font-size: 1rem;
+            border: 1px solid #eef2f6;
+        }
+
+        /* loading */
+        .loading {
+            color: #94a3b8;
+            padding: 40px;
+            text-align: center;
         }
     </style>
 </head>
-
 <body>
     <div class="topbar">
         <a href="index.html">← Home</a>
@@ -328,20 +622,34 @@
 
     <h1>Team Notebooks</h1>
 
-    <div id="create-notebook-form">
+    <!-- Create form -->
+    <div class="create-card">
         <h3>Create a New Entry</h3>
-        <input type="text" id="notebook-title" placeholder="Title" required>
-        <textarea id="notebook-content" rows="4" placeholder="Write your notes here..."></textarea>
-        <input type="file" id="notebook-image" accept="image/*">
-        <button id="save-notebook-btn" class="btn-primary">Save Notebook</button>
+        <div class="create-fields">
+            <input type="text" id="notebook-title" placeholder="Title" required>
+            <textarea id="notebook-content" rows="2" placeholder="Write your notes here..."></textarea>
+            <input type="file" id="notebook-image" accept="image/*">
+        </div>
+        <div class="create-actions">
+            <button id="save-notebook-btn" class="btn-primary">Save Notebook</button>
+        </div>
     </div>
 
-    <div id="notebooks-list">
-        <p>Loading…</p>
+    <!-- Grid list -->
+    <div id="notebooks-list" class="notebooks-grid">
+        <p class="loading">Loading…</p>
+    </div>
+
+    <!-- Modal overlay -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-container" id="modal-container">
+            <!-- populated dynamically -->
+        </div>
     </div>
 
     <script src="supabaseClient.js"></script>
     <script>
+        // --- global references ---
         const userEmailSpan = document.getElementById('user-email');
         const logoutBtn = document.getElementById('logout-btn');
         const saveBtn = document.getElementById('save-notebook-btn');
@@ -349,13 +657,15 @@
         const contentInput = document.getElementById('notebook-content');
         const imageInput = document.getElementById('notebook-image');
         const listDiv = document.getElementById('notebooks-list');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalContainer = document.getElementById('modal-container');
 
         let currentUser = null;
         let notebooksCache = [];
-        let commentsCache = {};    // { notebook_id: [comments...] }
-        let editingId = null;
+        let commentsCache = {};      // { notebook_id: [comments] }
+        let editingId = null;        // not used for modal edit, but kept for inline fallback (not used)
 
-        /* ---------- Auth ---------- */
+        // --- auth ---
         async function init() {
             const { data: { session } } = await sb.auth.getSession();
             if (!session) { window.location.href = 'login.html'; return; }
@@ -371,10 +681,10 @@
             window.location.href = 'login.html';
         });
 
-        /* ---------- Load ---------- */
+        // --- load ---
         async function loadEverything() {
             await Promise.all([loadNotebooks(), loadComments()]);
-            renderAll();
+            renderGrid();
         }
 
         async function loadNotebooks() {
@@ -395,7 +705,7 @@
             const { data, error } = await sb
                 .from('comments')
                 .select('*')
-                .order('created_at', { ascending: true }); // oldest first inside each notebook
+                .order('created_at', { ascending: true });
 
             if (error) {
                 console.error('Error loading comments:', error);
@@ -408,7 +718,7 @@
             });
         }
 
-        /* ---------- Render ---------- */
+        // --- helpers ---
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text ?? '';
@@ -423,113 +733,233 @@
                 .replace(/>/g, '&gt;');
         }
 
-        function renderAll() {
+        // --- render grid widgets ---
+        function renderGrid() {
             listDiv.innerHTML = '';
             if (notebooksCache.length === 0) {
-                listDiv.innerHTML = '<p>No notebooks yet. Create one above!</p>';
+                listDiv.innerHTML = '<div class="empty-message">✨ No notebooks yet. Create one above!</div>';
                 return;
             }
-            notebooksCache.forEach(nb => listDiv.appendChild(buildNotebookCard(nb)));
+
+            notebooksCache.forEach(nb => {
+                const commentsCount = (commentsCache[nb.id] || []).length;
+                const widget = document.createElement('div');
+                widget.className = 'notebook-widget';
+                widget.dataset.id = nb.id;
+
+                // image / placeholder
+                const imgHtml = nb.image_url
+                    ? `<img src="${nb.image_url}" alt="${escapeAttr(nb.title)}" loading="lazy">`
+                    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:0.9rem;">📓 no image</div>`;
+
+                widget.innerHTML = `
+                    <div class="widget-image">${imgHtml}</div>
+                    <div class="widget-body">
+                        <div class="widget-title">${escapeHtml(nb.title)}</div>
+                        <div class="widget-preview">${escapeHtml(nb.content || '')}</div>
+                        <div class="widget-meta">
+                            <span>${new Date(nb.created_at).toLocaleDateString()}</span>
+                            <span class="comment-badge">${commentsCount} 💬</span>
+                        </div>
+                    </div>
+                `;
+
+                widget.addEventListener('click', (e) => {
+                    // prevent if clicking inside (no internal buttons anyway)
+                    openModal(nb.id);
+                });
+
+                listDiv.appendChild(widget);
+            });
         }
 
-        function buildNotebookCard(nb) {
+        // --- modal logic (Instagram style) ---
+        function openModal(notebookId) {
+            const nb = notebooksCache.find(n => n.id === notebookId);
+            if (!nb) return;
+
             const isOwner = nb.user_id === currentUser.id;
-            const isEditing = editingId === nb.id;
             const comments = commentsCache[nb.id] || [];
 
-            const div = document.createElement('div');
-            div.className = 'notebook';
-            div.dataset.id = nb.id;
+            // Build modal HTML
+            const commentsHtml = comments.length === 0
+                ? `<div class="no-comments">No comments yet. Be the first!</div>`
+                : `<div class="comments-list">` + comments.map(c => {
+                    const isCommentAuthor = c.user_id === currentUser.id;
+                    return `
+                        <div class="comment" data-comment-id="${c.id}">
+                            <div class="comment-head">
+                                <span class="comment-author">${escapeHtml(c.user_email)}</span>
+                                <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
+                                ${isCommentAuthor ? `<button class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
+                            </div>
+                            <div class="comment-body">${escapeHtml(c.content)}</div>
+                        </div>
+                    `;
+                }).join('') + `</div>`;
 
-            if (isEditing) {
-                div.innerHTML = `
-                    <div class="edit-form">
+            const imageBlock = nb.image_url
+                ? `<img src="${nb.image_url}" alt="${escapeAttr(nb.title)}">`
+                : `<div class="no-image">📓 No image attached</div>`;
+
+            // Build full modal
+            modalContainer.innerHTML = `
+                <div class="modal-media">
+                    ${imageBlock}
+                </div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${escapeHtml(nb.title)}</h2>
+                        <button class="modal-close" id="modal-close-btn">&times;</button>
+                    </div>
+                    <div class="modal-scroll">
+                        <div class="modal-text">${escapeHtml(nb.content || '')}</div>
+                        <div class="modal-meta">${new Date(nb.created_at).toLocaleString()}</div>
+
+                        <div class="comments-section">
+                            <div class="comments-title">Comments (${comments.length})</div>
+                            ${commentsHtml}
+                            <div class="comment-form">
+                                <textarea class="comment-input" placeholder="Add a comment…" rows="2"></textarea>
+                                <button class="btn-primary comment-submit">Post Comment</button>
+                            </div>
+                        </div>
+                    </div>
+                    ${isOwner ? `
+                    <div class="modal-owner-actions">
+                        <button class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
+                        <button class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
+                    </div>
+                    <div class="edit-form-modal" id="modal-edit-form">
                         <label>Title</label>
                         <input type="text" class="edit-title" value="${escapeAttr(nb.title)}">
                         <label>Content</label>
-                        <textarea class="edit-content" rows="4">${escapeHtml(nb.content || '')}</textarea>
-                        <label>Replace image (leave empty to keep current)</label>
+                        <textarea class="edit-content" rows="3">${escapeHtml(nb.content || '')}</textarea>
+                        <label>Replace image (optional)</label>
                         <input type="file" class="edit-image" accept="image/*">
-                        <div class="edit-note">Only you can see this form because you created this notebook.</div>
                         <div class="actions">
-                            <button class="btn-primary edit-save-btn">Save Changes</button>
-                            <button class="btn-secondary edit-cancel-btn">Cancel</button>
+                            <button class="btn-primary" id="modal-save-edit">Save Changes</button>
+                            <button class="btn-secondary" id="modal-cancel-edit">Cancel</button>
                         </div>
                     </div>
-                `;
-            } else {
-                const commentsHtml = comments.length === 0
-                    ? `<div class="no-comments">No comments yet. Be the first!</div>`
-                    : `<div class="comments-list">` + comments.map(c => {
-                        const isCommentAuthor = c.user_id === currentUser.id;
-                        return `
-                            <div class="comment" data-comment-id="${c.id}">
-                                <div class="comment-head">
-                                    <span class="comment-author">${escapeHtml(c.user_email)}</span>
-                                    <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
-                                    ${isCommentAuthor ? `<button class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
-                                </div>
-                                <div class="comment-body">${escapeHtml(c.content)}</div>
-                            </div>
-                        `;
-                    }).join('') + `</div>`;
+                    ` : ''}
+                </div>
+            `;
 
-                div.innerHTML = `
-                    <div class="notebook-header">
-                        <div class="notebook-title">${escapeHtml(nb.title)}</div>
-                        ${isOwner ? `
-                            <div class="notebook-actions">
-                                <button class="btn-secondary edit-btn">Edit</button>
-                                <button class="btn-danger delete-btn">Delete</button>
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="notebook-content">${escapeHtml(nb.content || '')}</div>
-                    ${nb.image_url ? `<img src="${nb.image_url}" alt="Notebook image">` : ''}
-                    <div class="notebook-meta">${new Date(nb.created_at).toLocaleString()}</div>
+            // --- wire up modal events ---
+            const closeBtn = modalContainer.querySelector('#modal-close-btn');
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
 
-                    <div class="comments-section">
-                        <div class="comments-title">Comments (${comments.length})</div>
-                        ${commentsHtml}
-                        <div class="comment-form">
-                            <textarea class="comment-input" placeholder="Add a comment…" rows="2"></textarea>
-                            <button class="btn-primary comment-submit">Post Comment</button>
-                        </div>
-                    </div>
-                `;
+            // comment submit
+            const commentSubmit = modalContainer.querySelector('.comment-submit');
+            const commentInput = modalContainer.querySelector('.comment-input');
+            if (commentSubmit && commentInput) {
+                commentSubmit.addEventListener('click', () => postComment(nb.id, commentInput, commentSubmit));
             }
 
-            // Wire up buttons
-            if (isEditing) {
-                div.querySelector('.edit-save-btn').addEventListener('click', () => saveEdit(nb));
-                div.querySelector('.edit-cancel-btn').addEventListener('click', () => {
-                    editingId = null;
-                    renderAll();
+            // comment delete
+            modalContainer.querySelectorAll('.comment-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteComment(btn.dataset.commentId, nb.id);
                 });
-            } else {
-                if (isOwner) {
-                    div.querySelector('.edit-btn').addEventListener('click', () => {
-                        editingId = nb.id;
-                        renderAll();
+            });
+
+            // owner actions
+            const editBtn = modalContainer.querySelector('#modal-edit-btn');
+            const deleteBtn = modalContainer.querySelector('#modal-delete-btn');
+            const editForm = modalContainer.querySelector('#modal-edit-form');
+
+            if (editBtn && editForm) {
+                editBtn.addEventListener('click', () => {
+                    editForm.classList.add('active');
+                });
+                const cancelEdit = modalContainer.querySelector('#modal-cancel-edit');
+                if (cancelEdit) {
+                    cancelEdit.addEventListener('click', () => {
+                        editForm.classList.remove('active');
                     });
-                    div.querySelector('.delete-btn').addEventListener('click', () => deleteNotebook(nb));
                 }
-
-                // Comment submit
-                const submitBtn = div.querySelector('.comment-submit');
-                const textarea = div.querySelector('.comment-input');
-                submitBtn.addEventListener('click', () => postComment(nb.id, textarea, submitBtn));
-
-                // Comment delete buttons
-                div.querySelectorAll('.comment-delete').forEach(btn => {
-                    btn.addEventListener('click', () => deleteComment(btn.dataset.commentId, nb.id));
-                });
+                const saveEditBtn = modalContainer.querySelector('#modal-save-edit');
+                if (saveEditBtn) {
+                    saveEditBtn.addEventListener('click', () => saveEditFromModal(nb));
+                }
             }
 
-            return div;
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => deleteNotebook(nb));
+            }
+
+            // open overlay
+            modalOverlay.classList.add('open');
         }
 
-        /* ---------- Create notebook ---------- */
+        function closeModal() {
+            modalOverlay.classList.remove('open');
+            // small delay to clear content, avoid flicker
+            setTimeout(() => {
+                if (!modalOverlay.classList.contains('open')) {
+                    modalContainer.innerHTML = '';
+                }
+            }, 200);
+        }
+
+        // close on overlay click (outside container)
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        // escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+                closeModal();
+            }
+        });
+
+        // --- save edit from modal ---
+        async function saveEditFromModal(nb) {
+            const titleInputModal = modalContainer.querySelector('.edit-title');
+            const contentInputModal = modalContainer.querySelector('.edit-content');
+            const fileInputModal = modalContainer.querySelector('.edit-image');
+            const saveBtnModal = modalContainer.querySelector('#modal-save-edit');
+
+            const newTitle = titleInputModal.value.trim();
+            const newContent = contentInputModal.value.trim();
+            const newFile = fileInputModal.files[0];
+
+            if (!newTitle) { alert('Title cannot be empty.'); return; }
+
+            saveBtnModal.disabled = true;
+            saveBtnModal.textContent = 'Saving…';
+
+            try {
+                const updates = { title: newTitle, content: newContent };
+                if (newFile) updates.image_url = await uploadImage(newFile);
+
+                const { error } = await sb
+                    .from('notebooks')
+                    .update(updates)
+                    .eq('id', nb.id);
+                if (error) throw error;
+
+                await loadNotebooks();
+                renderGrid();
+
+                // update modal view with new data
+                const updatedNb = notebooksCache.find(n => n.id === nb.id);
+                if (updatedNb) {
+                    // refresh modal content
+                    openModal(nb.id); // reopen cleanly
+                }
+            } catch (err) {
+                console.error('Failed to update notebook:', err);
+                alert('Failed to update: ' + err.message);
+                saveBtnModal.disabled = false;
+                saveBtnModal.textContent = 'Save Changes';
+            }
+        }
+
+        // --- create notebook (same as before) ---
         saveBtn.addEventListener('click', async () => {
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
@@ -552,7 +982,7 @@
                 imageInput.value = '';
 
                 await loadNotebooks();
-                renderAll();
+                renderGrid();
             } catch (err) {
                 console.error('Failed to save notebook:', err);
                 alert('Failed to save: ' + err.message);
@@ -562,47 +992,7 @@
             }
         });
 
-        /* ---------- Edit notebook ---------- */
-        async function saveEdit(nb) {
-            const card = document.querySelector(`.notebook[data-id="${nb.id}"]`);
-            if (!card) return;
-
-            const newTitle = card.querySelector('.edit-title').value.trim();
-            const newContent = card.querySelector('.edit-content').value.trim();
-            const fileInput = card.querySelector('.edit-image');
-            const newFile = fileInput.files[0];
-            const saveEditBtn = card.querySelector('.edit-save-btn');
-
-            if (!newTitle) { alert('Title cannot be empty.'); return; }
-
-            saveEditBtn.disabled = true;
-            saveEditBtn.textContent = 'Saving…';
-
-            try {
-                const updates = { title: newTitle, content: newContent };
-                if (newFile) updates.image_url = await uploadImage(newFile);
-
-                const { error } = await sb
-                    .from('notebooks')
-                    .update(updates)
-                    .eq('id', nb.id);
-                if (error) throw error;
-
-                editingId = null;
-                await loadNotebooks();
-                renderAll();
-            } catch (err) {
-                console.error('Failed to update notebook:', err);
-                alert('Failed to update: ' + err.message);
-            } finally {
-                if (document.body.contains(saveEditBtn)) {
-                    saveEditBtn.disabled = false;
-                    saveEditBtn.textContent = 'Save Changes';
-                }
-            }
-        }
-
-        /* ---------- Delete notebook ---------- */
+        // --- delete notebook ---
         async function deleteNotebook(nb) {
             if (!confirm(`Delete "${nb.title}"? Its comments will also be removed. This cannot be undone.`)) return;
 
@@ -619,10 +1009,11 @@
             }
 
             await loadNotebooks();
-            renderAll();
+            renderGrid();
+            closeModal(); // close modal if open
         }
 
-        /* ---------- Add comment ---------- */
+        // --- comments ---
         async function postComment(notebookId, textarea, submitBtn) {
             const content = textarea.value.trim();
             if (!content) return;
@@ -647,10 +1038,17 @@
 
             textarea.value = '';
             await loadComments();
-            renderAll();
+            renderGrid();
+
+            // refresh modal if open for this notebook
+            if (modalOverlay.classList.contains('open')) {
+                const openId = modalContainer.dataset.openNotebookId;
+                // we can re-open modal if the same notebook
+                // but easier: just re-open with notebookId
+                openModal(notebookId);
+            }
         }
 
-        /* ---------- Delete comment ---------- */
         async function deleteComment(commentId, notebookId) {
             if (!confirm('Delete this comment?')) return;
 
@@ -661,10 +1059,15 @@
                 return;
             }
             await loadComments();
-            renderAll();
+            renderGrid();
+
+            // refresh modal
+            if (modalOverlay.classList.contains('open')) {
+                openModal(notebookId);
+            }
         }
 
-        /* ---------- Helpers ---------- */
+        // --- helpers ---
         async function uploadImage(file) {
             const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
             const filePath = `${currentUser.id}/${Date.now()}_${safeName}`;
@@ -687,20 +1090,20 @@
             return publicUrl.substring(idx + marker.length);
         }
 
-        /* ---------- Realtime ---------- */
+        // --- realtime ---
         function subscribeToChanges() {
             sb.channel('notebook-updates')
                 .on('postgres_changes',
                     { event: '*', schema: 'public', table: 'notebooks' },
-                    async () => { await loadNotebooks(); renderAll(); })
+                    async () => { await loadNotebooks(); renderGrid(); if (modalOverlay.classList.contains('open')) closeModal(); })
                 .on('postgres_changes',
                     { event: '*', schema: 'public', table: 'comments' },
-                    async () => { await loadComments(); renderAll(); })
+                    async () => { await loadComments(); renderGrid(); if (modalOverlay.classList.contains('open')) closeModal(); })
                 .subscribe();
         }
 
+        // start
         init();
     </script>
 </body>
-
 </html>
