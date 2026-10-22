@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>To-Do Lijst - Permafungi</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f6f8;
+            color: #222;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            padding: 24px;
+        }
+
+        h1 {
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 600;
+            margin: 0 0 6px;
+            text-align: center;
+        }
+
+        .hint {
+            color: #666;
+            font-size: 14px;
+            margin: 0 auto 24px;
+            line-height: 1.5;
+            text-align: center;
+            max-width: 820px;
+        }
+
+        /* Topbar */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .topbar a {
+            color: #0066ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .topbar a:hover {
+            text-decoration: underline;
+        }
+
+        .topbar .right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .user-email {
+            font-size: 14px;
+            color: #666;
+        }
+
+        #logout-btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #222;
+        }
+
+        #logout-btn:hover {
+            background: #eee;
+        }
+
+        .sync {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid #e3e5e8;
+        }
+
+        .sync .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #bbb;
+            transition: background .2s;
+        }
+
+        .sync.saving .dot {
+            background: #f0a500;
+        }
+
+        .sync.saved .dot {
+            background: #19a974;
+        }
+
+        .sync.error .dot {
+            background: #d33;
+        }
+
+        /* Card */
+        .todo-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            padding: 24px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Add Form */
+        .add-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-form input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .add-form input[type="text"]:focus {
+            outline: none;
+            border-color: #0066ff;
+            box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.1);
+        }
+
+        .btn-primary {
+            padding: 10px 20px;
+            background: #0066ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: #0052cc;
+        }
+
+        .btn-primary:disabled {
+            background: #99b8ff;
+            cursor: not-allowed;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 14px;
+        }
+
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .filter-btn:hover {
+            background: #f5f6f8;
+        }
+
+        .filter-btn.active {
+            background: #e6f0ff;
+            border-color: #0066ff;
+            color: #0066ff;
+            font-weight: 500;
+        }
+
+        /* List */
+        .todo-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: #f7f9fc;
+            border: 1px solid #e3e8ef;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+
+        .todo-item:hover {
+            background: #f0f4f9;
+        }
+
+        .todo-item.done {
+            opacity: 0.6;
+            background: #fafafa;
+        }
+
+        /* Custom Checkbox */
+        .todo-checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 2px;
+            position: relative;
+            flex-shrink: 0;
+            background: white;
+            transition: all 0.15s;
+        }
+
+        .todo-checkbox:hover {
+            border-color: #0066ff;
+        }
+
+        .todo-checkbox:checked {
+            background: #0066ff;
+            border-color: #0066ff;
+        }
+
+        .todo-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Content */
+        .todo-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .todo-text {
+            font-size: 15px;
+            line-height: 1.4;
+            color: #222;
+            outline: none;
+            word-break: break-word;
+        }
+
+        .todo-item.done .todo-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .todo-meta {
+            font-size: 11px;
+            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #c00;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+        }
+
+        .delete-btn:hover {
+            color: #900;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #888;
+            font-style: italic;
+            font-size: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar" id="topbar" style="display:none">
+        <a href="index.html">← Home</a>
+        <div class="right">
+            <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
+            <span class="user-email" id="user-email"></span>
+            <button id="logout-btn">Log Out</button>
+        </div>
+    </div>
+
+    <h1>To-Do Lijst</h1>
+    <p class="hint">Beheer de taken van het team. Wijzigingen worden direct gedeeld met iedereen.</p>
+
+    <div class="todo-container">
+
+        <form class="add-form" id="add-form">
+            <input type="text" id="new-todo" placeholder="Wat moet er gebeuren?" autocomplete="off" required>
+            <button type="submit" class="btn-primary" id="add-btn">Voeg toe</button>
+        </form>
+
+        <div class="filters" id="filters">
+            <button class="filter-btn active" data-filter="all">Alle taken</button>
+            <button class="filter-btn" data-filter="active">Te doen</button>
+            <button class="filter-btn" data-filter="done">Afgerond</button>
+        </div>
+
+        <ul class="todo-list" id="todo-list">
+            <!-- Filled by JS -->
+        </ul>
+
+    </div>
+
+    <script src="supabaseClient.js"></script>
+    <script>
+        (async () => {
+            /* ---------- 1. Auth Guard ---------- */
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) { window.location.href = 'login.html'; return; }
+
+            document.getElementById('topbar').style.display = 'flex';
+            document.getElementById('user-email').textContent = session.user.email;
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await sb.auth.signOut();
+                window.location.href = 'login.html';
+            });
+
+            const syncEl = document.getElementById('sync');
+            const syncText = document.getElementById('sync-text');
+            function setSync(s, t) { syncEl.className = 'sync ' + s; syncText.textContent = t; }
+
+            /* ---------- 2. State ---------- */
+            let todos = [];
+            let currentFilter = 'all';
+            let currentUser = session.user;
+
+            /* ---------- 3. DOM ---------- */
+            const listEl = document.getElementById('todo-list');
+            const formEl = document.getElementById('add-form');
+            const inputEl = document.getElementById('new-todo');
+            const filtersEl = document.getElementById('filters');
+
+            /* ---------- 4. Load Data ---------- */
+            async function loadTodos() {
+                const { data, error } = await sb
+                    .from('todos')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+
+                if (error) {
+                    console.error('Error loading todos:', error);
+                    setSync('error', 'Laadfout');
+                    return;
+                }
+                todos = data || [];
+                render();
+                setSync('saved', 'Opgeslagen');
+            }
+
+            /* ---------- 5. Render ---------- */
+            function escapeHtml(s) {
+                const d = document.createElement('div');
+                d.textContent = s ?? '';
+                return d.innerHTML;
+            }
+
+            function render() {
+                listEl.innerHTML = '';
+
+                let filtered = todos;
+                if (currentFilter === 'active') filtered = todos.filter(t => !t.completed);
+                if (currentFilter === 'done') filtered = todos.filter(t => t.completed);
+
+                if (filtered.length === 0) {
+                    listEl.innerHTML = `<div class="empty-state">${currentFilter === 'all' ? 'Nog geen taken. Voeg er een toe!' :
+                            currentFilter === 'active' ? 'Geen openstaande taken. Goed bezig!' :
+                                'Nog geen afgeronde taken.'
+                        }</div>`;
+                    return;
+                }
+
+                filtered.forEach(todo => {
+                    const isOwner = todo.user_id === currentUser.id;
+                    const li = document.createElement('li');
+                    li.className = 'todo-item' + (todo.completed ? ' done' : '');
+
+                    // Format date: "Vandaag 14:30" or "12 okt 14:30"
+                    const d = new Date(todo.created_at);
+                    const today = new Date();
+                    let dateStr;
+                    if (d.toDateString() === today.toDateString()) {
+                        dateStr = `Vandaag ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                    } else {
+                        const months = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+                        dateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+                    }
+
+                    li.innerHTML = `
+                <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
+                <div class="todo-content">
+                    <div class="todo-text" contenteditable="true" spellcheck="false">${escapeHtml(todo.text)}</div>
+                    <div class="todo-meta">
+                        <span>Toegevoegd door ${escapeHtml(todo.user_email.split('@')[0])} · ${dateStr}</span>
+                        ${isOwner ? `<button class="delete-btn">Verwijder</button>` : ''}
+                    </div>
+                </div>
+            `;
+
+                    // Checkbox event
+                    const checkbox = li.querySelector('.todo-checkbox');
+                    checkbox.addEventListener('change', () => {
+                        toggleTodo(todo.id, checkbox.checked);
+                        li.classList.toggle('done', checkbox.checked);
+                    });
+
+                    // Edit event
+                    const textEl = li.querySelector('.todo-text');
+                    textEl.addEventListener('blur', () => {
+                        const newText = textEl.textContent.trim();
+                        if (newText && newText !== todo.text) {
+                            editTodo(todo.id, newText);
+                        } else if (!newText) {
+                            textEl.textContent = todo.text; // revert if empty
+                        }
+                    });
+                    textEl.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            textEl.blur();
+                        }
+                    });
+
+                    // Delete event
+                    const delBtn = li.querySelector('.delete-btn');
+                    if (delBtn) {
+                        delBtn.addEventListener('click', () => deleteTodo(todo.id));
+                    }
+
+                    listEl.appendChild(li);
+                });
+            }
+
+            /* ---------- 6. Actions ---------- */
+            formEl.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const text = inputEl.value.trim();
+                if (!text) return;
+
+                inputEl.value = '';
+                setSync('saving', 'Toevoegen…');
+
+                const { error } = await sb.from('todos').insert({
+                    user_id: currentUser.id,
+                    user_email: currentUser.email,
+                    text: text,
+                    completed: false
+                });
+
+                if (error) {
+                    console.error(error);
+                    alert('Fout bij toevoegen: ' + error.message);
+                    setSync('error', 'Fout');
+                } else {
+                    // Real-time will trigger loadTodos, but we can do it immediately for snappiness
+                    loadTodos();
+                }
+            });
+
+            async function toggleTodo(id, completed) {
+                setSync('saving', 'Opslaan…');
+                const { error } = await sb.from('todos').update({ completed }).eq('id', id);
+                if (error) {
+                    setSync('error', 'Fout');
+                    alert('Kon niet bijwerken: ' + error.message);
+                    loadTodos(); // revert UI
+                } else {
+                    setSync('saved', 'Opgeslagen');
+                    // State update happens via realtime, but update local array instantly
+                    const t = todos.find(x => x.id === id);
+                    if (t) t.completed = completed;
+                }
+            }
+
+            async function editTodo(id, newText) {
+                setSync('saving', 'Opslaan…');
+                const { error } = await sb.from('todos').update({ text: newText }).eq('id', id);
+                if (error) {
+                    setSync('error', 'Fout');
+                    alert('Kon niet opslaan: ' + error.message);
+                } else {
+                    setSync('saved', 'Opgeslagen');
+                    const t = todos.find(x => x.id === id);
+                    if (t) t.text = newText;
+                }
+            }
+
+            async function deleteTodo(id) {
+                if (!confirm('Deze taak verwijderen?')) return;
+                setSync('saving', 'Verwijderen…');
+                const { error } = await sb.from('todos').delete().eq('id', id);
+                if (error) {
+                    setSync('error', 'Fout');
+                    alert('Kon niet verwijderen: ' + error.message);
+                } else {
+                    setSync('saved', 'Verwijderd');
+                    todos = todos.filter(t => t.id !== id);
+                    render();
+                }
+            }
+
+            /* ---------- 7. Filters ---------- */
+            filtersEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+
+                filtersEl.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                render();
+            });
+
+            /* ---------- 8. Realtime ---------- */
+            function subscribeRealtime() {
+                sb.channel('todo-changes')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'todos' }, (payload) => {
+                        // To keep it simple and robust, we just reload the whole list on any change.
+                        loadTodos();
+                    })
+                    .subscribe();
+            }
+
+            /* ---------- 9. Boot ---------- */
+            setSync('saving', 'Laden…');
+            await loadTodos();
+            subscribeRealtime();
+        })();
+    </script>
+</body>
+
+</html>
