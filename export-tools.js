@@ -50,6 +50,12 @@
             logging: false,
             imageTimeout: 15000,
             onclone: clonedDocument => {
+                // html2canvas paints box/text shadows as flat grey rectangles instead of
+                // blurred shadows, so drop them for the copy that gets rendered.
+                const style = clonedDocument.createElement('style');
+                style.textContent = '*, *::before, *::after { box-shadow: none !important; text-shadow: none !important; }';
+                clonedDocument.head.appendChild(style);
+
                 clonedDocument.querySelectorAll('.export-ui, .no-export').forEach(el => {
                     el.style.display = 'none';
                 });
