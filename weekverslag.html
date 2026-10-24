@@ -977,7 +977,7 @@ textarea { resize: vertical; min-height: 60px; }
         const btn = $('export-png-btn');
         btn.disabled = true;
         btn.textContent = 'Bezig…';
-        try { await window.ExportTools.exportPng(previewEl, computeFileName().replace(/\\.pdf$/i, '')); }
+        try { await window.ExportTools.exportPng(previewEl, computeFileName().replace(/\.pdf$/i, '')); }
         catch (err) { console.error('PNG error:', err); alert('Fout bij PNG export: ' + err.message); }
         finally { btn.disabled = false; btn.textContent = 'Exporteer PNG'; }
     });

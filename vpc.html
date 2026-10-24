@@ -244,7 +244,6 @@
             display: flex;
             flex-direction: column;
             padding: 4px;
-            padding: .7cqw;
             overflow: visible;
         }
 
@@ -265,11 +264,9 @@
 
         .zone h2 {
             font-size: 13px;
-            font-size: 1.9cqw;
             font-weight: 600;
             color: #333;
             margin: 0 0 4px;
-            margin-bottom: .7cqw;
             text-align: center;
             font-family: inherit;
             text-transform: none;
@@ -308,15 +305,6 @@
             justify-content: center;
         }
 
-        /* container units: same shapes, but they grow with the zoomed board */
-        .note {
-            flex-basis: 12cqw;
-            max-width: 18cqw;
-            min-height: 7.2cqw;
-            padding: 1.2cqw;
-            font-size: 2cqw;
-        }
-
         .note span {
             outline: none;
             display: block;
@@ -346,14 +334,6 @@
             display: none;
         }
 
-        .note button {
-            top: -.9cqw;
-            right: -.9cqw;
-            width: 2.6cqw;
-            height: 2.6cqw;
-            font-size: 1.9cqw;
-        }
-
         .note:hover button,
         .note:focus-within button {
             display: block
@@ -370,16 +350,50 @@
             padding: 0;
         }
 
-        .tile {
-            flex-basis: 12cqw;
-            height: 7.2cqw;
-            font-size: 3.4cqw;
-        }
-
         .tile:hover,
         .tile:focus-visible {
             color: #111;
             border-color: #111
+        }
+
+        /* Everything below scales with the width of the board (1cqw = 1% of it),
+           so zooming the canvas really zooms the notes, labels and tiles. The px
+           values above stay as the fallback for browsers without cq units. */
+        @supports (width: 1cqw) {
+            .zone {
+                padding: max(4px, .7cqw);
+            }
+
+            .zone h2 {
+                font-size: max(13px, 1.9cqw);
+                margin-bottom: max(4px, .7cqw);
+            }
+
+            .notes {
+                gap: max(6px, 1cqw);
+            }
+
+            .note {
+                flex-basis: max(84px, 12cqw);
+                max-width: max(130px, 18cqw);
+                min-height: max(60px, 7.2cqw);
+                padding: max(6px, 1.2cqw);
+                font-size: max(14px, 2cqw);
+            }
+
+            .note button {
+                top: max(-10px, -.9cqw);
+                right: max(-10px, -.9cqw);
+                width: max(20px, 2.6cqw);
+                height: max(20px, 2.6cqw);
+                font-size: max(13px, 1.9cqw);
+            }
+
+            .tile {
+                flex-basis: max(84px, 12cqw);
+                height: max(60px, 7.2cqw);
+                font-size: max(24px, 3.4cqw);
+            }
         }
 
         [data-c="y"] {
@@ -424,21 +438,21 @@
         }
 
         /* ---------- Zoom levels ---------- */
-        .wrap.z-big {
+        .wrap.z-big,
+        .wrap.z-xl {
             grid-template-columns: minmax(0, 1fr);
         }
 
         .wrap.z-big .board {
-            max-width: 100%;
+            max-width: 1100px;
         }
 
         .wrap.z-xl {
-            grid-template-columns: minmax(0, 1fr);
             max-width: 2400px;
         }
 
         .wrap.z-xl .board {
-            max-width: 1600px;
+            max-width: 1500px;
         }
 
         @media (max-width:520px) {
