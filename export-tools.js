@@ -50,17 +50,38 @@
             logging: false,
             imageTimeout: 15000,
             onclone: clonedDocument => {
-                // html2canvas paints box/text shadows as flat grey rectangles instead of
-                // blurred shadows, so drop them for the copy that gets rendered.
-                const style = clonedDocument.createElement('style');
-                style.textContent = '*, *::before, *::after { box-shadow: none !important; text-shadow: none !important; }';
-                clonedDocument.head.appendChild(style);
-
+                const dview = clonedDocument.defaultView;
                 clonedDocument.querySelectorAll('.export-ui, .no-export').forEach(el => {
                     el.style.display = 'none';
                 });
                 clonedDocument.querySelectorAll('[contenteditable="true"]').forEach(el => {
                     el.style.caretColor = 'transparent';
+                });
+
+                // html2canvas renders box-shadow/text-shadow as flat grey rectangles
+                // and dashed/dotted borders as solid grey lines. A stylesheet added here
+                // is ignored (html2canvas snapshots styles before onclone), so clear the
+                // properties directly on every element's inline style instead.
+                clonedDocument.querySelectorAll('*').forEach(el => {
+                    el.style.boxShadow = 'none';
+                    el.style.textShadow = 'none';
+                    const cs = dview ? dview.getComputedStyle(el) : null;
+                    const bs = (cs && cs.borderStyle) || el.style.borderStyle;
+                    if (bs === 'dashed' || bs === 'dotted') {
+                        el.style.borderStyle = 'solid';
+                        // keep the border visible, but in the element's own color
+                        // instead of the grey html2canvas paints for dashed borders
+                        el.style.borderColor = (cs && cs.color) || '#999';
+                    }
+                });
+
+                // Hover-only tone pickers and semi-transparent block headers flatten to
+                // grey in the export; keep them out or make them opaque.
+                clonedDocument.querySelectorAll('.tone-group').forEach(el => {
+                    el.style.display = 'none';
+                });
+                clonedDocument.querySelectorAll('.block-header').forEach(el => {
+                    el.style.background = '#ffffff';
                 });
             }
         });
