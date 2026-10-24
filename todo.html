@@ -269,8 +269,8 @@
         }
 
         .todo-text {
-            font-size: 15px;
-            line-height: 1.4;
+            font-size: 17px;
+            line-height: 1.5;
             color: #222;
             outline: none;
             word-break: break-word;
@@ -315,14 +315,14 @@
     </style>
 </head>
 
-<body>
+<body data-export-target=".todo-container" data-export-name="todo-lijst">
 
     <div class="topbar" id="topbar" style="display:none">
         <a href="index.html">← Home</a>
         <div class="right">
             <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
             <span class="user-email" id="user-email"></span>
-            <button id="logout-btn">Log Out</button>
+            <button type="button" id="logout-btn">Log Out</button>
         </div>
     </div>
 
@@ -338,9 +338,9 @@
         </form>
 
         <div class="filters" id="filters">
-            <button class="filter-btn active" data-filter="all">Alle taken</button>
-            <button class="filter-btn" data-filter="active">Te doen</button>
-            <button class="filter-btn" data-filter="done">Afgerond</button>
+            <button type="button" class="filter-btn active" data-filter="all">Alle taken</button>
+            <button type="button" class="filter-btn" data-filter="active">Te doen</button>
+            <button type="button" class="filter-btn" data-filter="done">Afgerond</button>
         </div>
 
         <ul class="todo-list" id="todo-list">
@@ -349,6 +349,7 @@
 
     </div>
 
+    <script src="export-tools.js"></script>
     <script src="supabaseClient.js"></script>
     <script>
         (async () => {
@@ -438,7 +439,7 @@
                     <div class="todo-text" contenteditable="true" spellcheck="false">${escapeHtml(todo.text)}</div>
                     <div class="todo-meta">
                         <span>Toegevoegd door ${escapeHtml(todo.user_email.split('@')[0])} · ${dateStr}</span>
-                        ${isOwner ? `<button class="delete-btn">Verwijder</button>` : ''}
+                        ${isOwner ? `<button type="button" class="delete-btn">Verwijder</button>` : ''}
                     </div>
                 </div>
             `;

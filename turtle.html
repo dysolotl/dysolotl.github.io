@@ -135,13 +135,13 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 
 .block-label {
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
     outline: none;
     text-align: center;
 }
 .block-text {
-    font-size: 12px;
-    line-height: 1.35;
+    font-size: 15px;
+    line-height: 1.5;
     outline: none;
     white-space: pre-wrap;
     text-align: center;
@@ -280,14 +280,14 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 }
 </style>
 </head>
-<body>
+<body data-export-target="#diagram-container" data-export-name="turtle-diagrams">
 
 <div class="topbar" id="topbar" style="display:none">
     <a href="index.html">← Home</a>
     <div class="right">
         <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
         <span class="user-email" id="user-email"></span>
-        <button id="logout-btn">Log Out</button>
+        <button type="button" id="logout-btn">Log Out</button>
     </div>
 </div>
 
@@ -295,17 +295,18 @@ h1 { font-size: clamp(24px, 3vw, 32px); font-weight: 600; margin: 0 0 6px; text-
 <p class="hint">Klik op een blok om de tekst aan te passen. Beweeg over een blok om de kleur te wijzigen of te verwijderen. Gebruik de pijltjes om tussen diagrammen te wisselen.</p>
 
 <div class="nav-bar" id="nav-bar" style="display:none">
-    <button class="nav-btn" id="prev-btn" aria-label="Vorige">‹</button>
+    <button type="button" class="nav-btn" id="prev-btn" aria-label="Vorige">‹</button>
     <span class="page-indicator" id="page-indicator">Pagina 1 / 2</span>
-    <button class="nav-btn" id="next-btn" aria-label="Volgende">›</button>
+    <button type="button" class="nav-btn" id="next-btn" aria-label="Volgende">›</button>
 </div>
 
 <div id="diagram-container"></div>
 
 <div class="bar" id="bottom-bar" style="display:none">
-    <button id="reset">Reset voor hele team</button>
+    <button type="button" id="reset">Reset voor hele team</button>
 </div>
 
+<script src="export-tools.js"></script>
 <script src="supabaseClient.js"></script>
 <script>
 (async () => {

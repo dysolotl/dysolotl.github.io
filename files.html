@@ -227,9 +227,9 @@
         }
 
         .file-desc {
-            font-size: 13px;
+            font-size: 15px;
             color: #555;
-            line-height: 1.4;
+            line-height: 1.5;
             white-space: pre-wrap;
         }
 
@@ -305,15 +305,19 @@
             border-color: #0066ff;
             color: white;
         }
+
+        .loading {
+            color: #777;
+        }
     </style>
 </head>
 
-<body>
+<body data-export-target="#files-container" data-export-name="shared-files">
     <div class="topbar">
         <a href="index.html">← Home</a>
         <div class="right">
             <span class="user-email" id="user-email"></span>
-            <button id="logout-btn">Log Out</button>
+            <button type="button" id="logout-btn">Log Out</button>
         </div>
     </div>
 
@@ -343,20 +347,21 @@
             </div>
         </div>
 
-        <button id="add-file-btn" class="btn-primary">Add File</button>
+        <button type="button" id="add-file-btn" class="btn-primary">Add File</button>
     </div>
 
     <div class="filter-bar" id="filter-bar">
-        <button data-filter="all" class="active">All</button>
-        <button data-filter="word">Word</button>
-        <button data-filter="excel">Excel</button>
-        <button data-filter="other">Other</button>
+        <button type="button" data-filter="all" class="active">All</button>
+        <button type="button" data-filter="word">Word</button>
+        <button type="button" data-filter="excel">Excel</button>
+        <button type="button" data-filter="other">Other</button>
     </div>
 
     <div id="files-container">
-        <p style="color:#777;">Loading…</p>
+        <p class="loading">Loading…</p>
     </div>
 
+    <script src="export-tools.js"></script>
     <script src="supabaseClient.js"></script>
     <script>
         const userEmailSpan = document.getElementById('user-email');
@@ -480,8 +485,8 @@
                             <option value="other" ${f.type === 'other' ? 'selected' : ''}>Other</option>
                         </select>
                         <div class="actions">
-                            <button class="btn-primary edit-save-btn">Save</button>
-                            <button class="btn-secondary edit-cancel-btn">Cancel</button>
+                            <button type="button" class="btn-primary edit-save-btn">Save</button>
+                            <button type="button" class="btn-secondary edit-cancel-btn">Cancel</button>
                         </div>
                     </div>
                 `;
@@ -500,8 +505,8 @@
                         <span>${escapeHtml(f.user_email)} · ${new Date(f.created_at).toLocaleDateString()}</span>
                         ${isOwner ? `
                             <div class="file-actions">
-                                <button class="btn-secondary edit-btn">Edit</button>
-                                <button class="btn-danger delete-btn">Delete</button>
+                                <button type="button" class="btn-secondary edit-btn">Edit</button>
+                                <button type="button" class="btn-danger delete-btn">Delete</button>
                             </div>
                         ` : ''}
                     </div>

@@ -271,8 +271,8 @@
 
         .widget-preview {
             color: #4b5563;
-            font-size: 0.9em;
-            line-height: 1.4;
+            font-size: 1em;
+            line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
@@ -793,12 +793,12 @@
         }
     </style>
 </head>
-<body>
+<body data-export-target="#notebooks-list" data-export-name="team-notebooks">
     <div class="topbar">
         <a href="index.html">← Home</a>
         <div class="right">
             <span class="user-email" id="user-email"></span>
-            <button id="logout-btn">Log Out</button>
+            <button type="button" id="logout-btn">Log Out</button>
         </div>
     </div>
 
@@ -812,7 +812,7 @@
             <input type="file" id="notebook-image" accept="image/*">
         </div>
         <div class="create-actions">
-            <button id="save-notebook-btn" class="btn-primary">Save Notebook</button>
+            <button type="button" id="save-notebook-btn" class="btn-primary">Save Notebook</button>
         </div>
     </div>
 
@@ -831,11 +831,12 @@
 
     <!-- zoom overlay -->
     <div id="zoom-overlay" class="zoom-overlay">
-        <button class="zoom-close" id="zoom-close-btn">&times;</button>
-        <img id="zoom-image" src="" alt="Zoomed image">
+        <button type="button" class="zoom-close" id="zoom-close-btn">&times;</button>
+        <img id="zoom-image" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Zoomed image">
         <div class="zoom-hint">Klik buiten de afbeelding of op ✕ om te sluiten</div>
     </div>
 
+    <script src="export-tools.js"></script>
     <script src="supabaseClient.js"></script>
     <script>
         const userEmailSpan = document.getElementById('user-email');
@@ -1074,7 +1075,7 @@
                         <div class="comment-head">
                             <span class="comment-author">${escapeHtml(c.user_email)}</span>
                             <span class="comment-time">${new Date(c.created_at).toLocaleString()}</span>
-                            ${isCommentAuthor ? `<button class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
+                            ${isCommentAuthor ? `<button type="button" class="comment-delete" data-comment-id="${c.id}">Delete</button>` : ''}
                         </div>
                         <div class="comment-body">${escapeHtml(c.content)}</div>
                     </div>
@@ -1087,7 +1088,7 @@
             return `
                 <div class="comment-form">
                     <textarea class="comment-input" placeholder="Add a comment…" rows="2"></textarea>
-                    <button class="btn-primary comment-submit">Post Comment</button>
+                    <button type="button" class="btn-primary comment-submit">Post Comment</button>
                 </div>
             `;
         }
@@ -1115,7 +1116,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h2>${escapeHtml(nb.title)}</h2>
-                            <button class="modal-close" id="modal-close-btn">&times;</button>
+                            <button type="button" class="modal-close" id="modal-close-btn">&times;</button>
                         </div>
                         <div class="modal-scroll">
                             <div class="modal-text">${escapeHtml(nb.content || '')}</div>
@@ -1128,8 +1129,8 @@
                         </div>
                         ${isOwner ? `
                         <div class="modal-owner-actions">
-                            <button class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
-                            <button class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
+                            <button type="button" class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
+                            <button type="button" class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
                         </div>
                         <div class="edit-form-modal" id="modal-edit-form">
                             <label>Title</label>
@@ -1139,8 +1140,8 @@
                             <label>Replace image (optional)</label>
                             <input type="file" class="edit-image" accept="image/*">
                             <div class="actions">
-                                <button class="btn-primary" id="modal-save-edit">Save Changes</button>
-                                <button class="btn-secondary" id="modal-cancel-edit">Cancel</button>
+                                <button type="button" class="btn-primary" id="modal-save-edit">Save Changes</button>
+                                <button type="button" class="btn-secondary" id="modal-cancel-edit">Cancel</button>
                             </div>
                         </div>
                         ` : ''}
@@ -1153,7 +1154,7 @@
                     <div class="modal-content" style="max-width:100%; min-width:0; border-left:none; flex-direction:column; flex:1; overflow:hidden;">
                         <div class="modal-header">
                             <h2>${escapeHtml(nb.title)}</h2>
-                            <button class="modal-close" id="modal-close-btn">&times;</button>
+                            <button type="button" class="modal-close" id="modal-close-btn">&times;</button>
                         </div>
                         <div class="modal-main">
                             <div class="modal-text-side">
@@ -1168,8 +1169,8 @@
                         </div>
                         ${isOwner ? `
                         <div class="modal-owner-actions">
-                            <button class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
-                            <button class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
+                            <button type="button" class="btn-secondary" id="modal-edit-btn">✏️ Edit</button>
+                            <button type="button" class="btn-danger" id="modal-delete-btn">🗑️ Delete</button>
                         </div>
                         <div class="edit-form-modal" id="modal-edit-form">
                             <label>Title</label>
@@ -1179,8 +1180,8 @@
                             <label>Replace image (optional)</label>
                             <input type="file" class="edit-image" accept="image/*">
                             <div class="actions">
-                                <button class="btn-primary" id="modal-save-edit">Save Changes</button>
-                                <button class="btn-secondary" id="modal-cancel-edit">Cancel</button>
+                                <button type="button" class="btn-primary" id="modal-save-edit">Save Changes</button>
+                                <button type="button" class="btn-secondary" id="modal-cancel-edit">Cancel</button>
                             </div>
                         </div>
                         ` : ''}

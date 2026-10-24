@@ -218,14 +218,14 @@ textarea { resize: vertical; min-height: 60px; }
 #report-doc .info-table td:first-child { width: 150px; background: #f5f7fa; font-weight: 500; }
 </style>
 </head>
-<body>
+<body data-export-target="#report-doc" data-export-name="weekverslag" data-export-ui="none">
 
 <div class="topbar" id="topbar" style="display:none">
     <a href="index.html">← Home</a>
     <div class="right">
         <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
         <span class="user-email" id="user-email"></span>
-        <button id="logout-btn">Log Out</button>
+        <button type="button" id="logout-btn">Log Out</button>
     </div>
 </div>
 
@@ -305,19 +305,19 @@ textarea { resize: vertical; min-height: 60px; }
         <section>
             <h2>Taakverdeling</h2>
             <div class="list-editor" id="f-tasks-list"></div>
-            <button class="add-row-btn" id="add-task">+ Persoon toevoegen</button>
+            <button type="button" class="add-row-btn" id="add-task">+ Persoon toevoegen</button>
         </section>
 
         <section>
             <h2>Vergaderingen</h2>
             <div class="list-editor" id="f-meetings-list"></div>
-            <button class="add-row-btn" id="add-meeting">+ Vergadering toevoegen</button>
+            <button type="button" class="add-row-btn" id="add-meeting">+ Vergadering toevoegen</button>
         </section>
 
         <section>
             <h2>Planning volgende week</h2>
             <div class="list-editor" id="f-planning-list"></div>
-            <button class="add-row-btn" id="add-planning">+ Taak toevoegen</button>
+            <button type="button" class="add-row-btn" id="add-planning">+ Taak toevoegen</button>
         </section>
 
     </div>
@@ -326,8 +326,9 @@ textarea { resize: vertical; min-height: 60px; }
 
         <div class="preview-toolbar">
             <span class="filename" id="filename-preview">BA-Weekverslag-Team-vr-7-??????.pdf</span>
-            <button class="btn-secondary" id="copy-filename">Kopieer naam</button>
-            <button class="btn-primary" id="export-btn">Exporteer PDF</button>
+            <button type="button" class="btn-secondary" id="copy-filename">Kopieer naam</button>
+            <button type="button" class="btn-primary" id="export-btn">Exporteer PDF</button>
+            <button type="button" class="btn-secondary" id="export-png-btn">Exporteer PNG</button>
         </div>
 
         <div id="report-doc"></div>
@@ -336,6 +337,7 @@ textarea { resize: vertical; min-height: 60px; }
 
 </div>
 
+<script src="export-tools.js"></script>
 <script src="supabaseClient.js"></script>
 <script>
 (async () => {
@@ -529,7 +531,7 @@ textarea { resize: vertical; min-height: 60px; }
             div.innerHTML = `
                 <input type="text" placeholder="Naam" value="${escapeAttr(row.name)}" data-field="name">
                 <input type="text" placeholder="Taken" value="${escapeAttr(row.tasks)}" data-field="tasks">
-                <button class="remove" data-i="${i}">×</button>
+                <button type="button" class="remove" data-i="${i}">×</button>
             `;
             div.querySelectorAll('input').forEach(inp => {
                 inp.addEventListener('input', () => {
@@ -556,7 +558,7 @@ textarea { resize: vertical; min-height: 60px; }
                 <input type="text" placeholder="Datum" value="${escapeAttr(row.date)}" data-field="date">
                 <input type="text" placeholder="Onderwerp" value="${escapeAttr(row.topic)}" data-field="topic">
                 <input type="text" placeholder="Conclusie" value="${escapeAttr(row.conclusion)}" data-field="conclusion">
-                <button class="remove" data-i="${i}">×</button>
+                <button type="button" class="remove" data-i="${i}">×</button>
             `;
             div.querySelectorAll('input').forEach(inp => {
                 inp.addEventListener('input', () => {
@@ -582,7 +584,7 @@ textarea { resize: vertical; min-height: 60px; }
             div.innerHTML = `
                 <input type="text" placeholder="Taak" value="${escapeAttr(row.task)}" data-field="task">
                 <input type="text" placeholder="Wie" value="${escapeAttr(row.who)}" data-field="who">
-                <button class="remove" data-i="${i}">×</button>
+                <button type="button" class="remove" data-i="${i}">×</button>
             `;
             div.querySelectorAll('input').forEach(inp => {
                 inp.addEventListener('input', () => {
@@ -971,6 +973,15 @@ textarea { resize: vertical; min-height: 60px; }
     /* ============================================================
        COPY FILENAME
        ============================================================ */
+    $('export-png-btn').addEventListener('click', async () => {
+        const btn = $('export-png-btn');
+        btn.disabled = true;
+        btn.textContent = 'Bezig…';
+        try { await window.ExportTools.exportPng(previewEl, computeFileName().replace(/\\.pdf$/i, '')); }
+        catch (err) { console.error('PNG error:', err); alert('Fout bij PNG export: ' + err.message); }
+        finally { btn.disabled = false; btn.textContent = 'Exporteer PNG'; }
+    });
+
     $('copy-filename').addEventListener('click', async () => {
         const filename = computeFileName();
         try {

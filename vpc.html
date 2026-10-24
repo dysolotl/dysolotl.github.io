@@ -5,7 +5,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Value Proposition Canvas - PermaFungi</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         /* ---------- Site-wide theme (matches index/notebook) ---------- */
@@ -145,9 +144,9 @@
 
         .note,
         .head span {
-            font-family: "Gochi Hand", "Comic Sans MS", cursive;
+            font-family: "Atkinson Hyperlegible", "Segoe UI", Arial, sans-serif;
             color: #111;
-            text-transform: uppercase
+            text-transform: none
         }
 
         .head span {
@@ -167,88 +166,109 @@
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-            padding: 16px;
+            padding: 20px;
         }
 
         .board {
-            position: relative;
+            display: grid;
+            gap: 16px;
             width: 100%;
-            max-width: 640px;
-            aspect-ratio: 1;
-            margin: 0 auto
+            position: relative;
         }
 
-        .board svg {
+        .board > svg {
             position: absolute;
             inset: 0;
             width: 100%;
-            height: 100%
+            height: 100%;
+            z-index: 0;
+            opacity: .18;
+            pointer-events: none;
         }
 
-        .sq {
-            background: var(--panel, #fff);
-            border: 3px solid #111
+        .board > .zone {
+            position: relative;
+            z-index: 1;
         }
 
-        .circ {
-            background: var(--panel, #fff);
-            border: 3px solid #111;
-            border-radius: 50%
+        /* Value Proposition square: products on the left, gains/pains stacked on the right */
+        .board.sq {
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+            grid-template-areas:
+                "ps gc"
+                "ps pr";
+            grid-template-rows: 1fr 1fr;
         }
+
+        .board.sq > .zone[data-l="ps"] { grid-area: ps; }
+        .board.sq > .zone[data-l="gc"] { grid-area: gc; }
+        .board.sq > .zone[data-l="pr"] { grid-area: pr; }
+
+        /* Customer Segment circle: jobs on top, gains and pains side by side below */
+        .board.circ {
+            grid-template-columns: 1fr 1fr;
+            grid-template-areas:
+                "jo jo"
+                "ga pa";
+            grid-template-rows: 1fr 1fr;
+        }
+
+        .board.circ > .zone[data-l="jo"] { grid-area: jo; }
+        .board.circ > .zone[data-l="ga"] { grid-area: ga; }
+        .board.circ > .zone[data-l="pa"] { grid-area: pa; }
 
         .zone {
-            position: absolute;
             display: flex;
             flex-direction: column;
-            overflow: hidden
+            background: #fafbfd;
+            border: 2px solid #111;
+            border-radius: 10px;
+            padding: 10px;
+            min-height: 140px;
+            overflow: visible;
         }
 
         .zone h2 {
-            font-size: 13px;
-            font-weight: 500;
-            color: #666;
-            margin: 0 0 3px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+            margin: 0 0 8px;
             text-align: center;
             font-family: inherit;
-            text-transform: none
+            text-transform: none;
+            letter-spacing: 0.01em;
         }
 
-        /* ---------- Sticky notes (unchanged sketch look) ---------- */
+        /* ---------- Sticky notes ---------- */
         .notes {
             list-style: none;
             margin: 0;
-            padding: 2px;
-            overflow: auto;
-            flex: 1;
-            min-height: 0;
+            padding: 0;
             display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            align-content: flex-start
+            flex-direction: column;
+            gap: 6px;
         }
 
         .note {
             position: relative;
-            flex: 1 1 74px;
-            max-width: 112px;
-            min-height: 54px;
+            width: 100%;
+            min-height: 44px;
             background: var(--n);
             border: 1.5px solid #222;
-            box-shadow: 1px 2px 0 rgba(0, 0, 0, .25);
-            padding: 5px 6px;
-            font-size: 11.5px;
-            line-height: 1.15;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 1px 2px 0 rgba(0, 0, 0, .18);
+            padding: 8px 26px 8px 10px;
+            font-size: 14.5px;
+            line-height: 1.35;
+            text-align: left;
+            display: block;
+            border-radius: 4px;
         }
 
         .note span {
             outline: none;
             display: block;
             width: 100%;
-            word-break: break-word
+            word-break: break-word;
         }
 
         .note span:empty::before {
@@ -258,15 +278,15 @@
 
         .note button {
             position: absolute;
-            top: -7px;
-            right: -7px;
-            width: 18px;
-            height: 18px;
+            top: 6px;
+            right: 6px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: 1px solid #222;
             background: #fff;
             color: #a00;
-            font-size: 12px;
+            font-size: 13px;
             line-height: 1;
             cursor: pointer;
             padding: 0;
@@ -279,14 +299,15 @@
         }
 
         .tile {
-            flex: 0 0 40px;
-            height: 54px;
+            width: 100%;
+            min-height: 38px;
             border: 1.5px dashed #999;
             background: none;
             color: #999;
             font-size: 22px;
             cursor: pointer;
             padding: 0;
+            border-radius: 4px;
         }
 
         .tile:hover,
@@ -336,15 +357,23 @@
             border-color: #a00
         }
 
-        @media (max-width:520px) {
-            .note {
-                font-size: 9.5px;
-                min-height: 46px;
-                flex-basis: 60px
+        @media (max-width:640px) {
+            .board.sq {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "gc"
+                    "pr"
+                    "ps";
+                grid-template-rows: auto;
             }
 
-            .zone h2 {
-                font-size: 11px
+            .board.circ {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "jo"
+                    "ga"
+                    "pa";
+                grid-template-rows: auto;
             }
 
             body {
@@ -354,14 +383,14 @@
     </style>
 </head>
 
-<body>
+<body data-export-target=".wrap" data-export-name="value-proposition-canvas">
 
     <div class="topbar" id="topbar" style="display:none">
         <a href="index.html">← Home</a>
         <div class="right">
             <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
             <span class="user-email" id="user-email"></span>
-            <button id="logout-btn">Log Out</button>
+            <button type="button" id="logout-btn">Log Out</button>
         </div>
     </div>
 
@@ -388,9 +417,9 @@
                             <rect x="45" y="41" width="10" height="5" />
                         </g>
                     </svg>
-                    <div class="zone" data-c="y" data-l="ps" style="left:3%;top:30%;width:27%;height:40%"></div>
-                    <div class="zone" data-c="g" data-l="gc" style="left:40%;top:4%;width:56%;height:38%"></div>
-                    <div class="zone" data-c="p" data-l="pr" style="left:40%;top:58%;width:56%;height:38%"></div>
+                    <div class="zone" data-c="y" data-l="ps"></div>
+                    <div class="zone" data-c="g" data-l="gc"></div>
+                    <div class="zone" data-c="p" data-l="pr"></div>
                 </div>
             </div>
         </section>
@@ -412,18 +441,19 @@
                             <circle cx="49" cy="50" r="6" />
                         </g>
                     </svg>
-                    <div class="zone" data-c="g" data-l="ga" style="left:17%;top:12%;width:38%;height:33%"></div>
-                    <div class="zone" data-c="y" data-l="jo" style="left:66%;top:31%;width:29%;height:38%"></div>
-                    <div class="zone" data-c="p" data-l="pa" style="left:17%;top:55%;width:38%;height:33%"></div>
+                    <div class="zone" data-c="g" data-l="ga"></div>
+                    <div class="zone" data-c="y" data-l="jo"></div>
+                    <div class="zone" data-c="p" data-l="pa"></div>
                 </div>
             </div>
         </section>
     </div>
 
     <div class="bar">
-        <button id="reset">Reset voor hele team</button>
+        <button type="button" id="reset">Reset voor hele team</button>
     </div>
 
+    <script src="export-tools.js"></script>
     <script src="supabaseClient.js"></script>
     <script>
         (async () => {

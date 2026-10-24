@@ -153,7 +153,7 @@
             flex-direction: column;
             border: 2px solid #111;
             background: #eaf2fb;
-            min-height: 160px;
+            min-height: 220px;
         }
 
         .block-header {
@@ -199,8 +199,8 @@
             border: 1px solid #1f3b57;
             padding: 8px 10px 8px 22px;
             /* extra left padding for tone buttons */
-            font-size: 12.5px;
-            line-height: 1.3;
+            font-size: 15px;
+            line-height: 1.4;
             box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.15);
             min-height: 34px;
             display: flex;
@@ -354,14 +354,14 @@
     </style>
 </head>
 
-<body>
+<body data-export-target=".canvas" data-export-name="business-model-canvas">
 
     <div class="topbar" id="topbar" style="display:none">
         <a href="index.html">← Home</a>
         <div class="right">
             <span class="sync" id="sync"><span class="dot"></span><span id="sync-text">Verbonden</span></span>
             <span class="user-email" id="user-email"></span>
-            <button id="logout-btn">Log Out</button>
+            <button type="button" id="logout-btn">Log Out</button>
         </div>
     </div>
 
@@ -373,45 +373,45 @@
     <div class="canvas">
         <div class="bmc-top">
             <div class="block" data-c="blue" data-k="kp">
-                <div class="block-header"><span>Key Partners</span><button class="add-btn" aria-label="Add">+</button>
+                <div class="block-header"><span>Key Partners</span><button type="button" class="add-btn" aria-label="Add">+</button>
                 </div>
                 <div class="block-body"></div>
             </div>
 
             <div class="bmc-col-stack">
                 <div class="block" data-c="yellow" data-k="ka">
-                    <div class="block-header"><span>Key Activities</span><button class="add-btn"
+                    <div class="block-header"><span>Key Activities</span><button type="button" class="add-btn"
                             aria-label="Add">+</button></div>
                     <div class="block-body"></div>
                 </div>
                 <div class="block" data-c="yellow" data-k="kr">
-                    <div class="block-header"><span>Key Resources</span><button class="add-btn"
+                    <div class="block-header"><span>Key Resources</span><button type="button" class="add-btn"
                             aria-label="Add">+</button></div>
                     <div class="block-body"></div>
                 </div>
             </div>
 
             <div class="block" data-c="blue" data-k="vp">
-                <div class="block-header"><span>Value Propositions</span><button class="add-btn"
+                <div class="block-header"><span>Value Propositions</span><button type="button" class="add-btn"
                         aria-label="Add">+</button></div>
                 <div class="block-body"></div>
             </div>
 
             <div class="bmc-col-stack">
                 <div class="block" data-c="blue" data-k="cr">
-                    <div class="block-header"><span>Customer Relationships</span><button class="add-btn"
+                    <div class="block-header"><span>Customer Relationships</span><button type="button" class="add-btn"
                             aria-label="Add">+</button></div>
                     <div class="block-body"></div>
                 </div>
                 <div class="block" data-c="yellow" data-k="ch">
-                    <div class="block-header"><span>Channels</span><button class="add-btn" aria-label="Add">+</button>
+                    <div class="block-header"><span>Channels</span><button type="button" class="add-btn" aria-label="Add">+</button>
                     </div>
                     <div class="block-body"></div>
                 </div>
             </div>
 
             <div class="block" data-c="blue" data-k="cs">
-                <div class="block-header"><span>Customer Segments</span><button class="add-btn"
+                <div class="block-header"><span>Customer Segments</span><button type="button" class="add-btn"
                         aria-label="Add">+</button></div>
                 <div class="block-body"></div>
             </div>
@@ -419,12 +419,12 @@
 
         <div class="bmc-bottom">
             <div class="block" data-c="blue" data-k="cost">
-                <div class="block-header"><span>Cost Structure</span><button class="add-btn" aria-label="Add">+</button>
+                <div class="block-header"><span>Cost Structure</span><button type="button" class="add-btn" aria-label="Add">+</button>
                 </div>
                 <div class="block-body"></div>
             </div>
             <div class="block" data-c="blue" data-k="rev">
-                <div class="block-header"><span>Revenue Streams</span><button class="add-btn"
+                <div class="block-header"><span>Revenue Streams</span><button type="button" class="add-btn"
                         aria-label="Add">+</button></div>
                 <div class="block-body"></div>
             </div>
@@ -432,9 +432,10 @@
     </div>
 
     <div class="bar">
-        <button id="reset">Reset voor hele team</button>
+        <button type="button" id="reset">Reset voor hele team</button>
     </div>
 
+    <script src="export-tools.js"></script>
     <script src="supabaseClient.js"></script>
     <script>
         (async () => {
